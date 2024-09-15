@@ -1,0 +1,166 @@
+vim : advanced text editor 
+
+the vim has three modes.
+
+insert , command , exec
+i : go to insert mode 
+esc : exit from insert mode
+<:> : go to exec mode
+w :  write 
+q  : quit
+wq : write and quit
+q! : quit without write
+u : undo
+yy : copy 
+<n>yy: copy n of line 
+dd : cut 
+p : paste  
+gg: go to the begging
+G : go to the end
+/<keyword> : to search from begging to end 
+	n : get the next match 
+	shift + n : get the previous match 
+?<keyword> : to search from end to begging 
+
+%s/sync/replicate : replace sync  with replicate ( s = substitute = بدل )
+%s/sync/replicate/g : replace all
+
+r <file name> : read file and copy text to vim
+
+ 
+!<command> : to execute a command out of vim and return  
+
+.!<command> : execute a command in a vim 
+
+<columns number> ! <command > : execute a command in columns number in a vim
+
+set <option>  
+    <nooption> 
+		: to enhance vim GUI  
+
+  
+====================14-Understanding boot process===================
+
+1-post (power on-self test
+2-BIOS ===>find bootable devices and compare it to its settings
+
+3-load iPL (initial program loader) --> load/start ==> Boot loader 
+
+grub (grand unified  boot loader ) : its boot loader in Linux 
+
+4- Grub load /start boot loader 
+
+5-boot loader --> load kernel --->kernel
+6- kernel --> start systemd / init
+
+7- systemd /init --> call services/daemons 
+
+
+
+ BL ---
+	-->1st stage : call 2nd stage (store in MBR) 
+	-->2nd stage : store in drive (/boot/) 
+
+kernel--
+	-->kernel -
+	-->initramfs  
+
+services name  d ديما بينتهي ب 
+	sshd 
+	cornd
+	
+
+
+systemctl status <servicename> : بيعرض حالة البروسيس 
+
+systemctl start <servicename> : run process 
+
+systemctl  stop <servicename>: 
+
+systemctl is-active <servicename> : show if its active or inactive 
+
+systemctl is-enabled <servicename> : show if its enabled  or disable
+
+systemctl restart <servicename> : restart service 
+systemctl reload <servicename> : reread configuration file  
+
+systemctl mask <servicename> : mask the service  
+systemctl unmask <servicename> : unmsk the service 
+
+
+
+init runlevels 
+0- power off/ halt
+1- single user mode 
+2- multi user -GUI -NFS
+3- command line interface -GUI
+4- unused
+5- Multi user + GUI
+6 - reboot
+
+
+systemd target 
+
+-Multi user.target =level3
+-graphical.target =level5
+-tescue.target =level1
+-reboot =level6
+-power off =level0
+
+
+systemctl get-default : show default target 
+
+systemctl set-default <target> : changing default target (reboot the machine to apply the modifications)
+ 
+runlevel : display Current and previous runlevel
+ 
+systemctl : isolate <target> : = systemctl  set-default <target> without need to reboot the machine 
+
+systemctl 
+
+ls /etc/systemd : systemd command file (soft link)
+ls /usr/lib/systemd : systemd command file 
+
+telinit == init 
+
+systemctl lest-units : display services and status 
+systemctl lest-units | grip -i failed : display failed service 
+
+systemctl lest-unit-files : display files of services 
+
+  
+ ----------------------15--------------------
+ 
+
+ls -l /boot/ : 
+
+
+vim /boot/grub2/grub.cfg : grub file 
+
+grub2-mkconfig -o /boot/grub2/grub.cfg : restore | regenerate ( o : output)   
+
+/etc/grub2.cfg : Any change that happens here also happens in {/boot/grub2/grub.cfg}
+
+/etc/sysconfig/grub : To make a permanent modification to the grub file (need to regenerate grub file)
+
+
+========What if I forgot my root password?
+
+
+SElinux (Security-Enhanced Linux): Security system gives label to everything.
+
+ 
+ls -LZ /etc/passwd : display label for passwd file 
+ls -LZ /etc/shadow : display label for passwd file 
+
+changing password 
+		boot the machine and bot c at the keyboard for edit 
+		rd.break : write rd.break  after os name and before initrd
+		ctrl + x : to start with root  access 
+		change mode form ro(read only) to rw (read write) 
+		mount : display where server root mounted
+		mount -o remount,rw /sysroot/ 
+		chroot / sysroot/
+		paswd 
+		touch /.autorelabel
+		

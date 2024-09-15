@@ -1,0 +1,212 @@
+==============Controlling access files==========
+
+file types
+	d : directory
+	- : file
+	c : char device (file)  
+	b : block device (file) 
+	l : link file 
+	p : pipe file 
+
+
+
+-rwxr-x--- 1 root root 0 oct 31 11:06 test 
+
+Change Permissions of Files and Dierectories (Symbolic Method)
+
+	u
+	g + r
+chmod   o - w <filename> 
+	a   x
+u,g,o,a(for user,group,other,all)
++,-,=(for add, remove ,set exactly)
+r,w,x(for read,wirte,executeable)
+
+
+chmod a + rwx test
+chmod u+rwx, g=rx,o - wx test
+
+
+
+Change Permissions of Files and Dierectories (Numeric Method)
+
+7   6   5   4   3   2   1 
+111 110 101 100 011 010 001
+rwx rw- r-x r-- -wx -w- --x
+
+
+chmod 777 test
+
+chown mohamed file1 : change the ownership
+chown mohamed:mohamed file1 : change the owner and group 
+chown :moahmed file1 : change group ownership
+chgrp mohamed  file1 : change group ownership
+chown -R root:root file1 : change owner and group ownership for dir and its file
+
+standard permissions
+
+
+special permissions 
+	: special permissions provide additional access-related features over and above what the basic permission types allow.
+symbolically : setuid = u+s; setgid = g+s; sticly = o+t    
+	chmod g+s dir1
+
+numerically (fourth preceding digit): setuid = 4; setgid =2;sticky =1 
+	chmod 2770 dir1 
+
+which <file> : search about file
+locate <file> : search from db 
+updatedb : to update database (important for locate)
+
+
+
+default file permissions 
+
+umask : display the current value of the shell's umask. ( root = 0022 , regular user = 0002)
+
+			
+0   2   2 (decimal)					0   0   2 (decimal)			
+000 010 010 (binary)					000 000 010 (binary)
+111 101 101 (Reverse)					111 111 101 (Reverse)
+rwx r-x r-x dir (symolically)				rwx rwx r-x dir (symolically)
+rw- r-- r-- file (remove x)				rw- rw- r-- file (remove x)
+
+umask 007 
+umask take effect at current bash. 
+
+the system's default umask values for Bash shell users are defined in the /etc/profile and /etc/bashrc files.
+users can override the system defaults in teh (.bash_profile and .bashrc) files in their home directories.
+	.bashrc : It works every time I open a new bash
+	.bash_profile : It works once when you log in. 
+echo "umask 007" >> ~/.bashrc 
+
+
+
+
+==========Monitoring and Managing Linux processes==============
+
+A process is a running instance of a launched ,executable program
+
+Any process may create a child process 
+
+Every process assigned PID and PPID 
+
+
+whoami : display effective user 
+
+
+
+ps  : list currant processes 
+
+ps aux : display all processes including processes without a controlling terminal 
+ps lax : A long listing provides more technical detail. 
+top : like Take Manager in Windows
+pstree : displays all processes as tree
+pstree -p : display all processes as tree with PID
+pstree -p mohamed : display processes of a specific user 
+pgrep pu mohamed -l : show process name of a specific user
+
+
+<command> & : run command in Background 
+jobs == ps j : list command or process run in background 
+fg %<job number> : return process to foreground
+
+
+kill <PID> :kill process
+Kill -l : list each signal 
+  
+Kill -15 <PID> : default kill signal
+kill -9 : aggressive termination 
+kill -1 : (SIGHUB) to reload an re0read the configurations (configuration reload without termination)
+
+pidof <Pname>: print id of process
+killall sleep : kill each sleep's processes 
+pkill  -U mohamed : kill all Mohamed's processes 
+
+top : dynamic view of the system's processes.
+   -n 2 : specifies the maxinum number of iterations 
+   -d 2 : number of second betwwen each update 
+
+
+Linux process scheduling and multitasking: 
+
+ps lax | less : list processes with nice number
+
+ps axo user,pid,nice,command : list user,pid,nice,command 
+
+
+nice vim text : start process with a user difined priority(10).
+nice -n 10 vim text & : start process with a 10 priority.
+
+
+renice <nice value > <process id> : renice process (nice value form -20 to 19)
+
+renice 19 $(pgrep sleep) : set 19 of all sleep process priority 
+killall <proc name> : kill processes 
+
+
+
+
+
+
+
+
+
+=============controlling services  and daemons ==========
+
+systemd is a first process that starts in Red Hat Enterprise Linux (PID 1) 
+
+systemctl list-units --type = service : list all active services
+
+systemctl list-units --type =  --all : list all active and inactive services
+
+systemctl --failed --type= service : list filed service
+
+systemctl status <service name> : view service status.
+
+	systemctl status sshd.service 
+
+systemctl is-active sshd.service : display service active or inactive 
+
+systemctl is-enabled sshd.service : display service enable or disable
+
+systemctl is-failed sshd.service : display service active or failed 
+
+systemctl start sshd.service : to start a service 
+
+systemctl restart sshd.service : to restart a service 
+
+systemctl reload sshd.serivce : to reload a service (re-read the configuration file)  
+
+systemctl stop sshd.service : to stop currently running service 
+
+systemcl list-dependencies unit : display a hierarchy mapping of dependencies to start the service unit.
+
+systemctl mask sendmaill.service : mask service
+  
+systemctl unmask sendmaill.service : unmask service  
+
+systemctl enblle sshd.service : to start a service at boot 
+
+systemctl disable sshd.service : to disable the service from start automatically. 
+
+=========================Configuration and securing ssh ===================
+
+
+
+ssh <username>@<remotehost> : create accessing remote interactive shell.
+
+ssh <student>@<serverb> <hostname> : the ssh command would run the <hostname> on the <serverb> remote system as a <student> user without accessing the remote interactive shell. 
+
+ssh <username>@<remotehost> 'date;ls -lh' : execute commands without create interactive shell.
+
+
+we have two type of authentication 
+				   1- password authentication 
+				   2- keys authentication 
+
+ssh-keygen : to create a private key and matching public key for authentication. 
+	     your private and public keys are saved in your  ~/.ssh/id_rsa and ~/.ssh/id_rsa.pub files, respectively. 
+	     the permission modes must be 600 on the private key and 644 on the public key
+
+ssh-copy-id -i ~/.ssh/id_rsa.pub mohamed@192.168.1.10 : copies the public key of ssh keypair to the destination system(mohamed)

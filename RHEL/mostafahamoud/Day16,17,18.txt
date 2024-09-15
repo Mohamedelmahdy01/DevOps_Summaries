@@ -1,0 +1,11 @@
+Grub
+	- Reinstall First stage
+	- set Grub password 
+	- Reset password (Grub + root Account )
+	- Disable ALT + CTRL + Delete : reboot
+		cd /usr/lib/systemd/system/
+		ls -l | grep -i del
+		systemctl mask ctrl-alt-del.target
+		
+ the machine 
+	

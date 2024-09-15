@@ -1,0 +1,31 @@
+https://www.youtube.com/watch?v=ooT5fCi37yM&list=PLLlr6jKKdyK1f8p8ajyYtXP9GxdFH7WIU&index=11
+nautilus [path] : open folder 
+
+adduser : to add user "this command enable gust in root"
+id <username> : display user id, group id and user groups
+passwd <username> : Set or change a password
+su - <username> : switch user
+ls : display content in current folder 
+ls -lh : : l-> Long listing h-> human readable 
+ls -lt : long list time 
+ls -lr : long list reverse 
+ls -r : reverse 
+ls -R :  recursively
+pwd : print working dirctory
+cd : change dirctory
+touch [path]<file name> : create empty file if it not exist, so it it exist ,touch command display last update
+exit: exit form terminal = ctrl + D
+ctrl + c : stoped application
+Longin row : display longin history "root"
+ctrl + s lock screen
+ctrl + q unlock screen
+mkdir [path]<dirname>: create dirctory
+cp [-r] [path]<filename> <newpath>: copy file (cp = copy, r = recursively )
+
+mv [path]<filename> <newpath>[newfilename]: move file (mv = cut )
+mv [path]<dirname> <newdirpath>[newdirname] : move directory[rename]
+rm <filename>:  remove file
+rmdir <dirname>: remove empty dirctory 
+rm -r <dirname>: Remove the directory and its files
+rm -rf dir1 : Remove the directory and its files at once root(rf = forc and recursively)<<<dangerous command>>>
+dangerous

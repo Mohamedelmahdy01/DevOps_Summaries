@@ -1,0 +1,79 @@
+mounting 
+
+
+df [-h] : disk free space {h = human readable format }
+
+
+mount -t <fstype> <dev> <mountpoint>
+mount -t ext4    /dev/sda1  /media
+
+e2label <dev> <lable> : Set a label for the partition
+
+blkid : Display universal unique identifier (UUID)for partitions
+
+mount UUID=<UUIDforpartition>
+unmount ~  ~   ~
+
+umount <dev|point|lable>
+
+
+mount -a : mount all device 
+
+
+nano/etc/fstab
+
+
+--------------11-process_managment-------------
+
+
+ps : list current terminal process 
+
+ps [a] : list all process 
+ 
+ps aux : display all process at system with details  
+kill <proc number>  : stop process in background 
+
+kill -9 <proc number> : kill process force 
+
+kill -l : view all kill options 
+
+ps -ef : display all process at system with details +PPID 
+
+pstree : view all process as a tree 
+
+pgrep <procname> : display process id
+
+pkill <procname> : kill process using process name
+
+<program name> & Running in the background
+
+jops : display process Running in the foreground
+
+fg %<procnumber> :Running in the foreground
+bg %<procnumber> :Running in the background
+
+
+-------------------------------12-------------------------------------
+
+
+killall <procname>: kill all process 
+
+nice value form -20(highest priority) to 19(lowest priority) default value 0
+
+nice -n <-20:19> <process> : set nice value (priority)
+renice -n <-20:19> <process> : set nice value (priority) 
+
+top : view load on the machine
+
+
+=========search============
+ searching on {5,6,7.txt}
+grep on {8,9,10.txt} 
+
+
+cut -f 1,3 -d : /ect/passwd : Get fields 1,3 and the separator between them : 
+
+cut -f 3 -d : /ect/passwd | sort -n 
+
+cut -f 7 -d : /ect/passwd | uniq 
+cut -f 7 -d : /ect/passwd | sort | uniq

@@ -1,0 +1,108 @@
+  variables 
+	environmental : capital letters
+		env : show environmental variables 
+	user defined variables : small letters
+		set : show environmental and user defined variables 
+
+echo $<varname> : print variables
+
+
+[mohamed2@mohamed ~]
+[user@machinename cwd] : Stored in PS1 variable
+
+PS1='[\u@\h \w]' :  value  
+س
+nano <filename1> : If the file exists, it opens, and if it does not exist, it creates a file 
+
+variables 
+	system wide variables (global) 
+		Stored in /etc/ <profile | bashrc>
+
+	user specific variables 
+		Stored in <~/ .bashprofile |  ~/ .bashrc>
+
+alias <shortname>=<'longer command' | 'sequence of commands'> : an alias is a user-defined shorthand for a longer command or sequence of commands
+
+alias -p : This option prints all the defined aliases is reusable format. 
+
+
+
+examples
+	alias ..='cd ..' 
+	alias cls='clear'
+	alias ll='ls -l'
+		 
+unalias [alias name] : Removing an existing alias is known as unaliasing
+
+
+------------------------------------------------------------------------------------
+
+redirection 
+	default
+		input keyboard (<)
+		output screen (>)
+
+
+> overwritten 
+>> append
+
+ ls > result.txt :save output at result file 
+ ls install2 2> result.txt :save error at result file 
+
+
+ls install.log install2 1>output.txt 2>error.txt : if (output)	
+		save at output.txt
+	    else if (error)
+	   	save at error.txt
+
+ls -l anaconda-ks.cfg meshwawgood 2&>result3.txt : save out.put and error at result3 file
+ls -l anaconda-ks.cfg meshwawgood >>result3.txt 2>>result2.txt : save output and error at result3 file
+
+
+cat result3.txt == cat < result3.txt Because the default input is from the file
+
+
+
+tr 'a-z' 'A-Z' : transform form small  to capital letter 
+
+tr 'a-z' 'A-Z' <.bashrc >.bashrc : Convert text in a Bash file from lowercase to uppercase and save the change
+
+
+grep [--color | -n | --color -n ]<keyword> <filenamewithorwithoutphat>: Returns all lines that contain 'keyword'
+grep 'root' /etc/passwd 
+
+pipe <|> 
+
+example
+
+find / -name passwd | grep [i | v | iv] 'bin' : Find all files named passwd and then return all lines containing "root" from the find command
+
+i : unsensitive
+v : Returns all lines that doesn't contain 'keyword'
+
+
+
+less <filename> : display file page by page
+more <filename> : display file page by page (لما يوصل للنهاية بيقفله لوحده )
+
+
+sort <filename> : sort lines in this file 
+uniq : remove sequence redundance  
+
+cat test |sort | uniq
+
+cut -<f1|f2|.....> -d <الفاصل> <file> : display fieldnumber form file   
+example cut -f1 -d : /ect/passwd
+
+-d : delimeter 
+	:
+	" "
+	;
+
+head [-n numberoflines] <filename>: Display the number of lines from the beginning of the file (10 line by default)
+
+tail [-n numberoflines] <filename>:Display the number of lines from the end of the file (10 line by default)
+
+head -n 3 /ect/passwd |tail -n 1 == head -n +3 /ect/passwd : display line 3 form file
+
+aspell check <filename>: check file
