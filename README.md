@@ -2,6 +2,28 @@
 
 This section of my repository is dedicated to summarizing key DevOps tools that I have studied. Each tool is described in detail, covering its purpose, features, and practical usage in DevOps workflows. 
 
+
+
+## 🖥️ System Administration I & II Topics
+
+### **System Administration I**
+   - **Overview**: Basic system administration tasks, focusing on fundamental concepts of managing Linux/Unix-based systems.
+   - **Key Topics**:
+     - User and group management.
+     - File permissions and access control.
+     - Basic networking and firewall configuration.
+     - Package management and software installation.
+     - System monitoring and logging.
+
+### **System Administration II**
+   - **Overview**: Advanced system administration tasks, building on System Administration I to cover more complex operations.
+   - **Key Topics**:
+     - Managing services and daemons.
+     - Advanced networking (DNS, DHCP, VPN, etc.).
+     - Performance tuning and resource management.
+     - Backup strategies and disaster recovery.
+     - Automation with shell scripting and tools like Ansible.
+
 ## ⚙️ DevOps Tools Covered
 
 ### 1. **Docker**
@@ -65,3 +87,4 @@ This section of my repository is dedicated to summarizing key DevOps tools that 
 Each tool has its own dedicated Markdown file with detailed explanations, examples, and usage instructions. Feel free to explore and learn more about these essential DevOps tools.
 
 ---
+
