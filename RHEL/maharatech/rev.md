@@ -1,93 +1,134 @@
 # Linux Commands and Concepts
 
-## File and Directory Operations
-- `ls -ltr` : List files with detailed info in reverse time order.
-- `mkdir -p dir1/dir2/dir3` : Create nested directories.
+## File Operations
+
+### Listing Files
+- **ls -ltr** : List files with detailed info (long format) sorted by modification time, reversed.
+
+### Creating Directories
+- **mkdir -p dir1/dir2/dir3** : Create nested directories.
 
 ## Links
-- **Hard link**: Another name for a file that refers to the actual data.
-- **Soft link**: A reference or pointer (similar to shortcuts in Windows).
-- `ln <File> <HardLinkName>` : Create a hard link.
-- `ln -s <File> <SoftLinkName>` : Create a soft link.
-- `ls -li` : Show inode number.
+
+### Hard Link
+- A hard link is another name for a file (refers to actual data).
+- **ln <File> <HardLinkName>** : Create a hard link.
+
+### Soft Link
+- A soft link is a reference or pointer (like shortcuts in Windows).
+- **ln -s <File> <SoftLinkName>** : Create a soft link.
+- **ls -li** : Show inode number along with the list of files.
 
 ## Pattern Matching
-- `*` : Any string of zero or more characters.
-- `?` : Any single character.
-- `[abc...]` : Any one character within the class.
-- `[!abc...]` / `[^abc...]` : Any one character not in the class.
-- `[[:alpha:]]` : Any alphabetic character.
-- `[[:lower:]]` : Lowercase characters.
-- `[[:upper:]]` : Uppercase characters.
-- `[[:alnum:]]` : Alphabetic characters or digits.
-- `[[:punct:]]` : Any printable character that's not alphanumeric.
-- `[[:digit:]]` : Digits (0-9).
-- `[[:space:]]` : Any whitespace character (e.g., tab, space, newline).
+
+### Symbols:
+- **\*** : Matches any string of zero or more characters.
+- **?** : Matches any single character.
+- **[abc...]** : Matches any one character in the enclosed class.
+- **[!abc...]** or **[^abc...]** : Matches any one character not in the enclosed class.
+
+### Character Classes:
+- **[[:alpha:]]** : Any alphabetic character.
+- **[[:lower:]]** : Any lowercase character.
+- **[[:upper:]]** : Any uppercase character.
+- **[[:alnum:]]** : Any alphabetic character or digit.
+- **[[:punct:]]** : Any printable character not a space or alphanumeric.
+- **[[:digit:]]** : Any digit (0-9).
+- **[[:space:]]** : Any single whitespace character (tabs, newlines, etc.).
 
 ## Basic Regular Expressions
-- `.` : Any character.
-- `^` : Matches the start of a string.
-- `$` : Matches the end of a string.
-- `*` : Zero or more occurrences of the preceding character.
-- `\` : Escapes special characters.
-- `()` : Groups regular expressions.
-- `?` : Matches exactly one character.
+
+- **.** : Matches any character.
+- **^** : Matches the start of a string.
+- **$** : Matches the end of a string.
+- **\*** : Matches zero or more occurrences of the previous character.
+- **\** : Escapes special characters.
+- **()** : Groups regular expressions.
+- **?** : Matches exactly one character.
 
 ## `cut` Command
-- `cut -d : -f 1,7 /etc/passwd` : Extract fields 1 and 7 using `:` as a delimiter.
+
+- The `cut` command is used for cutting out sections from each line of a file and writing the result to standard output.
+- **cut -d ":" -f 1,7 /etc/passwd** : Cut fields 1 and 7 using ":" as a delimiter.
 
 ## `wc` Command
-- `echo "I Love Linux" | wc` : Count words, lines, and characters.
 
-## Variables
-- **User-Defined Variables**: Custom variables in shell.
-- **Shell Variables**: Built-in variables.
-- `set` : List all shell variables.
-- `echo $HISTSIZE` or `echo $HOME` : Display variable values.
-- `export <variable>` : Export variable to child processes.
-- `PATH` : A list of directories containing programs.
-  - `PATH=PATH:/home/mohamed` : Append `/home/mohamed` to `PATH`.
-- `env` : List environment variables.
+- **echo "I Love Linux" | wc** : Counts words, lines, and characters in the input.
 
----
+## Environment Variables
 
-# Managing Local Users and Groups
+### Shell Variables:
+- **set** : Lists all shell variables.
 
-## User Accounts
-- **Superuser** (UID 0), **System Users** (UID 1-999), **Regular Users** (UID 1000+).
-- `whoami` : Show current user.
-- `su` : Switch users without changing the directory.
-- `su -` : Switch users and change to the user's home directory.
-- `sudo` : Run commands as another user, typically root.
-  - Configuration: `/etc/sudoers` (Edit using `visudo`).
-  - Example: `user01 ALL=(ALL) ALL` : Enable full sudo access for user01.
+### Common Variables:
+- **echo $HISTSIZE** : Shows the history size.
+- **echo $HOME** : Shows the home directory.
 
-## User Management
-- `useradd <username>` : Create a new user.
-  - Example: `useradd -md /home/user_1 -c "Planning user" -s /bin/sh -g mohamed -G wheel -u 5000 user01`.
-- `usermod <username>` : Modify user information.
-  - Example: `usermod -aG mohamed user01` : Append to secondary group.
-- `userdel <username>` : Delete user (without home directory).
-  - `userdel -r <username>` : Delete user with home directory.
+### Modifying `PATH`:
+- **PATH=PATH:/home/mohamed** : Append `/home/mohamed` to the `PATH`.
 
-## Group Management
-- `groupadd -g 3000 group01` : Create group with ID 3000.
-- `groupmod -n newgroup group01` : Rename group.
-- `groupdel group01` : Delete group.
+### Exporting Variables:
+- **export <variables>** : Exports variables to child processes.
 
----
+### Listing Environment Variables:
+- **env** : List all environment variables.
 
-# Managing User Passwords
+## Managing Users and Groups
 
-- User passwords are stored in `/etc/shadow` file with encrypted passwords.
-- **Password Fields**: Username, encrypted password, last changed date, minimum days, maximum days, warning period, inactivity period, expiration date.
+### Superuser and User IDs:
+- **Superuser (UID: 0)**
+- **System users (UID: 1–200 statically, 201–999 dynamically)**
+- **Regular users (UID: 1000+)**
 
-## Configuring Password Aging
-- Example: `chage -m 0 -M 90 -W 7 -I 14 user03`.
-  - `-m` : Minimum days before password change.
-  - `-M` : Maximum days before password expires.
-  - `-W` : Warning days before password expiration.
-  - `-I` : Inactive days before account lock.
+### User Commands:
+- **whoami** : Show current username.
+  
+#### Switching Users:
+- **su** : Switch to another user without changing the working directory.
+- **su -** : Switch to another user and change the working directory.
+
+### `sudo` Command:
+- Allows a permitted user to execute a command as the superuser.
+- **vim /etc/sudoers** : Edit the sudo configuration file using `visudo`.
+
+#### Example `sudoers` Entries:
+- **user01 ALL=(ALL) ALL** : Grant full sudo access to user01.
+- **%group01 ALL=(ALL) ALL** : Grant full sudo access to group01.
+
+### Adding and Modifying Users:
+- **useradd <username>** : Add a new user.
+- **useradd -md /home/user_1 -c "Planning user" -s /bin/sh -g mohamed -G wheel -u 5000 user01** : Add a user with options.
+- **usermod <username>** : Modify an existing user.
+  - **usermod -aG <group> <username>** : Add the user to a secondary group.
+  - **usermod -L <username>** : Lock the user.
+  - **usermod -U <username>** : Unlock the user.
+- **userdel <username>** : Delete a user.
+- **userdel -r <username>** : Delete a user and their home directory.
+
+### Group Commands:
+- **groupadd <groupname>** : Add a new group.
+- **groupmod -n <newgroup> <oldgroup>** : Rename a group.
+- **groupdel <groupname>** : Delete a group.
+
+## Managing User Passwords
+
+### `/etc/shadow` File Format:
+- **(1)** Username
+- **(2)** Encrypted password
+- **(3)** Last password change (days since 1/1/1970)
+- **(4)** Minimum number of days between password changes
+- **(5)** Maximum number of days before password expires
+- **(6)** Password warning period (days)
+- **(7)** Inactivity period (days after password expires before account is locked)
+- **(8)** Account expiration date (days since 1/1/1970)
+- **(9)** Reserved for future use.
+
+### Configuring Password Aging:
+- **chage -m 0 -M 90 -W 7 -I 14 user03** : Set password aging parameters.
+  - **-m** : Minimum days between password changes.
+  - **-M** : Maximum days before password expires.
+  - **-W** : Warning period (days before password expires).
+  - **-I** : Inactive days after password expires before account is locked.
 
 # Controlling Access to Files
 
@@ -99,36 +140,49 @@
 - **l** : Link file
 - **p** : Pipe file
 
-## File Permissions
-Example: `-rwxr-x--- 1 root root 0 Oct 31 11:06 test`
+### File Permission Example
+`-rwxr-x--- 1 root root 0 oct 31 11:06 test`
 
-### Changing Permissions (Symbolic Method)
+## Change Permissions of Files and Directories (Symbolic Method)
+
+### Symbols:
 - **u** : User
 - **g** : Group
-- **o** : Other
+- **o** : Others
 - **a** : All (User, Group, and Others)
 - **r** : Read
 - **w** : Write
 - **x** : Execute
 
 #### Usage:
-- `chmod u+rwx, g=rx, o-wx test` : Set permissions for `test` file.
 - `chmod o-w <filename>` : Remove write permission for others.
+- `chmod a+rwx test` : Add read, write, and execute permission for all.
+- `chmod u+rwx, g=rx, o-wx test` : Set permissions for `test` file.
 
-### Changing Permissions (Numeric Method)
-- **rwx** : Read, write, execute.
-- **7** : rwx (111)
-- **6** : rw- (110)
-- **5** : r-x (101)
-- **4** : r-- (100)
-  
+## Change Permissions of Files and Directories (Numeric Method)
+
+### Numeric Permissions:
+| Value | Binary | Meaning       |
+|-------|--------|---------------|
+| 7     | 111    | rwx (read, write, execute) |
+| 6     | 110    | rw- (read, write)          |
+| 5     | 101    | r-x (read, execute)        |
+| 4     | 100    | r-- (read only)            |
+| 3     | 011    | -wx (write, execute)       |
+| 2     | 010    | -w- (write only)           |
+| 1     | 001    | --x (execute only)         |
+
 #### Usage:
 - `chmod 777 test` : Give full permissions to user, group, and others.
 
-## Changing Ownership
+## Change Ownership
 - `chown mohamed file1` : Change ownership to `mohamed`.
 - `chown mohamed:mohamed file1` : Change both owner and group.
+- `chown :mohamed file1` : Change group ownership only.
 - `chgrp mohamed file1` : Change group ownership.
+
+#### Recursive Ownership Change:
+- `chown -R root:root file1` : Change owner and group ownership for directory and its files.
 
 ## Special Permissions
 - **Setuid**: `chmod u+s file1` or `chmod 4xxx file1`
@@ -140,9 +194,21 @@ Example: `-rwxr-x--- 1 root root 0 Oct 31 11:06 test`
 - `locate <file>` : Search for a file in the database.
 - `updatedb` : Update the file location database.
 
-## Default File Permissions
-- `umask` : Displays the current umask value (default is `0022` for root, `0002` for regular users).
-- `umask 007` : Set the umask to `007` (blocks permissions for others).
+## Default File Permissions (umask)
+- `umask` : Display the current umask value.
+  - Root user default: `0022`
+  - Regular user default: `0002`
+  
+| Decimal | Binary   | Reverse | Symbolic (Directory) | Symbolic (File) |
+|---------|----------|---------|----------------------|-----------------|
+| 0 2 2   | 000 010  | 111 101 | rwx r-x r-x           | rw- r-- r--      |
+| 0 0 2   | 000 000  | 111 111 | rwx rwx r-x           | rw- rw- r--      |
+
+- `umask 007` : Set the umask to block permissions for others.
+
+#### Notes:
+- `.bashrc` : Works every time a new bash shell is opened.
+- `.bash_profile` : Works once when you log in.
 
 ---
 
@@ -151,47 +217,69 @@ Example: `-rwxr-x--- 1 root root 0 Oct 31 11:06 test`
 ## Process Information
 - **PID** : Process ID
 - **PPID** : Parent Process ID
-- `whoami` : Show the current user.
+
+#### Commands:
+- `whoami` : Display the effective user.
 - `ps aux` : Display all processes.
-- `top` : Dynamic system process view (like Task Manager in Windows).
+- `ps lax` : Long listing with technical details.
+- `top` : Dynamic view of the system’s processes (similar to Task Manager in Windows).
 - `pstree` : Display all processes as a tree.
+  - `pstree -p` : Display processes with PID.
+  - `pstree -p mohamed` : Display processes of a specific user.
 
 ## Managing Background Processes
 - `<command> &` : Run a command in the background.
-- `jobs` : List background jobs.
-- `fg %<job number>` : Bring background job to the foreground.
+- `jobs` : List processes running in the background.
+- `fg %<job number>` : Return a process to the foreground.
+
+## Killing Processes
 - `kill <PID>` : Kill a process by its ID.
-- `kill -9 <PID>` : Forcefully kill a process.
+- `kill -l` : List all kill signals.
+- `kill -15 <PID>` : Default kill signal.
+- `kill -9 <PID>` : Aggressive termination of a process.
 
 ## Process Scheduling and Priorities
+- **Nice value** : Priority of the process (from -20 to 19).
+  
+#### Commands:
+- `ps lax | less` : List processes with nice values.
 - `nice -n 10 vim text &` : Start a process with a nice value of 10.
 - `renice <nice value> <PID>` : Change the priority of a running process.
-
+- `renice 19 $(pgrep sleep)` : Set the nice value of all sleep processes to 19.
+  
 ---
 
 # Controlling Services and Daemons
 
 ## Systemd Commands
 - `systemctl list-units --type=service` : List all active services.
+- `systemctl list-units --type= --all` : List all services (active and inactive).
+- `systemctl --failed --type=service` : List failed services.
 - `systemctl status <service>` : View the status of a specific service.
+  - Example: `systemctl status sshd.service`
 - `systemctl start/stop/restart <service>` : Start, stop, or restart a service.
+- `systemctl reload <service>` : Reload the configuration file for a service.
 - `systemctl enable/disable <service>` : Enable or disable a service at boot.
-- `systemctl mask/unmask <service>` : Mask or unmask a service.
+- `systemctl mask/unmask <service>` : Mask or unmask a service to prevent/allow starting.
 
 ---
 
 # SSH Configuration and Security
 
-## Connecting via SSH
-- `ssh <username>@<remotehost>` : Create a remote shell session.
-- `ssh <username>@<remotehost> 'date; ls -lh'` : Execute commands remotely without an interactive shell.
+## SSH Commands
+- `ssh <username>@<remotehost>` : Create a remote interactive shell.
+- `ssh <student>@<serverb> <hostname>` : Run a command on a remote server without accessing the shell.
+- `ssh <username>@<remotehost> 'date; ls -lh'` : Execute multiple commands remotely without opening a shell.
 
 ## SSH Authentication Types
 1. **Password authentication**
 2. **Key-based authentication**
 
 ## Key-based Authentication
-- `ssh-keygen` : Generate an SSH key pair.
+- `ssh-keygen` : Create a private key and matching public key for authentication.
   - Private key: `~/.ssh/id_rsa`
   - Public key: `~/.ssh/id_rsa.pub`
 - `ssh-copy-id -i ~/.ssh/id_rsa.pub mohamed@192.168.1.10` : Copy the public key to the remote host.
+- **Permissions**:
+  - Private key permissions: `600`
+  - Public key permissions: `644`
