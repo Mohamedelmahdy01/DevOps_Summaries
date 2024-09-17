@@ -65,7 +65,7 @@ default file permissions
 umask : display the current value of the shell's umask. ( root = 0022 , regular user = 0002)
 
 			
-0   2   2 (decimal)					0   0   2 (decimal)			
+0   2   2 (decimal)						0   0   2 (decimal)			
 000 010 010 (binary)					000 000 010 (binary)
 111 101 101 (Reverse)					111 111 101 (Reverse)
 rwx r-x r-x dir (symolically)				rwx rwx r-x dir (symolically)
