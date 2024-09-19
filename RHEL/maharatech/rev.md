@@ -283,3 +283,109 @@
 - **Permissions**:
   - Private key permissions: `600`
   - Public key permissions: `644`
+
+### Goal:  
+Locate and accurately interpret system logs to troubleshoot system events.
+
+### Objectives:
+1. **Describe the basic logging architecture in Red Hat Enterprise Linux**:
+   - Understand how the system records events in log files located under `/var/log`.
+   - Learn the roles of `systemd-journald` and `rsyslog` in managing logs.
+
+2. **Understand the logrotate utility**:
+   - Learn how log files are managed and rotated to prevent them from consuming excessive disk space.
+
+3. **View and manage logs using `journalctl`**:
+   - Use `journalctl` to filter and view logs stored by `systemd-journald`.
+
+4. **Configure the time zone and adjust system time**:
+   - Learn how to set time zones and adjust system time, important for maintaining accurate log timestamps.
+
+---
+
+### System Logging Overview:
+Processes and the operating system kernel record events in logs. These logs are stored as text files, primarily in the `/var/log` directory. System logging is handled by two key services:
+
+#### 1. **systemd-journald:**
+   - A component of systemd responsible for recording, storing, and managing logs. 
+   - Stores logs in a binary format at `/run/log/journal/`.
+   - Supports querying logs using the `journalctl` command for more advanced filtering and management.
+
+#### 2. **rsyslog:**
+   - Sorts and writes system logs to files in `/var/log`, which persist across reboots.
+   - Handles traditional text-based logging for persistent storage.
+  
+##### Common Log Files:
+- **/var/log/messages:** General system messages.
+- **/var/log/secure:** Security and authentication logs.
+- **/var/log/maillog:** Mail server-related logs.
+- **/var/log/cron:** Logs related to cron jobs.
+- **/var/log/boot.log:** Logs related to system startup.
+
+---
+
+### Overview of Syslog Priorities:
+Syslog messages have two components: facility and severity.
+
+- **Facility:** The origin of the message, such as kernel, mail, authentication.
+- **Severity Levels:** Range from 0 (Emergency) to 7 (Debug), where lower numbers indicate higher severity.
+
+Logs can be analyzed using tools like `journalctl`, `grep`, and `rsyslog`.
+
+In system administration, analyzing and storing logs is a critical task for monitoring and troubleshooting. Here's an overview of syslog priorities and how logs are typically handled:
+
+### Overview of Syslog Priorities
+
+Syslog (System Logging Protocol) is widely used in Unix-like operating systems (like Linux) for collecting and storing log messages from various system components. Each log message has a priority, which is a combination of *facility* and *severity level*.
+
+#### 1. **Facility:**
+Facilities represent the part of the system or application that generates the log message. Common facilities include:
+
+- **kern:** Kernel messages
+- **user:** User-level messages
+- **mail:** Mail system
+- **daemon:** System daemons (background processes)
+- **auth:** Security/authorization messages
+- **syslog:** Syslog itself
+- **local0-local7:** Reserved for local use
+
+#### 2. **Severity Levels:**
+Severity levels indicate the importance of the log message. The lower the number, the higher the severity:
+
+- **0: Emergency** — System is unusable
+- **1: Alert** — Immediate action needed
+- **2: Critical** — Critical conditions
+- **3: Error** — Error conditions
+- **4: Warning** — Warning conditions
+- **5: Notice** — Normal but significant conditions
+- **6: Informational** — Informational messages
+- **7: Debug** — Debug-level messages
+
+#### Syslog Message Structure:
+The priority of each message is calculated by combining the facility and severity, where:
+
+```
+Priority = (Facility * 8) + Severity
+```
+
+### Analyzing Logs:
+Logs can be analyzed manually or using tools like:
+- **grep:** To search logs for specific patterns or errors.
+- **tail -f /var/log/syslog:** For real-time log monitoring.
+- **journalctl:** To query and filter system logs (for systems using `systemd`).
+
+### Storing Logs:
+Logs are typically stored in files under `/var/log`. Examples include:
+- `/var/log/syslog` or `/var/log/messages` for general system logs
+- `/var/log/auth.log` for authentication-related logs
+- `/var/log/dmesg` for kernel ring buffer messages
+
+You can also configure remote logging, centralizing logs across multiple servers using tools like:
+- **rsyslog**: Advanced logging with features like filtering, remote logging, and custom formatting.
+- **Logrotate**: For managing the size and rotation of log files.
+
+#### Best Practices:
+- Set up log rotation to avoid disk space issues.
+- Use central logging solutions for distributed environments.
+- Implement monitoring for high-priority logs (errors, critical, alert).
+
