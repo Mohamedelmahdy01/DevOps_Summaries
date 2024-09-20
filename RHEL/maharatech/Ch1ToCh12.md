@@ -421,108 +421,131 @@ Here’s a rewritten version of your notes with examples and more
     crontab -l
     ```
 
-### Goal:  
-Locate and accurately interpret system logs to troubleshoot system events.
 
-### Objectives:
+
+# Analyzing and Storing Logs
+
+### **Goal:**
+- Locate and accurately interpret system logs to troubleshoot system events.
+
+---
+
+### **Objectives:**
 1. **Describe the basic logging architecture in Red Hat Enterprise Linux**:
-   - Understand how the system records events in log files located under `/var/log`.
-   - Learn the roles of `systemd-journald` and `rsyslog` in managing logs.
-
+   - Learn how processes and the operating system kernel record events in log files located in `/var/log`.
+   
 2. **Understand the logrotate utility**:
-   - Learn how log files are managed and rotated to prevent them from consuming excessive disk space.
+   - Learn how log files are rotated to manage disk space, with the configuration in `/etc/logrotate.conf`.
 
 3. **View and manage logs using `journalctl`**:
-   - Use `journalctl` to filter and view logs stored by `systemd-journald`.
+   - Use the `journalctl` command to filter and review logs, including prioritizing entries based on severity.
 
-4. **Configure the time zone and adjust system time**:
-   - Learn how to set time zones and adjust system time, important for maintaining accurate log timestamps.
-
----
-
-### System Logging Overview:
-Processes and the operating system kernel record events in logs. These logs are stored as text files, primarily in the `/var/log` directory. System logging is handled by two key services:
-
-#### 1. **systemd-journald:**
-   - A component of systemd responsible for recording, storing, and managing logs. 
-   - Stores logs in a binary format at `/run/log/journal/`.
-   - Supports querying logs using the `journalctl` command for more advanced filtering and management.
-
-#### 2. **rsyslog:**
-   - Sorts and writes system logs to files in `/var/log`, which persist across reboots.
-   - Handles traditional text-based logging for persistent storage.
-  
-##### Common Log Files:
-- **/var/log/messages:** General system messages.
-- **/var/log/secure:** Security and authentication logs.
-- **/var/log/maillog:** Mail server-related logs.
-- **/var/log/cron:** Logs related to cron jobs.
-- **/var/log/boot.log:** Logs related to system startup.
+4. **Configure the time zone and adjust the system time**:
+   - Manage system time settings, including time zone configuration using `timedatectl`.
 
 ---
 
-### Overview of Syslog Priorities:
-Syslog messages have two components: facility and severity.
+### **System Logging Architecture**
+- **Processes and Kernel Logging**:
+   - Both processes and the Linux kernel log system events for auditing and troubleshooting.
+   - Logs are stored in text files under `/var/log`.
 
-- **Facility:** The origin of the message, such as kernel, mail, authentication.
-- **Severity Levels:** Range from 0 (Emergency) to 7 (Debug), where lower numbers indicate higher severity.
+- **Logging Services**:
+   1. **systemd-journald**:
+      - Manages system logs stored in binary format in `/run/log/journal/`.
+      - Logs can be queried using `journalctl`.
+   2. **rsyslog**:
+      - Sorts and writes syslog messages to `/var/log`.
+      - This persists logs across reboots.
 
-Logs can be analyzed using tools like `journalctl`, `grep`, and `rsyslog`.
+- **Common Log Files**:
+   - `/var/log/messages`: General system messages.
+   - `/var/log/secure`: Security/authentication-related logs.
+   - `/var/log/maillog`: Logs related to the mail server.
+   - `/var/log/cron`: Logs related to scheduled job executions.
+   - `/var/log/boot.log`: System startup logs.
 
-In system administration, analyzing and storing logs is a critical task for monitoring and troubleshooting. Here's an overview of syslog priorities and how logs are typically handled:
+---
 
-### Overview of Syslog Priorities
+### **Syslog Priorities Overview**
+Syslog messages use **facility** and **priority** to determine how messages are handled. Messages have severity levels:
 
-Syslog (System Logging Protocol) is widely used in Unix-like operating systems (like Linux) for collecting and storing log messages from various system components. Each log message has a priority, which is a combination of *facility* and *severity level*.
+1. **0: Emergency** — System is unusable.
+2. **1: Alert** — Immediate action needed.
+3. **2: Critical** — Critical conditions.
+4. **3: Error** — Error conditions.
+5. **4: Warning** — Warning conditions.
+6. **5: Notice** — Normal but significant conditions.
+7. **6: Informational** — Informational messages.
+8. **7: Debug** — Debug-level messages.
 
-#### 1. **Facility:**
-Facilities represent the part of the system or application that generates the log message. Common facilities include:
-
-- **kern:** Kernel messages
-- **user:** User-level messages
-- **mail:** Mail system
-- **daemon:** System daemons (background processes)
-- **auth:** Security/authorization messages
-- **syslog:** Syslog itself
-- **local0-local7:** Reserved for local use
-
-#### 2. **Severity Levels:**
-Severity levels indicate the importance of the log message. The lower the number, the higher the severity:
-
-- **0: Emergency** — System is unusable
-- **1: Alert** — Immediate action needed
-- **2: Critical** — Critical conditions
-- **3: Error** — Error conditions
-- **4: Warning** — Warning conditions
-- **5: Notice** — Normal but significant conditions
-- **6: Informational** — Informational messages
-- **7: Debug** — Debug-level messages
-
-#### Syslog Message Structure:
-The priority of each message is calculated by combining the facility and severity, where:
-
-```
-Priority = (Facility * 8) + Severity
+These priorities are managed by rules in `/etc/rsyslog.conf`, and the `rsyslog` service is restarted to apply changes:
+```bash
+systemctl restart rsyslog.service
 ```
 
-### Analyzing Logs:
-Logs can be analyzed manually or using tools like:
-- **grep:** To search logs for specific patterns or errors.
-- **tail -f /var/log/syslog:** For real-time log monitoring.
-- **journalctl:** To query and filter system logs (for systems using `systemd`).
+---
 
-### Storing Logs:
-Logs are typically stored in files under `/var/log`. Examples include:
-- `/var/log/syslog` or `/var/log/messages` for general system logs
-- `/var/log/auth.log` for authentication-related logs
-- `/var/log/dmesg` for kernel ring buffer messages
+### **Log Rotation**
+- **logrotate** is a tool used to rotate log files, preventing them from consuming too much space in `/var/log`.
+   - The main configuration file is `/etc/logrotate.conf`.
+   - Restart logrotate with:
+   ```bash
+   systemctl restart logrotate.service
+   ```
 
-You can also configure remote logging, centralizing logs across multiple servers using tools like:
-- **rsyslog**: Advanced logging with features like filtering, remote logging, and custom formatting.
-- **Logrotate**: For managing the size and rotation of log files.
+---
 
-#### Best Practices:
-- Set up log rotation to avoid disk space issues.
-- Use central logging solutions for distributed environments.
-- Implement monitoring for high-priority logs (errors, critical, alert).
+### **Sending Syslog Messages Manually (Using `logger`)**
+- The `logger` command can send syslog messages to `rsyslog`. By default, it logs messages as **user.notice**.
+   ```bash
+   logger "Custom syslog message"
+   ```
+   You can specify a different priority with the `-p` option:
+   ```bash
+   logger -p auth.err "Authentication error occurred"
+   ```
 
+---
+
+### **Reviewing System Journal Entries (Using `journalctl`)**
+- The `journalctl` command highlights important log messages:
+   - **Bold**: Messages at **notice** or **warning** priority.
+   - **Red**: Messages at **error** priority or higher.
+
+   **Common `journalctl` commands**:
+   - `journalctl -n`: Show the last 10 log entries.
+   - `journalctl -f`: Continuously follow log output.
+   - `journalctl -p <priority>`: Show logs at the specified priority or higher.
+   - `journalctl -b`: Display logs from the current boot.
+   - `journalctl --since yesterday`: Show logs starting from yesterday.
+   - `journalctl _PID=1`: Display logs for a specific user by their UID (e.g., UID=1).
+
+#### **Make `journalctl` Logs Permanent**:
+1. Create the directory `/var/log/journal`:
+   ```bash
+   mkdir /var/log/journal
+   chown -R root:system-journal /var/log/journal
+   chmod g+s /var/log/journal
+   ```
+2. Edit `/etc/systemd/journal.conf`:
+   - Uncomment `Storage` and set it to `persistent`:
+   ```bash
+   Storage=persistent
+   ```
+3. Restart `systemd-journald` to apply the changes:
+   ```bash
+   systemctl restart systemd-jjournald
+   ```
+
+---
+
+### **Maintaining Accurate Time (Using `timedatectl`)**
+- **timedatectl** shows an overview of current time settings, including time zone and NTP sync status.
+
+   **Useful Commands**:
+   - `timedatectl`: Displays time settings overview.
+   - `timedatectl list-timezones`: Lists available time zones.
+   - `timedatectl set-timezone Africa/Cairo`: Sets the time zone.
+   - `timedatectl set-time <YYYY-MM-DD HH:MM:SS>`: Manually set the system time.
+   - `tzselect`: Guides you to determine the appropriate time zone.
