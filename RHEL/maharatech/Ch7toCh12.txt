@@ -257,14 +257,14 @@ System Logging
 
 
 	overview of systlog priorities
-	0 emerg   : system is unusable 
-	1 alert   : action must be taken innediately 
-	2 crit    : Criticla condition
-	3 err     : Non-critical error condition
-	4 warning : Warning condition
-	5 notice  : Normal but signigicant event 
-	6 info Informational event 
-	7 Debuggin-level message.
+- 0: Emergency — System is unusable
+- 1: Alert — Immediate action needed
+- 2: Critical — Critical conditions
+- 3: Error — Error conditions
+- 4: Warning — Warning conditions
+- 5: Notice — Normal but significant conditions
+- 6: Informational — Informational messages
+- 7: Debug — Debug-level messages
 
 	The rsyslog service uses the cacility and priority of log messages to detemine how th handle them.
 
