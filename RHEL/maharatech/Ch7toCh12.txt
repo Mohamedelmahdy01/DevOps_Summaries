@@ -210,3 +210,107 @@ ssh-keygen : to create a private key and matching public key for authentication.
 	     the permission modes must be 600 on the private key and 644 on the public key
 
 ssh-copy-id -i ~/.ssh/id_rsa.pub mohamed@192.168.1.10 : copies the public key of ssh keypair to the destination system(mohamed)
+You can do this manually
+	1-copy puplic key from ~/.ssh/idrsa,pub(clip < ~/.ssh/id_rsa.pub)
+	2-go to server > /root/.ssh > open authorized_keys (vi authorized_keys)
+	3-Paste the public key and save it
+
+
+Costomize ssh service configuration
+	OpenSSH service os provided by daemon called sshd. Its main configuration file is /etc/ssh/sshd_config.
+
+	PermitRootLogin : User can authenticate as root or not.
+		PermitRootLogin no : disable root login
+	PasswordAuthentication : The user can authenticate with password or not.
+		PasswordAuthentication no : disable password authentication
+	systemctl related sshd.service : reload services to apply the modification.
+
+	#ssh conect by default at port 22
+
+
+
+
+=========Analyzing and storing logs===============
+
+	goal 
+		logcate and accurately interpert logs of systems events for troubleshootin purposes.
+	
+
+	Objectives 
+		Describe the basic loggin architecture used by Red Hat Enterprise Linux to record events.
+		Understand logrotat utility
+		View and manage logs using journalctl command
+		configure the time zone and adjust the system time
+System Logging
+	processes and the operating system kernel record a log of events that happen. the logs are used to audit the system and troubleshoot problems.
+	systems record logs of events in text file which are kept in teh /var/log directory.
+	
+	syslog messages are handled by two service.
+	systemd-journald : The Journal is a component of systemd that is responsible ofr viewing and management of log files (stor in /run/log/journal/ )
+	rsyslog : The rsylog service sorts and writes syslog messages to the log files that do persist acroos roboots in /var/log
+		Log files
+			/var/log/messages
+			~	~	secure :related to secureity and authentication events.
+			~	~	maillog : related to the mail server.
+			~	~	cron : related to scheduled job execution.
+			~	~	boot.log : related to system startup.
+
+
+	overview of systlog priorities
+	0 emerg   : system is unusable 
+	1 alert   : action must be taken innediately 
+	2 crit    : Criticla condition
+	3 err     : Non-critical error condition
+	4 warning : Warning condition
+	5 notice  : Normal but signigicant event 
+	6 info Informational event 
+	7 Debuggin-level message.
+
+	The rsyslog service uses the cacility and priority of log messages to detemine how th handle them.
+
+	this is configured by rules in th /etc/rsylog.conf file.
+	systemctl restart resyslog.service : restart service to apply the modification.
+
+	
+	log file rotation 
+		the logrotate tool rotates log fils to keep them form taking up too much space in the file system containing the /var/log directory.
+		/etc/logrotate.conf : Main configuration file,
+		systemcl restart logrotate.service 
+
+	sending Syslog  Messages Manually 
+		the Logger command can send messages to the rsyslog service.By default, it sends the message to the user facility with hte notice priority(user.notice) unless specified otherwise with the -p option.
+
+
+	Reviewing System Journal Entries 
+		the gournalctl commadn highlights important kog maessages: messages at notice or warning priority are in bold text while messages at the error priority or higher are in red text.
+
+		journalctl -n :by default -n show the last 10 log Entries.
+			 	   -f :
+				   -p <priority> : list journal Entries at the <priority> or higher.
+				   -b : Display boat logs 
+				   --since yesterday : 
+				   _PID=1 : Display logs for user his UID = 1
+
+
+		make journalctl logs permanent:
+			mkdir /var/log/journal
+			chown -R root:system-journal /var/log/journal
+
+			shmod g+s /var/log/journal
+			vi /etc/systemd/journal.conf
+				uncomment Storage 
+				Storage=persistent
+				:wq : save changes
+			systemctl restart systemd-journal
+
+	Maintaining Accurate Time.
+		timedatectl command shows an overview of the currnet time-related system settings.including currnt time, zone, and NTP synchroniztion settings of the system.
+		
+		timedatectl : 
+		timedatectl list-timezones : lsited time zones
+		timedatectl set-timezones Africa/Cairo : set time zone
+		
+		tzselect : detemine the appropriate time zone
+
+		timedatectl set-time <YYYY-MM-DD hh:mm:ss>: to change the system's current time.
+		
