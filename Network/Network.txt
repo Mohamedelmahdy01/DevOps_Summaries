@@ -1,0 +1,43 @@
+=============introduction to Netwroks ================
+
+what is a computer network?
+
+
+why Networks ?
+    share hardware and data.
+
+Network Advantages
+    Save a lot of money
+    Increase Workgoups collaboration
+    Increase Productivity
+    Protect Company Data
+
+Network Components 
+    Computer Systems
+    Network Media
+    Network Interface
+    Network Protocol
+
+NetWork Types 
+        Networks
+            |
+            |
+            |
+        ------------------------
+        |                       |
+        |                       |
+    Geographical area       Host Pole
+    |                           |
+    |                       ----------
+--------------              |         |
+|      |      |            P2P       C/S
+LAN   MAN     WAN
+
+
+NetWork Topology
+    Topology is the layout of the network
+
+        ----> physical Topology:
+    ----
+        ----> Logicl Topology
+
