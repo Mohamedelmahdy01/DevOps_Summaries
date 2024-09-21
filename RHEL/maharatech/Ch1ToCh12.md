@@ -1,4 +1,3 @@
-Here’s a rewritten version of your notes with examples and more 
 # Linux Commands and Concepts with Examples
 
 ## File System and Directory Management
