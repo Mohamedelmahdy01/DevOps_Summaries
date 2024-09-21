@@ -313,4 +313,146 @@ System Logging
 		tzselect : detemine the appropriate time zone
 
 		timedatectl set-time <YYYY-MM-DD hh:mm:ss>: to change the system's current time.
+
+
+=============Networking ===============
+
+
+goal 
+	configure network interfaces and settings on Red Hat Enterprise Linux servers.
+
+Objectives 
+	Configure and modify network Settings from the CLI.
+	Manage network settings and devices using  nmcli.
+	Troubleshoot connectivity issues using CLI commands.
+	Change a server's host name and the DNS configurations form the CLI.
+
+
+Gathering network interface Information
+
+	Identifuing Network Interfaces 
+		ifconfig : this program is obslete! for replacement chech ip addrand ip link. for staticsics
+		use ip -s link.
+		ip link : list all network interfaces available on your system.
+		ip  add  show : get more about IP address Information.
+		ping  : send ICMP ECHO_REQUEST to network hosts 
+			 -c : Stop after sending count ECHO_REQUEST packets.
 		
+		ip route : display default ip rotute.
+
+	Cheching connectivity between hosts.
+		Tracing Routes Taken by Traffic.
+		traceroute or tracepath : to trace the path that network traffic to reach a remote host through myltiplerouters.
+
+	Troubleshoot paorts and serviices 
+		TCP services use sockets as end points for communication and are made up of an IP address, protocol, and port number.
+
+		/etc/services : file contains a list of network services and ports mapped to them.
+
+		ss : used to display socket staticsics.
+			-n :show numbers instead of names for interfaces and ports.
+			-t show TCP soockets.
+			-u Show UDP sockets.
+			-l show only listing sockets.
+			-a show all (listeing and established)sockets.
+			-p show the process using the sockets.
+
+	configure Network form the command listeing
+		RHEL8
+			sudo vi /etc/sysconfig/network-scripts/ifcfg-<YNIN>: Create this file if it doesn’t exist, replacing YNIN with your network interface name.
+			Edit the following contents to fit your network addressing scheme and paste into the file.
+
+				DEVICE=<Your network interface name>
+				TYPE=Ethernet
+				NM_CONTROLLED=yes
+				ONBOOT=yes
+				BOOTPROTO=none
+				IPADDR=192.168.121.188
+				NETMASK=255.255.255.0
+				GATEWAY=192.168.121.1
+				DNS1=8.8.8.8
+				DNS2=4.2.2.2
+				IPV6INIT=no
+				USERCTL=no
+				PEERDNS=yes
+		RHEL9
+			say goodbye to ifcfg-files,and hello to key files
+			
+			nmcli : this command can be used to modify the network congiuration.
+			network configuration will be written to files tin the /etc/NetworkManager/system-connections/ directory
+			The old network-scripts package has been removed which means you'll not find anyting in the /etc/sysconfig/network-scripts directory.
+
+		view network Information
+			 nmcli dev status : displays the status of all network devices.
+
+			 nmcli con show : displays a lsit of all connections. to list only the active connectiions, add the --active option
+		
+		adding a network connection 
+			nmcli con add used to add new network connectiions.
+
+				nmcli connection add con-name <Static-connectiion> type <ethernet> ifname <interface> ipv4.addresses 192.168.1.55/24
+				gw4 192.168.1.1 connection.autoconnect yes ipv4.method manual : static connection
+
+				nmcli connection add con-name Dynamic-<interface> ifname <interface> autoconnect yes ipv4.method auto : Dynamic connectiion
+
+				nmcli connection up <con-name> : activate connectiion (Only one connection can be activated.)
+
+				nmcli connection down <con-name> : deactivate connection 
+
+				nmcli connection delete <con-name> : delete connection
+
+				nmcli connection disconnect <con-name> : dispconnect connection
+				
+				nmcli connection connect <con-name> : connect connection
+	Modifying network connection setting 
+		nmcli con mod <con-name> : used to chage the settings for a connection.
+			nmcli con mod <con-name> ipv4.addresses "192.0.2.2/24 192.0.2.254" : set the IPv4 address to 192.0.2.2/24
+			and deflut geteway to 192.0.2.254 for the connection <con-name>.
+
+		Who can modify network setting
+			The root usr can make any necessary network configuration changes with nmcli.
+	
+				nmcli gen permissins : to see what your current permissions are.
+			
+		edit network configuration Files
+			By default, changes made with nmcli con mod name are automatically saved to 
+				/ect/sysconfig/network-scripts/ifcfg-name (RHEL8)
+				/etc/NetworkManager/system-connections/name.nmconnection (RHEL9)
+
+
+			it is also plssible to configure network by directly editing the connection configuration files.
+				/ect/sysconfig/network-scripts/ifcfg-name or /etc/NetworkManager/system-connections/name.nmconnection 
+
+				nmcli con reload : after doing so, reload network manager reads the configuration changes.
+
+				what if nmcli con reload doesn't work?
+					nmcli con down <"con-name"> : disconnect connection
+					nmcli con up <"con-name"> connect connection
+
+			also you can use nmtui 
+				nmtui : run text user interface 
+
+	configure Host Names and Name Resolution
+		host name sotred in /ect/hostname
+
+		hostname : Display host name
+
+		hostnamectl : used to modify thsi file and may be used to view the status of the system's fully qualified host name.
+			hostnamectl status : viwe the status of the system's fully qualified host name.
+			hostnamectl set-hostname <newhostname> : change host name 
+
+
+		configuring name Resolution
+			the DNS resolver is used to convert hsot names to IP addresses or the reverse. It determines where to look based on the 
+			configuration of the /etc/nsswitch.conf file.
+			by defalut, the contents of the /etc/hosts file are checked first.
+
+			if an entry os not found in the /etc/hosts file, by defalut the stub resolver to lok up the hostname by using a DNS nameserver. 
+			the /etc/resolv.conf file controls how this query is perfromed.
+		
+			nmcli con mod <con-name> ipv4.dns 8.8.8.8 : add google DNS
+			nmcli con down <con-name> 
+			nmcli con up <con-name> 
+			
+			cat /ect/sysconfig/network-scripts/ifcfg-<con-name> (RHEL8)
+			cat /etc/NetworkManager/system-connections/<con-name> (RHEL9)
