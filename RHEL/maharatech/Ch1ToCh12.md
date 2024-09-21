@@ -549,3 +549,141 @@ systemctl restart rsyslog.service
    - `timedatectl set-timezone Africa/Cairo`: Sets the time zone.
    - `timedatectl set-time <YYYY-MM-DD HH:MM:SS>`: Manually set the system time.
    - `tzselect`: Guides you to determine the appropriate time zone.
+
+
+---
+
+# Networking Configuration on Red Hat Enterprise Linux
+
+
+## **Goal:**
+Configure network interfaces and settings on Red Hat Enterprise Linux servers.
+
+---
+
+## **Objectives:**
+1. **Configure and modify network settings from the CLI**.
+2. **Manage network settings and devices using `nmcli`**.
+3. **Troubleshoot connectivity issues using CLI commands**.
+4. **Change server hostnames and DNS configurations from the CLI**.
+
+---
+
+## **Gathering Network Interface Information**
+
+### Identifying Network Interfaces:
+- **`ip link`**: Lists all network interfaces on the system.
+- **`ip addr show`**: Displays detailed IP address information for all interfaces.
+- **`ping`**: Tests network connectivity by sending ICMP ECHO requests.
+  - **`ping -c [count]`**: Sends a specified number of ECHO requests.
+
+### Viewing IP Routes:
+- **`ip route`**: Displays the system's default IP route.
+
+### Checking Connectivity Between Hosts:
+- **`traceroute` or `tracepath`**: Traces the route traffic takes through multiple routers to a remote host.
+
+---
+
+## **Troubleshooting Ports and Services**
+
+### Using `ss` for Socket Statistics:
+- **`ss`**: Displays detailed socket statistics.
+  - **`ss -n`**: Shows numerical addresses instead of resolving to names.
+  - **`ss -t`**: Displays TCP sockets.
+  - **`ss -u`**: Displays UDP sockets.
+  - **`ss -l`**: Lists listening sockets only.
+  - **`ss -a`**: Shows all sockets (both listening and established).
+  - **`ss -p`**: Displays processes using the sockets.
+
+---
+
+## **Configuring Network from the Command Line**
+
+### For RHEL 8:
+- Configuration file: `/etc/sysconfig/network-scripts/ifcfg-<interface_name>`.
+- Example contents:
+  ```
+  DEVICE=<network_interface_name>
+  TYPE=Ethernet
+  NM_CONTROLLED=yes
+  ONBOOT=yes
+  BOOTPROTO=none
+  IPADDR=192.168.121.188
+  NETMASK=255.255.255.0
+  GATEWAY=192.168.121.1
+  DNS1=8.8.8.8
+  DNS2=4.2.2.2
+  ```
+
+### For RHEL 9:
+- Configuration uses **key files** in `/etc/NetworkManager/system-connections/`.
+- **Network-scripts** package is no longer available in RHEL 9.
+
+---
+
+## **Managing Network with `nmcli`**
+
+### Viewing Network Information:
+- **`nmcli dev status`**: Displays the status of all network devices.
+- **`nmcli con show`**: Lists all network connections.
+  - **`nmcli con show --active`**: Shows only active connections.
+
+### Adding a Network Connection:
+- **Static connection**:
+  ```bash
+  nmcli connection add con-name <Static-connection> type ethernet ifname <interface> ipv4.addresses 192.168.1.55/24 gw4 192.168.1.1 connection.autoconnect yes ipv4.method manual
+  ```
+- **Dynamic connection**:
+  ```bash
+  nmcli connection add con-name Dynamic-<interface> ifname <interface> autoconnect yes ipv4.method auto
+  ```
+
+### Activating/Deactivating a Connection:
+- **Activate**: `nmcli connection up <con-name>`
+- **Deactivate**: `nmcli connection down <con-name>`
+
+### Modifying Network Connection Settings:
+- **Modify a connection**:
+  ```bash
+  nmcli con mod <con-name> ipv4.addresses "192.0.2.2/24 192.0.2.254"
+  ```
+  This sets the IPv4 address to `192.0.2.2/24` and default gateway to `192.0.2.254`.
+
+### Reloading Network Configuration:
+- **Reload**: `nmcli con reload`
+- If reload fails:
+  ```bash
+  nmcli con down <con-name>
+  nmcli con up <con-name>
+  ```
+
+### Using Text User Interface (TUI) for Network Configuration:
+- **`nmtui`**: A text-based user interface for managing network settings.
+
+---
+
+## **Configure Host Names and Name Resolution**
+
+### Modifying Hostnames:
+- **Hostname file**: `/etc/hostname`.
+- **View hostname**: `hostname`.
+- **Change hostname**:
+  ```bash
+  hostnamectl set-hostname <newhostname>
+  ```
+
+### Configuring DNS Resolution:
+- The DNS resolver converts hostnames to IP addresses based on configurations in:
+  - **`/etc/nsswitch.conf`**: Determines order of name resolution.
+  - **`/etc/hosts`**: First file checked for resolving hostnames.
+  - **`/etc/resolv.conf`**: Used to configure DNS query settings.
+
+- **Adding a DNS server with `nmcli`**:
+  ```bash
+  nmcli con mod <con-name> ipv4.dns 8.8.8.8
+  nmcli con down <con-name>
+  nmcli con up <con-name>
+  ```
+
+---
