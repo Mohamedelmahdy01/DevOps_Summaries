@@ -272,3 +272,170 @@ SUMMARY
          packages.
          Red Hat Enterprise Linux 9 uses Application Streams to provide a single repository to host multiple
          versions of an application's packages and its dependencies.
+
+
+
+===================Accessing Linux File Systems========================
+    Goal
+         • Access, inspect, and use existing file systems on storage attached to a Linux server.
+    Objectives
+        • List the block devices and file systems.
+        • Mount and unmount file systems and partitions in Linux.
+        • Search for files on mounted file systems using the find and locate commands.
+
+File system and mount points
+    • To make the contents of a file system available in the file-system hierarchy, it must be mounted
+    on an empty directory.
+    • This directory is called a mount point. Once mounted, if you use Is to list that directory, you will
+    see the contents of the mounted file system, and you can access and use those files normally.
+    Many file systems are automatically mounted as part of the boot process.
+
+
+Examining file systems
+    • To get an overview of local and remote file system devices and the amount of free space
+    available, run the df command
+    • To improve readability of the output sizes you can use human-readable option: -h
+    df : report file system disk space usage
+        -h : print sizes in powers of 1024(human-readable)
+
+    du : shows the size of all files in the current directory tree recursively.
+        -h : human-readable
+
+Identifying the block device
+    Use the Isbik command to list the details of a specified block device or all the available devices.
+    lsblk 
+        -fp  :file system type (more details in admin II)
+
+Mounting and unmounting file systems
+    • There are two common ways to specify the file system on a disk partition to the mountcommand:
+        • With the name of the device file in /dev containing the file system.
+        • With the UUID written to the file system, a universally-unique identifier.
+    mount <blockname> <Dirname> : mounting useing name of device
+        mount /dev/vdb1 /mut/data : mounts the file system in the /dev/vdbl partition on the directory /mnt/data.
+        mount /dev/nvme0n1p6 /data : mounts the file system in the /dev/nvme0n1p6 partition on the directory /data.
+
+
+    mount UUID <dirname>: mounting useing UUID
+        lsblk -fd or blkid : to get UUID
+        mount UUiID="<UUID>" <Dirname>
+    unmount <dirname>
+        unmount /data : unmount /data.
+
+
+    Find out which processes open a particular directory.
+        lsof /data : information about files opened by processes.
+
+
+    blkid : print block device attributes
+
+
+
+
+Search for files on mounted file systems
+    
+    Locating files on the system
+        A system administrator needs tools to search for files matching certain criteria on the file system.
+        • This section discusses two commands that can search for files in the file-system hierarchy.
+            • The locate command searches a pregenerated index for file names or file paths and returns the results instantly.
+            • The find command searches for files in real time by crawling through the file-system hierarchy.
+
+    Locating file by name
+        • The locate command finds files based on the name or path to the file. It is fast because it
+        looks up this information from the mlocate database.
+        • However, this database is not updated in real time, and it must be frequently updated for
+        results to be accurate.
+        • This also means that locate will not find files that have been created since the last update of
+        the database.
+        • The locate database is automatically updated every day. However, at any time the root user
+        can issue the updated command to force an immediate update.
+        
+
+
+        locate : search about file in database.
+            -i : case-insensitive.
+            -n <num> : limit results.
+            
+            locate file1 
+            locate i file1
+            locate -n 5 file1
+        
+    Searching for files in real time
+        • The find command locates files by performing a real-time search in the file-system hierarchy.
+        • It is slower than locate, but more accurate.
+        • It can also search for files based on criteria other than the file name, such as the permissions of the 
+        file, type of file, its size, or its modification time.
+        • The find command looks at files in the file system using the user account that executed the search.
+        • The user invoking the find command must have read and execute permission on a directory to examine its contents.
+        
+        find <location> -name <filename>
+            find / -name sshd_config : to search for files named sshd_config starting from the / directory
+        find <location> -name <'*.txt'>
+            find / -name '*.txt' : search for files starting in the / directory
+        find <location> -iname <'*ilenam*'>
+            find / -iname '*messages*' : search files with case-insensitive test,messages, in their names in the / directory on host.
+        find -user <username>
+            find -user mohamed : search for files owned by mohamed in the /home/mohamed directory on host.
+        find -group <groupusername>
+            find -group mohamed : search for files owned by the group mohamed in the /home/user/ directory on hsot.
+        find -uid <uid>
+            find -uid 1000 : search for files owned by user id 1000 in the /home/user directory on host.
+       find -user <username> -group <groupname> :The -user, and -group options can be used together to search files where file owner and group owner are different.
+             find / -user root -group mail :  list files that are both owned by user root and affiliated with group mail
+
+    Searching files based on ownership
+        • Search for files owned by user ID 1000 in the /home/user directory on host.
+            find -uid 1000
+        • The -user, and -group options can be used together to search files where file owner and group owner are different.
+
+             find / -user root -group mail : list files that are both owned by user root and affiliated with group mail
+    
+    
+    
+    Searching files based on permissions
+        • The -perm option is used to look for files with a particular set of permissions. Permissions can be described as octal values, with some combination of 4, 2, and 1 for read, write, and execute.
+            find /home -perm 764
+        • The following command matches any file for which the user has read, write, and execute permissions,members of the group have read and write permissions, and others have read-only access:
+        To match files for which the user has at least write and execute permissions, and the group has at least write permissions, and others have at least
+        read access:
+            find /home -perm -324
+
+
+    Searching files based on size
+        • The find command can look up files that match a size specified with the -size option, followed by a 
+        numerical value and the unit. Use the following list as the units with the -size option:
+        • k, for kilobyte           • M, for megabyte              • G, for gigabyte
+
+            find -size 10M : To search for files with a size of 10 megabytes, rounded up.
+            find -size +10G : To search the files with a size more than 10 gigabytes.
+            find -size -10k : To list all files with a size less than 10 kilobytes.
+
+
+            fallocate -l 1G file1 : preallocate space to a file.
+    
+
+    Searching files based on Modification time
+        • The -mmin option, followed by the time in minutes, searches for all files that had their content 
+        changed at n minutes ago in the past. The file's timestamp is always rounded down. It also supports 
+        fractional values when used with ranges (+n and -n).
+
+        find / -mmin 120 : To find all files that had their file content changed 120 minutes ago on host, run:
+
+        The + modifier in front of the amount of minutes looks for all files in the / that have been modified more than n minutes ago.
+            find / -mmin +200 :  files that were modified more than 200 minutes ago are listed 
+
+    Searching files based on type
+        • The -type option in the find command limits the search scope to a given file type. Use the following 
+        list to pass the required flags to limit the scope of search:
+        • f, for regular file      • d, for directory        • I, for soft link      • b, for block device
+        find /etc -type d : Search for all directories in the /etc directory on host.
+        find / -type I : Search for all soft links on host.
+        find /dev -type b : Generate a list of all block devices in the /dev directory on host.
+
+
+SUMMARY
+    In this chapter, you learned:
+        • Storage devices are represented by a special file type called block device.
+        • The df command reports totäl disk space, used disk space, and free disk space on all mounted regular file systems. 
+        • The mount command allows the root user to manually mount a file system.
+        • All processes need to stop accessing the mount point in order to successfully unmount the device.
+        • The find command performs a real-time search in the local file systems to find files based on search criteria.
