@@ -124,14 +124,20 @@ OSI (Open Systems Interconnection)
 
 
     application layer
-        Appliction : HTTP/FTP/SMIP
-        presentation : Syntax, compression, Encryption
-        Session : create sessions
+      7  Appliction : HTTP/FTP/SMIP
+      6  presentation : Syntax, compression, Encryption
+      5  Session : create sessions
     Transport layer   
-        Transport : segmentation. (Segment)
-        Network : routing, IP assigment. (Packet)
+      4  Transport : segmentation. (Segment)
+      3  Network : routing, IP assigment. (Packet)
     Network ARchitecture layer 
-        Data Link : LLC /MAC . (frame)
-        Physical :  bits
+      2  Data Link : LLC /MAC . (frame)
+      1  Physical :  bits
 
  
+                      Source                    Destination
+    4 Transport     Port addresses            Port addresses
+    3 network       Logicl(IP)addresses       Logicl(IP)addresses
+    2 Data Link     Physical(MAC)addresses    physical(MAC)addresses
+
+    

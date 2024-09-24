@@ -851,3 +851,209 @@ You can also compress and extract individual files using gzip, bzip2, and xz.
   lpwd
   ```
 
+### Installing and Updating Software Packages in RHEL (Red Hat Enterprise Linux)
+
+---
+
+#### **Goal**:  
+Download, install, update, and manage software packages from RedHat and Yum Package repositories.
+
+---
+
+### **Explaining and Investigating RPM Software Packages**
+
+RPM (Red Hat Package Manager) is a system for managing software on Linux systems. Package files have the following structure:
+```
+name-version-release-architecture.rpm
+```
+- **Name**: Describes the contents.
+- **Version**: Version number of the software.
+- **Release**: Release number of the package.
+- **Architecture**: Processor type (e.g., `x86_64`, `noarch` for architecture-independent packages).
+
+#### **Useful Commands for RPM**:
+- **View OS Information**:
+  - `hostnamectl` – Track how the local system appears on the network.
+  - `cat /etc/redhat-release` – Show OS name and version.
+  - `uname -a` – Display OS details.
+
+- **Downloading Packages**:
+  - `wget <URL>` – Non-interactive downloader for files from the web.
+
+---
+
+### **Managing RPM Packages**:
+
+RPM allows managing software on a Linux system in various ways, from installation to querying details about packages.
+
+#### **Query RPM Packages**:
+- **List all installed packages**:  
+  ```bash
+  rpm -qa
+  ```
+- **Check the version of an installed package**:  
+  ```bash
+  rpm -q <packagename>
+  ```
+- **Find the package that provides a specific file**:  
+  ```bash
+  rpm -qf <filename>
+  ```
+- **Get detailed package information**:  
+  ```bash
+  rpm -qi <packagename>
+  ```
+- **List files installed by a package**:  
+  ```bash
+  rpm -ql <packagename>
+  ```
+- **List configuration files of a package**:  
+  ```bash
+  rpm -qc <packagename>
+  ```
+- **View package installation/removal scripts**:  
+  ```bash
+  rpm -q --scripts <packagename>
+  ```
+- **View the changelog for a package**:  
+  ```bash
+  rpm -q --changelog <packagename>
+  ```
+
+#### **Installing and Removing RPM Packages**:
+- **Install an RPM package**:  
+  ```bash
+  rpm -ivh <Package.rpm>
+  ```
+  Options:
+  - `-i`: Install the package.
+  - `-v`: Verbose output.
+  - `-h`: Show progress with hash marks (`#`).
+
+- **Remove an installed RPM package**:  
+  ```bash
+  rpm -ev <packagename>
+  ```
+
+---
+
+### **Creating Yum Repositories**
+
+To manage packages using **Yum**, you need to configure repositories. Here's how to set up a local Yum repository from an ISO image:
+
+1. **Mount the ISO image**:
+   ```bash
+   mount -o loop /dev/sr0 /mnt
+   ```
+
+2. **Create repository files**:
+   Create `.repo` files under `/etc/yum.repos.d/` for both `AppStream` and `BaseOS`:
+   ```bash
+   vim /etc/yum.repos.d/AppStream.repo
+   ```
+   Contents:
+   ```ini
+   [Local_AppStream]
+   name="RHEL9 Local AppStream repository"
+   baseurl=file:///mnt/AppStream
+   enabled=1
+   gpgcheck=0
+   ```
+
+   Similarly, create `BaseOS.repo`:
+   ```bash
+   vim /etc/yum.repos.d/BaseOS.repo
+   ```
+   Contents:
+   ```ini
+   [Local_BaseOS]
+   name="RHEL9 Local BaseOS repository"
+   baseurl=file:///mnt/BaseOS
+   enabled=1
+   gpgcheck=0
+   ```
+
+3. **Verify the repositories**:
+   ```bash
+   yum repolist
+   ```
+
+4. **Disable subscription warning**:
+   Disable the subscription manager plugin:
+   ```bash
+   vi /etc/yum/pluginconf.d/subscription-manager.conf
+   ```
+   Change:
+   ```ini
+   enabled=0
+   ```
+
+---
+
+### **Installing and Updating Software Packages with YUM**
+
+Yum is a high-level package management tool for managing RPM-based packages, resolving dependencies, and pulling from repositories.
+
+#### **Common Yum Commands**:
+- **List installed and available packages**:
+  ```bash
+  yum list
+  ```
+- **Search for a package**:
+  ```bash
+  yum search <keyword>
+  ```
+- **Install a package**:
+  ```bash
+  yum install <packagename>
+  ```
+- **Update a package**:
+  ```bash
+  yum update <packagename>
+  ```
+- **Remove a package**:
+  ```bash
+  yum remove <packagename>
+  ```
+- **View Yum transaction history**:
+  ```bash
+  yum history
+  ```
+
+---
+
+### **Application Streams in RHEL 9**
+
+RHEL 9 has two main repositories:
+- **BaseOS**: Focuses on core OS functionalities.
+- **AppStream**: Contains applications and related packages.
+
+Both repositories are essential to a complete RHEL 9 system.
+
+---
+
+### **Summary of Commands**
+
+#### **RPM Commands**:
+- **List all installed packages**:  
+  `rpm -qa`
+- **View package details**:  
+  `rpm -qi <packagename>`
+- **List files in a package**:  
+  `rpm -ql <packagename>`
+- **Install an RPM package**:  
+  `rpm -ivh <Package.rpm>`
+- **Remove an RPM package**:  
+  `rpm -ev <packagename>`
+
+#### **Yum Commands**:
+- **List installed/available packages**:  
+  `yum list`
+- **Install a package**:  
+  `yum install <packagename>`
+- **Update a package**:  
+  `yum update <packagename>`
+- **Remove a package**:  
+  `yum remove <packagename>`
+
+
