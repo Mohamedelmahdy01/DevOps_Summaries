@@ -29,3 +29,67 @@ Networks allow for the sharing of hardware (like printers, scanners) and data, e
 ### Network Topology:
 - **Physical Topology**: The actual arrangement of cables and devices in a network (e.g., star, bus, ring topologies).
 - **Logical Topology**: The way data flows within the network regardless of the physical layout (e.g., how signals travel).
+
+### Common Types of Network Topology:
+1. **Bus Topology**: 
+   - All devices are connected to a single central cable (the "bus").
+   - Easy to set up but can slow down with high traffic.
+
+2. **Ring Topology**: 
+   - Devices are connected in a circular fashion, with each device connected to two others.
+   - Data travels in one direction, and a failure in one device can disrupt the network.
+
+3. **Mesh Topology**: 
+   - Every device is connected to every other device.
+   - Provides high redundancy and reliability but is expensive to set up.
+
+4. **Star Topology**: 
+   - All devices are connected to a central hub.
+   - If the hub fails, the entire network is affected, but individual device failures don't disrupt the network.
+
+---
+
+### Software Terms:
+- **Network**: A group of interconnected devices.
+- **Subnet**: A smaller network within a larger network, divided by subnet masks.
+- **Internet**: The global network of interconnected devices.
+- **FW (Firewall)**: A security system that monitors and controls incoming and outgoing network traffic.
+- **Intranet**: A private network accessible only to an organization's staff.
+- **Extranet**: A private network that allows external partners to access certain parts of an organization's intranet.
+
+---
+
+### Hardware Terms:
+- **Workstation**: A powerful computer designed for individual use, often in a business environment.
+- **Client**: A device that requests services from a server.
+- **Server**: A device that provides resources or services to clients.
+  - **Client OS**: Operating system designed for individual users (e.g., Windows, macOS).
+  - **Network OS**: Operating system designed to manage network resources (e.g., Linux, Windows Server).
+  - **Server Roles**:
+    - **File Server**: Manages and stores files.
+    - **Print Server**: Manages printers on the network.
+    - **Web Server**: Hosts websites (e.g., Apache, Nginx).
+    - **Mail Server**: Manages email communication.
+    - **Proxy Server**: Acts as an intermediary between users and the internet.
+- **Host**: A device on a network that provides services or resources.
+
+---
+
+### IP (Internet Protocol):
+- **IPv4**: 
+  - Uses a 32-bit address divided into four octets (e.g., `192.168.1.20`).
+  - Each octet can range from 0-255.
+  - Divided into **Network Address** (identifies the network) and **Host Address** (identifies the device).
+  - **Subnet Mask**: Defines how the IP address is split between network and host (e.g., `255.255.255.0`).
+
+- **IPv6**: 
+  - Uses a 128-bit address to provide a much larger address space than IPv4.
+
+---
+
+### MAC Address:
+- **MAC (Media Access Control)**: A unique identifier assigned to a device's network interface card (NIC).
+- Written in hexadecimal format, like `00-1C-2F-06-CD-AE`.
+- Divided into:
+  - **Organizationally Unique Identifier (OUI)**: Identifies the manufacturer.
+  - **Network Interface Controller (NIC) Specific**: Identifies the device.

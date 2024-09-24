@@ -686,3 +686,168 @@ Configure network interfaces and settings on Red Hat Enterprise Linux servers.
   ```
 
 ---
+# Archiving and Transferring Files on Linux
+
+
+#### **Goal:**
+Archive and copy files from one system to another.
+
+---
+
+#### **Objectives:**
+1. **Archive files and directories into a compressed file using `tar`**.
+2. **Extract the contents of an existing `tar` archive**.
+3. **Transfer files securely using SSH**.
+
+---
+
+### **Managing Compressed TAR Archives**
+
+Archiving and compressing files are useful for backups and transferring data across networks. The `tar` command is commonly used to create and manage archive files.
+
+---
+
+### **`tar` Command Options:**
+
+- **`-c`**: Create a new archive.
+- **`-x`**: Extract from an existing archive.
+- **`-t`**: List the contents of an archive.
+- **`-v`**: Verbose output, showing the files being processed.
+- **`-f`**: Specifies the name of the archive file.
+- **`-p`**: Preserve permissions when extracting files.
+
+#### Example:
+- **Create an archive**:
+  ```bash
+  tar -cvf etc_backup.tar /etc
+  ```
+- **Extract from an archive**:
+  ```bash
+  tar -xvf etc_backup.tar
+  ```
+
+---
+
+### **Creating Compressed Archives**
+
+The `tar` command supports different compression methods:
+
+- **gzip**: (`.tar.gz`)
+- **bzip2**: (`.tar.bz2`)
+- **xz**: (`.tar.xz`)
+
+#### Examples:
+- **gzip compression**:
+  ```bash
+  tar -czf etc_backup.tar.gz /etc
+  ```
+- **bzip2 compression**:
+  ```bash
+  tar -cjf etc_backup.tar.bz2 /etc
+  ```
+- **xz compression**:
+  ```bash
+  tar -cJf etc_backup.tar.xz /etc
+  ```
+
+#### Compression Comparison:
+- `gzip`: Fastest, but lower compression.
+- `bzip2`: Slower but better compression than `gzip`.
+- `xz`: Slowest, but best compression.
+
+---
+
+### **Extracting Compressed Archives**
+
+To extract files from a compressed archive:
+
+#### Examples:
+- **Extract `.tar.gz`**:
+  ```bash
+  tar -xzf etc_backup.tar.gz
+  ```
+- **Extract `.tar.bz2`**:
+  ```bash
+  tar -xjf etc_backup.tar.bz2
+  ```
+- **Extract `.tar.xz`**:
+  ```bash
+  tar -xJf etc_backup.tar.xz
+  ```
+
+---
+
+### **Compressing and Extracting Individual Files**
+
+You can also compress and extract individual files using gzip, bzip2, and xz.
+
+#### Compression:
+- **gzip**:
+  ```bash
+  gzip etc.tar
+  ```
+- **bzip2**:
+  ```bash
+  bzip2 abc.tar
+  ```
+- **xz**:
+  ```bash
+  xz myarchive.tar
+  ```
+
+#### Extraction:
+- **gunzip**:
+  ```bash
+  gunzip etc.tar.gz
+  ```
+- **bunzip2**:
+  ```bash
+  bunzip2 abc.tar.bz2
+  ```
+- **unxz**:
+  ```bash
+  unxz myarchive.tar.xz
+  ```
+
+---
+
+### **Transferring Files Using Secure Copy (SCP)**
+
+`scp` is used to transfer files between local and remote systems over SSH.
+
+#### Examples:
+- **Transfer file from local to remote**:
+  ```bash
+  scp etc.tar root@192.168.1.10:/root
+  ```
+- **Transfer file from remote to local**:
+  ```bash
+  scp root@192.168.1.10:/root/date.txt .
+  ```
+
+---
+
+### **Transferring Files Using Secure File Transfer Program (SFTP)**
+
+`sftp` is an interactive tool for transferring files securely over SSH.
+
+#### Examples:
+- **Connect to a remote host**:
+  ```bash
+  sftp root@192.168.1.10
+  ```
+- **Upload a file**:
+  ```bash
+  put etc.tar
+  ```
+- **Download a file**:
+  ```bash
+  get date.txt
+  ```
+
+#### Local Commands in `sftp`:
+- **Print local directory**:
+  ```bash
+  lpwd
+  ```
+

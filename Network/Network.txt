@@ -34,10 +34,104 @@ NetWork Types
 LAN   MAN     WAN
 
 
-NetWork Topology
+Network topology
     Topology is the layout of the network
 
         ----> physical Topology:
     ----
         ----> Logicl Topology
 
+The most common types of network topology 
+    Bus Topology
+    Ring Topology
+    Mesh Topology
+    Star Topology
+
+    
+software terms
+    NetWork 
+        subnet
+    internet 
+    FW
+    intranet
+    extranet
+
+
+Hardware Terms
+    Workstation
+    Client 
+    Server
+        client os
+        network os
+        servers Roles
+            File Server
+            Print Server
+            Web Server (apache and nginx)
+            Mail Server 
+            Proxy Server
+        host 
+
+IP
+    IPV4 
+        ---.---.---.---
+        octet
+        0-255
+        Network address and host address
+        Sebnet nask
+
+        192.168.1.20
+        255.255,255.---
+        
+
+
+    IPV6
+
+MAC Address 
+    MAC stands for Media Access Control 
+    Is a physical address
+    written in Hexa-Decinet format
+
+    00-1C-2F-06-CD-AE
+        orgnazationally Unique Identirer(OUI)   Netwrok Interface Controller(NIC)Specific
+
+
+
+
+
+OSI (Open Systems Interconnection)
+                conceptual layer
+          Source               Destination
+    7.  Appliction              Appliction
+    6.  presentation            presentation
+    5.  Session                 Session
+    4.  Transport               Transport
+    3.  Network                 Network
+    2.  Data Link               Data Link
+    1.  Physical                Physical
+            |                       |
+            -------------------------
+    Advantages of Reference Models
+        The OSk model divides network communication proecces intro 
+        smaller adn simpler compontents, thus aiding Component 
+        development, design, and troubleshooting.
+
+        It allows multiple-vendor development through the standardization 
+        of network components.
+
+        It allows verious types of network hardware and software to communicate.
+
+        Aids in troubleshooting.
+
+
+    application layer
+        Appliction : HTTP/FTP/SMIP
+        presentation : Syntax, compression, Encryption
+        Session : create sessions
+    Transport layer   
+        Transport : segmentation. (Segment)
+        Network : routing, IP assigment. (Packet)
+    Network ARchitecture layer 
+        Data Link : LLC /MAC . (frame)
+        Physical :  bits
+
+ 
