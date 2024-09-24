@@ -1056,4 +1056,288 @@ Both repositories are essential to a complete RHEL 9 system.
 - **Remove a package**:  
   `yum remove <packagename>`
 
+---
 
+# **Accessing Linux File Systems**
+
+### **Goal**
+- Access, inspect, and use existing file systems on storage attached to a Linux server.
+
+### **Objectives**
+- List the block devices and file systems.
+- Mount and unmount file systems and partitions in Linux.
+- Search for files on mounted file systems using the `find` and `locate` commands.
+
+---
+
+## **File system and mount points**
+
+- To make the contents of a file system available in the file-system hierarchy, it must be mounted on an empty directory.
+- This directory is called a **mount point**. Once mounted, if you use the `ls` command to list that directory, you will see the contents of the mounted file system, and you can access and use those files normally.
+- Many file systems are automatically mounted as part of the boot process.
+
+---
+
+## **Examining file systems**
+
+- To get an overview of local and remote file system devices and the amount of free space available, run the `df` command.
+  
+  ```bash
+  df       # report file system disk space usage
+  df -h    # print sizes in human-readable format (powers of 1024)
+  ```
+
+- **`du`**: Shows the size of all files in the current directory tree recursively.
+
+  ```bash
+  du -h    # human-readable format
+  ```
+
+---
+
+## **Identifying the block device**
+
+- Use the `lsblk` command to list the details of a specified block device or all available devices.
+
+  ```bash
+  lsblk -fp   # lists file system type and provides more details
+  ```
+
+---
+
+## **Mounting and unmounting file systems**
+
+- There are two common ways to specify the file system on a disk partition for the `mount` command:
+  1. With the name of the device file in `/dev` containing the file system.
+  2. With the UUID written to the file system, a universally-unique identifier (UUID).
+
+### **Examples**:
+
+- **Mounting using the name of the device:**
+
+  ```bash
+  mount <blockname> <dirname>
+  mount /dev/vdb1 /mnt/data   # mounts /dev/vdb1 on /mnt/data
+  mount /dev/nvme0n1p6 /data  # mounts /dev/nvme0n1p6 on /data
+  ```
+
+- **Mounting using UUID**:
+
+  To get the UUID:
+
+  ```bash
+  lsblk -fd     # or blkid
+  ```
+
+  Then mount it using:
+
+  ```bash
+  mount UUID="<UUID>" <dirname>
+  ```
+
+- **Unmounting** a file system:
+
+  ```bash
+  umount <dirname>
+  umount /data   # unmounts /data
+  ```
+
+- **Finding processes accessing a particular directory**:
+
+  ```bash
+  lsof /data    # shows processes using /data
+  ```
+
+- **`blkid`**: Prints block device attributes, such as UUIDs.
+
+
+# **Searching for files on mounted file systems**
+
+### **Locating files on the system**
+
+A system administrator needs tools to search for files matching certain criteria on the file system. This section discusses two commands that can search for files in the file-system hierarchy:
+
+1. **`locate`**: Searches a pre-generated index for file names or file paths and returns results instantly. It is fast because it looks up this information from the `mlocate` database.
+
+   - However, this database is not updated in real time, so it must be frequently updated for results to be accurate.
+   - The `locate` database is automatically updated every day, but the root user can manually update it by issuing the `updatedb` command.
+
+#### **Examples**:
+
+- **Locate** a file by name or path:
+
+  ```bash
+  locate file1          # searches for file1
+  locate -i file1       # case-insensitive search
+  locate -n 5 file1     # limit results to 5 entries
+  ```
+
+### **Searching for files in real time**
+
+2. **`find`**: Performs a real-time search in the file-system hierarchy. It is slower than `locate` but more accurate. It can search for files based on various criteria, such as name, permissions, type, size, or modification time.
+
+   - The `find` command searches files based on the account that executed the search. The user must have **read** and **execute** permissions on a directory to examine its contents.
+
+#### **Examples**:
+
+- **Search by name**:
+
+  ```bash
+  find <location> -name <filename>
+  find / -name sshd_config            # searches for files named sshd_config starting from the / directory
+  find / -name '*.txt'                # searches for all .txt files
+  ```
+
+- **Case-insensitive search by name**:
+
+  ```bash
+  find / -iname '*messages*'   # searches for files containing 'messages' in their names
+  ```
+
+- **Search by file owner**:
+
+  ```bash
+  find -user <username>
+  find -user mohamed           # searches for files owned by mohamed
+  ```
+
+- **Search by group owner**:
+
+  ```bash
+  find -group <groupname>
+  find -group mohamed          # searches for files owned by group mohamed
+  ```
+
+- **Search by user ID (UID)**:
+
+  ```bash
+  find -uid <uid>
+  find -uid 1000               # searches for files owned by user with UID 1000
+  ```
+
+- **Search by file ownership and group**:
+
+  ```bash
+  find / -user root -group mail  # files owned by root and affiliated with group mail
+  ```
+
+---
+
+## **Searching files based on permissions**
+
+- The **`-perm`** option is used to search for files with a specific set of permissions, described as octal values (e.g., 764).
+
+#### **Examples**:
+
+- **Search for files with permissions 764**:
+
+  ```bash
+  find /home -perm 764
+  ```
+
+- **Search for files with at least specified permissions**:
+
+  ```bash
+  find /home -perm -324
+  ```
+
+---
+
+## **Searching files based on size**
+
+- Use the `-size` option with the `find` command, followed by a numerical value and the unit.
+  
+  **Units**:  
+  - `k`: kilobyte  
+  - `M`: megabyte  
+  - `G`: gigabyte  
+
+#### **Examples**:
+
+- **Search for files of exactly 10 MB**:
+
+  ```bash
+  find / -size 10M
+  ```
+
+- **Search for files larger than 10 GB**:
+
+  ```bash
+  find / -size +10G
+  ```
+
+- **Search for files smaller than 10 KB**:
+
+  ```bash
+  find / -size -10k
+  ```
+
+- **Preallocate space for a file (1 GB)**:
+
+  ```bash
+  fallocate -l 1G file1
+  ```
+
+---
+
+## **Searching files based on modification time**
+
+- The **`-mmin`** option, followed by time in minutes, searches for files whose content was changed a certain number of minutes ago.  
+  **Use `+`** for more than a certain time, and **`-`** for less than.
+
+#### **Examples**:
+
+- **Search for files modified exactly 120 minutes ago**:
+
+  ```bash
+  find / -mmin 120
+  ```
+
+- **Search for files modified more than 200 minutes ago**:
+
+  ```bash
+  find / -mmin +200
+  ```
+
+---
+
+## **Searching files based on type**
+
+- The **`-type`** option limits the search to a specific file type.  
+  **Types**:  
+  - `f`: regular file  
+  - `d`: directory  
+  - `l`: symbolic link  
+  - `b`: block device
+
+#### **Examples**:
+
+- **Search for all directories in `/etc`**:
+
+  ```bash
+  find /etc -type d
+  ```
+
+- **Search for all symbolic links**:
+
+  ```bash
+  find / -type l
+  ```
+
+- **List all block devices in `/dev`**:
+
+  ```bash
+  find /dev -type b
+  ```
+
+---
+
+## **Summary**
+- **Block devices** represent storage devices in Linux.
+- **The `df` command** reports disk usage and available space.
+- **The `mount` command** attaches a file system, while `umount` detaches it.
+- **The `find` command** performs real-time searches in local file systems based on various criteria like name, permissions, ownership, size, and modification time.
+
+---
+
+This document outlines everything you need to know about managing and searching file systems in Linux. Feel free to ask if you want to explore any specific command or concept further!
