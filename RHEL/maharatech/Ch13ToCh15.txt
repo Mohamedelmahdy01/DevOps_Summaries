@@ -1,0 +1,97 @@
+==========Archiving and Transferring Files===========
+
+Goal:
+    Archive and copy files from one system to another.
+
+Objectives: 
+    Archive files and directories into a comperessed file using tar,
+    and extract the contents of an existing tar archive.
+
+    Transfer files to or form a remote system securely using SSH.
+
+
+Managing and comperessedd TAR Archives 
+    Archiving and Compressings files are useful when creating backups nd transferring data across a network 
+    One of the oldest and most common commands for creatgin and working with backup archives is the <tar> command.
+
+Options of the Tar command  
+    tar -cvf ect_backup_a
+        -c,--create : Create a new archive.
+        -x,--extract : Extract from an existing archive.
+        -t,--list : List the table of contents of an archive.
+        -v,--verbose : Verbose. Shows which files get archived or extracted.
+        -f,--file= :This option must be followed by the file name of the archive to user or create.
+        -p,--preserve-permissions : preseve the permissions of files and directiories when extracting an archive, without subrtacting the umask.
+
+
+    du <Dir/file> : estimate file space usage
+        -s : Sammary 
+        -sh : Sammary and Human Reading 
+
+createing acompressed archive.
+    the tar command supports three compression methods.
+    gzip
+    bzip2
+    xz
+
+    use one of the follwing Options to create a compressed tar archive.
+
+        tar -czf ect_backup.tar.gz etc
+        tar -cjf ect_backup.tar.bz2 etc
+        tar -cJf ect_backup.tar.xz etc
+            -z,--gzip : use gzip compression(.tar.gz)
+            -j,--bzip2 : use bzip2 compression(.tar.bz2). bzip2 typically achivees abetter compression ratio than gzip.
+            -J,--xz : use xz compression(.tar.xz). The xz compression typically achieves. abetter compression ratio than bzip2.
+
+        du -sh *
+            #27M ect
+            #24M ect_backup_20240923.tar
+            #4.8M ect_backup.tar.bz2
+            #5.6M ect_backup.tar.gz
+            #4.1M ect_backup.tar.xz
+
+    Extract Files
+
+        tar -xzf ect_backup.tar.gz
+        tar -xjf ect_backup.tar.bz2
+        tar -xJf ect_backup.tar.xz
+
+compress and extract files using gzip,bzip2and xz.
+
+    compress
+        gzip etc.tar
+        bzip2 abc.tar
+        xz myarchive.tar
+    extract
+        gunzip etc.tar
+        bunzip2 abc.tar
+        unxz myarchive.tar
+
+Transferring files using secure copy
+    The secure copy command, scp, which is part of the OpenSSH suite, copies files from a remote 
+    system to the local system or from the local system to a remote system.
+
+    scp <localfile/localdir> <remoteuser@IP>:<file/dir> : from local srever to remote.
+        # scp etc.tar root@192.168.1.10:/root : copy etc.tar from here to /root in remote.
+
+    scp <file/dir>:<remotefile/remotedir> <localfile/localdir> : from remote to local.
+        # scp root@192.168.1.10:/root/date.txt . : copy date.txt form root to here.
+
+Transferring files using the secure file Transfer program
+    To interactively upload or download files from a SSH server, use the Secure File Transfer Program,sftp.
+    A session with the sftp command uses the secure authentication mechanism and encrypted data transfer to and from the SSH server.
+
+    sftp <remoteuser@remotehost>
+        #sftp root@192.168.1.10
+
+        l<comand>: to run command localy.
+            # lpwd : print local working directory
+
+        put <filename> : to upload file .
+            # put etc.tar : upload etc.tar to remote
+        get <filename> : to download file.
+            # get date.txt : download date.txt form remote
+
+
+
+
