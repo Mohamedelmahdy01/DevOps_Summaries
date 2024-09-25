@@ -1,424 +1,837 @@
-# Linux Commands and Concepts with Examples
 
-## File System and Directory Management
+# **Installing RHEL 9 Step by Step**
 
-### 1. **Listing Files**
-- `ls -ltr`: Lists files in the current directory sorted by modification time, in reverse order.
-    - Example:
+## **1. Introduction**
+
+Red Hat Enterprise Linux (RHEL) 9 is a powerful and secure operating system used for enterprise applications, servers, and cloud deployments. Installing RHEL 9 involves several steps to ensure the system is correctly set up, from downloading the required software to configuring system preferences.
+
+---
+
+## **2. Why Linux?**
+
+Linux is preferred in many environments due to its:
+- **Stability** and **security**: Widely known for its robust architecture and resistance to viruses.
+- **Open-source nature**: Linux is open source, meaning it is free and can be modified according to user needs.
+- **Enterprise-grade features**: RHEL offers features like support, updates, and performance enhancements tailored for businesses.
+- **Extensive customization**: High flexibility for users and developers in server and development environments.
+
+---
+
+## **3. Need to Download**
+
+Before starting, you'll need to download the RHEL 9 ISO file. Red Hat offers both free and subscription-based versions for developers and enterprises.
+
+### **How to Download RHEL 9:**
+1. **Sign up for a Red Hat account**: Visit [Red Hat Developer](https://developers.redhat.com/) to register for a free account.
+2. **Download the RHEL 9 ISO**: After signing up, navigate to the RHEL 9 download page and download the ISO image.
+
+---
+
+## **4. RHEL 9 Installation Requirements**
+
+Before installing RHEL 9, ensure your system meets the following minimum hardware requirements:
+
+### **System Requirements**:
+- **Processor**: 64-bit (x86_64) architecture, minimum 2 GHz.
+- **Memory (RAM)**: Minimum 2 GB for text mode, 4 GB for graphical mode.
+- **Storage**: At least 20 GB for the root partition.
+- **Internet connection** (optional): For downloading updates during installation.
+
+### **Preparing for Installation**:
+1. **Create a bootable USB**: Use tools like **Rufus** (Windows) or **Etcher** (Linux) to create a bootable USB from the downloaded RHEL 9 ISO.
+2. **BIOS/UEFI settings**: Ensure your system is set to boot from USB in the BIOS/UEFI settings.
+
+---
+
+## **5. Install RHEL 9 (Part 1)**
+
+### **Step 1: Boot from the USB Drive**
+- Insert your bootable USB into the system and restart.
+- Enter your BIOS/UEFI settings (commonly `F2`, `Del`, or `Esc`) and set the USB drive as the primary boot device.
+- Once booted, you'll be presented with the RHEL 9 installation menu.
+
+### **Step 2: Choose "Install Red Hat Enterprise Linux 9"**
+- Select **"Install Red Hat Enterprise Linux 9"** and press Enter.
+- The system will start the installation process, loading the necessary files.
+
+### **Step 3: Select the Language**
+- Choose your preferred language and click **Continue**.
+
+---
+
+## **6. Install RHEL 9 (Part 2)**
+
+### **Step 4: Installation Summary**
+This is the main installation hub, where you configure key settings.
+
+#### **Partitioning the Disk**:
+- Under **Installation Destination**, select the disk where RHEL 9 will be installed.
+- Choose between **automatic partitioning** or **manual partitioning** (for advanced users).
+  - **Automatic Partitioning**: RHEL will handle the setup.
+  - **Manual Partitioning**: You can specify your own partition sizes (e.g., `/boot`, `/root`, `/home`, `/swap`).
+
+#### **Network & Hostname**:
+- Set up your network configuration if needed.
+- Assign a hostname to your system (e.g., **rhel9-server**).
+
+#### **Software Selection**:
+- Select the **Base Environment**. Options include **Server with GUI**, **Minimal Install**, and **Virtualization Host**.
+  - **Server with GUI** is recommended for beginners who want a graphical interface.
+
+---
+
+## **7. Install RHEL 9 (Part 3)**
+
+### **Step 5: Start Installation**
+- After configuring the settings, click **Begin Installation**.
+- The system will start copying and installing files.
+
+### **Step 6: Set the Root Password**
+- During the installation, you will be prompted to set the **root** (superuser) password. Ensure it's strong and memorable.
+  
+### **Step 7: Create a User**
+- Create a **regular user** account for daily operations. The root user should only be used for administrative tasks.
+
+### **Step 8: Complete Installation**
+- Once installation is complete, click **Reboot** to restart the system.
+
+### **Step 9: Post-Installation Setup**
+- After rebooting, log in using the credentials you created.
+- You may need to **register your system** with Red Hat to receive updates and support.
+
+---
+
+## **8. Summary**
+
+- RHEL 9 offers a stable and secure platform for enterprise-grade applications.
+- You must first download the ISO and create a bootable USB to install it.
+- Follow the guided installation steps, including setting up partitions, network configurations, and user accounts.
+- Once installed, RHEL 9 provides a solid foundation for server, cloud, and virtualization tasks.
+
+
+
+    
+# **Accessing the Command Line**
+
+## **1. Introduction**
+
+The command line interface (CLI) is a powerful way to interact with the Linux operating system. It allows users to execute commands and scripts, manage files, and configure system settings. The shell is the user interface that provides this functionality.
+
+---
+
+## **2. What is the Bash Shell?**
+
+**Bash** (Bourne Again SHell) is the most commonly used shell in Linux. It processes user commands, interprets them, and communicates with the kernel to execute them.
+
+### **Key Features of Bash**:
+- **Command execution**: Bash processes commands and executes them.
+- **Scripting**: Bash supports writing shell scripts for task automation.
+- **Variables**: Environment and shell variables can store and manipulate data.
+- **Job control**: Bash allows managing running processes in the background and foreground.
+
+---
+
+## **3. Command Syntax**
+
+Linux commands generally follow a standard syntax:
+```bash
+<command> [options] [arguments]
+```
+- **Command**: The name of the program or utility you want to execute.
+- **Options**: Modify the behavior of the command (e.g., `-l`, `-a`).
+- **Arguments**: The targets the command will operate on, such as files or directories.
+
+Example:
+```bash
+ls -l /home/user    # List files in the /home/user directory with detailed information
+```
+
+---
+
+## **4. How to Access the Command Line Interface (CLI)**
+
+- **Terminal**: The CLI is accessed through a terminal emulator in Linux. You can open a terminal by searching for it in your application menu or using a keyboard shortcut like `Ctrl + Alt + T`.
+  
+- **SSH**: For remote systems, you can use SSH to access the command line:
+  ```bash
+  ssh <username>@<remotehost>
+  ```
+
+- **TTY (Teletype)**: You can switch to a virtual terminal (TTY) using `Ctrl + Alt + F1` to `Ctrl + Alt + F6`.
+
+---
+
+## **5. Basic Commands: Date, Passwd, and File Management**
+
+### **Date Command**
+Displays or sets the system date and time.
+```bash
+date    # Show the current date and time
+```
+
+### **Passwd Command**
+Changes the password of a user.
+```bash
+passwd    # Change the current user's password
+```
+
+### **File Commands**
+- **ls**: List directory contents.
+  ```bash
+  ls -l   # List files in long format
+  ```
+- **mkdir**: Create a new directory.
+  ```bash
+  mkdir mydir   # Create a directory called "mydir"
+  ```
+- **rm**: Remove files or directories.
+  ```bash
+  rm file.txt   # Remove a file called "file.txt"
+  ```
+- **cp**: Copy files or directories.
+  ```bash
+  cp file1.txt file2.txt   # Copy "file1.txt" to "file2.txt"
+  ```
+- **mv**: Move or rename files or directories.
+  ```bash
+  mv oldname.txt newname.txt   # Rename a file
+  ```
+
+---
+
+## **6. Cat vs Less vs Head and Tail Commands**
+
+### **`cat` Command**
+Used to display the entire contents of a file.
+```bash
+cat file.txt    # Display the content of "file.txt"
+```
+
+### **`less` Command**
+Displays a file’s content one screen at a time, allowing for easier navigation.
+```bash
+less file.txt    # View file content with navigation
+```
+
+### **`head` and `tail` Commands**
+- **`head`**: Shows the first 10 lines of a file by default.
+  ```bash
+  head file.txt    # Display the first 10 lines
+  ```
+- **`tail`**: Shows the last 10 lines of a file by default.
+  ```bash
+  tail file.txt    # Display the last 10 lines
+  ```
+
+---
+
+## **7. History Command**
+
+The **history** command displays a list of previously executed commands in the current terminal session.
+```bash
+history    # Show the command history
+```
+You can also re-execute a previous command using `!` followed by the command number:
+```bash
+!25    # Re-run the command with history number 25
+```
+
+---
+
+## **8. Shell Shortcuts**
+
+- **Tab Completion**: Automatically completes file or directory names.
+  - Type part of a command or file, then press `Tab` to autocomplete.
+  
+- **Up/Down Arrow Keys**: Navigate through the command history.
+  
+- **Ctrl + C**: Stops a currently running command.
+
+- **Ctrl + D**: Logs out of the terminal or closes the current shell.
+
+- **Ctrl + Z**: Suspends the current process (can be resumed with the `fg` command).
+
+- **Ctrl + A**: Move to the beginning of the command line.
+
+- **Ctrl + E**: Move to the end of the command line.
+
+- **Ctrl + U**: Clear the line before the cursor.
+
+- **Ctrl + K**: Clear the line after the cursor.
+
+---
+
+## **9. Summary**
+
+- **Bash** is the most widely used shell in Linux, providing an interface for executing commands and automating tasks.
+- **Command Syntax** in Linux generally consists of commands, options, and arguments.
+- You can access the **CLI** through a terminal, SSH, or a TTY session.
+- Basic commands such as `date`, `passwd`, and file management tools (`ls`, `mkdir`, `rm`, etc.) are essential for system navigation.
+- The **cat, less, head, and tail** commands allow you to view file content in different ways.
+- Use the **history** command to review and re-run previously executed commands.
+- **Shell shortcuts** can greatly improve efficiency when working with the command line.
+
+
+# **Managing Files from the Command Line in Linux**
+
+## **1. Introduction**
+Linux is built around a powerful command-line interface (CLI) that allows users to manage files, directories, and the file system. Mastering file management through the CLI helps improve efficiency and control over the system.
+
+---
+
+## **2. Access Linux File System**
+
+Linux follows a hierarchical file system structure, starting from the root directory `/`. All files and directories are organized under this root.
+
+### **Navigating the File System**
+- **Current working directory**: To see your current directory:
+  ```bash
+  pwd
+  ```
+- **Change directory**: Use the `cd` command to move between directories:
+  ```bash
+  cd /path/to/directory   # Absolute path
+  cd ..                   # Moves up one directory
+  ```
+
+---
+
+## **3. Major Directories in Linux**
+Here are some important Linux directories:
+- **`/`**: Root directory of the file system.
+- **`/home`**: Contains personal directories for users.
+- **`/etc`**: Contains system configuration files.
+- **`/var`**: Stores log files, spools, and temporary files.
+- **`/usr`**: Stores user binaries, documentation, libraries, etc.
+- **`/tmp`**: Stores temporary files created by programs.
+
+---
+
+## **4. Linux File Types**
+
+In Linux, files can have different types:
+- **Regular file (`-`)**: A standard file that contains data.
+- **Directory (`d`)**: A folder that contains other files or directories.
+- **Symbolic link (`l`)**: A link that points to another file or directory.
+- **Character device (`c`)**: Used for serial data transmission, like a terminal.
+- **Block device (`b`)**: Handles data in blocks, like hard drives.
+- **Socket (`s`)**: Used for inter-process communication.
+- **Pipe (`p`)**: A mechanism to communicate between processes.
+
+---
+
+## **5. Rules for Naming Linux Files**
+
+- Case-sensitive: `File.txt` and `file.txt` are different files.
+- Allowed characters: letters, numbers, periods (`.`), underscores (`_`), and hyphens (`-`).
+- Avoid special characters: Avoid using characters like `*`, `?`, `/`, `\`, and `&`.
+- Maximum filename length: Usually 255 characters.
+
+---
+
+## **6. Absolute Path vs Relative Path in Linux**
+
+- **Absolute Path**: Starts from the root `/` and provides the full path to a file or directory.
+  ```bash
+  /home/mohamed/documents/file.txt
+  ```
+
+- **Relative Path**: Relative to your current working directory.
+  ```bash
+  ./documents/file.txt    # From current directory
+  ../file.txt             # One level up
+  ```
+
+---
+
+## **7. LS Command**
+
+The `ls` command is used to list files and directories.
+
+### **Common `ls` Options**
+- **`ls`**: List files and directories in the current directory.
+- **`ls -l`**: List in long format with details like permissions, owner, size, etc.
+- **`ls -a`**: List all files, including hidden files (those starting with `.`).
+- **`ls -h`**: Display file sizes in human-readable format (e.g., MB, GB).
+- **`ls -R`**: Recursively list all files and directories.
+
+---
+
+## **8. Managing Files Using the Command Line**
+
+### **Basic Commands**
+- **Create file**: 
+  ```bash
+  touch file.txt    # Creates an empty file
+  ```
+- **View file**:
+  ```bash
+  cat file.txt      # Display file content
+  ```
+- **Delete file**:
+  ```bash
+  rm file.txt       # Remove file
+  ```
+
+---
+
+## **9. Create & Copy Files and Directories**
+
+### **Create Directories**
+- **`mkdir`**: Create a new directory.
+  ```bash
+  mkdir my_directory
+  ```
+
+### **Copy Files and Directories**
+- **`cp`**: Copy files or directories.
+  ```bash
+  cp file.txt /path/to/destination   # Copy a file
+  cp -r dir1 /path/to/destination    # Copy a directory recursively
+  ```
+
+---
+
+## **10. Move & Remove Files and Directories**
+
+### **Move Files**
+- **`mv`**: Move or rename files and directories.
+  ```bash
+  mv file.txt /new/location          # Move file to new location
+  mv oldname.txt newname.txt         # Rename a file
+  ```
+
+### **Remove Files and Directories**
+- **`rm`**: Remove files or directories.
+  ```bash
+  rm file.txt                        # Remove a file
+  rm -r directory                    # Remove a directory recursively
+  ```
+
+---
+
+## **11. Hard Links vs Soft Links**
+
+### **Hard Links**
+- A hard link points directly to the file’s data blocks. Both the original file and hard link share the same inode.
+
+### **Soft (Symbolic) Links**
+- A soft link is like a shortcut to the file, referencing its location. It has its own inode and points to the original file path.
+
+---
+
+## **12. Linux Inodes**
+
+An inode is a data structure that stores information about a file, like its size, owner, permissions, and location on the disk, but **not the filename**. A file's name and the inode number are linked through directory entries.
+
+---
+
+## **13. Creating Hard Links and Soft Links (Part 1)**
+
+### **Hard Links**
+- **Syntax**:
+  ```bash
+  ln source_file hard_link_name
+  ```
+
+### **Soft Links (Symbolic Links)**
+- **Syntax**:
+  ```bash
+  ln -s source_file soft_link_name
+  ```
+
+---
+
+## **14. Creating Hard Links and Soft Links (Part 2)**
+
+### **Creating and Viewing Links**
+- **Creating Hard Link**:
+  ```bash
+  ln file.txt hardlink.txt
+  ```
+- **Creating Soft Link**:
+  ```bash
+  ln -s file.txt softlink.txt
+  ```
+
+- **List Links**:
+  ```bash
+  ls -l     # Shows links with 'l' symbol for symbolic links
+  ```
+
+---
+
+## **15. Pattern Matching**
+
+Pattern matching allows you to manipulate multiple files based on patterns.
+
+### **Common Patterns**
+- **`*`**: Matches any number of characters.
+  ```bash
+  ls *.txt      # List all .txt files
+  ```
+- **`?`**: Matches a single character.
+  ```bash
+  ls file?.txt  # Matches file1.txt, file2.txt, etc.
+  ```
+
+---
+
+## **16. Grep Command**
+
+The `grep` command is used to search for patterns in files.
+
+### **Basic Usage**
+```bash
+grep "pattern" file.txt    # Search for 'pattern' in file.txt
+grep -i "pattern" file.txt # Case-insensitive search
+```
+
+---
+
+## **17. Using Regular Expressions with Grep**
+
+Regular expressions (regex) allow advanced pattern matching in `grep`.
+
+### **Common Regular Expressions**
+- **`.`**: Matches any single character.
+- **`^`**: Matches the start of a line.
+- **`$`**: Matches the end of a line.
+- **`[abc]`**: Matches any one of the characters inside the brackets.
+- **`\d`**: Matches any digit.
+
+```bash
+grep "^Hello" file.txt   # Matches lines starting with 'Hello'
+```
+
+---
+
+## **18. Cut and Tr Commands**
+
+### **`cut` Command**
+- Used to extract specific fields or columns from a file.
+  ```bash
+  cut -d ',' -f 1 file.csv    # Extract the first field in a comma-separated file
+  ```
+
+### **`tr` Command**
+- Translates or deletes characters.
+  ```bash
+  echo "Hello" | tr 'a-z' 'A-Z'   # Converts lowercase to uppercase
+  ```
+
+---
+
+## **19. Summary**
+
+- **File Management**: Create, copy, move, and remove files using commands like `touch`, `cp`, `mv`, and `rm`.
+- **Links**: Understand the difference between hard and soft links and how to create them.
+- **Pattern Matching**: Use `*`, `?`, and other patterns to manage multiple files.
+- **Search with Grep**: Search for patterns using `grep` and regular expressions.
+- **Cut and Tr**: Use `cut` for extracting fields and `tr` for transforming text.
+
+
+# **Getting Help in Red Hat Enterprise Linux (RHEL)**
+
+## **1. Manual Pages Overview**
+
+Manual pages, commonly referred to as **man pages**, are an essential source of information for commands, utilities, and system calls in Linux. Each command or utility has a dedicated man page that describes its purpose, syntax, and available options.
+
+- **Structure of a Man Page**:
+  - **Name**: The command or utility name.
+  - **Synopsis**: Syntax and usage of the command.
+  - **Description**: Detailed explanation of the command's functionality.
+  - **Options**: Available command-line options and switches.
+  - **Examples**: Practical examples of how to use the command.
+  - **Files**: Important files related to the command (if applicable).
+  - **See Also**: References to related commands or documentation.
+
+---
+
+## **2. Using the `man` Command**
+
+The `man` command provides access to the manual pages.
+
+### **Basic Syntax**
+```bash
+man <command>
+```
+Example:
+```bash
+man ls   # View the manual page for the ls command
+```
+
+### **Sections in Man Pages**
+Linux manual pages are divided into numbered sections, such as:
+1. **User commands** (e.g., `ls`, `grep`)
+2. **System calls** (e.g., `read`, `write`)
+3. **Library functions** (e.g., `malloc`)
+4. **Special files** (e.g., `/dev/null`)
+5. **File formats and conventions** (e.g., `/etc/passwd`)
+6. **Games**
+7. **Miscellaneous**
+8. **System administration commands** (e.g., `mount`, `ifconfig`)
+
+To view a specific section:
+```bash
+man 5 passwd   # View section 5 of the passwd man page
+```
+
+---
+
+## **3. Search for Patterns in Manual Pages**
+
+You can search for specific terms within a man page to quickly find relevant information.
+
+### **Search Within a Man Page**
+1. **Open a man page**:
+   ```bash
+   man <command>
+   ```
+2. **Search for a pattern** by typing `/` followed by the search term:
+   ```bash
+   /pattern
+   ```
+   Example:
+   ```bash
+   /option   # Search for the word "option" in the man page
+   ```
+3. **Navigate through results**:
+   - Press `n` to move to the next match.
+   - Press `N` to move to the previous match.
+
+---
+
+## **4. Other Ways to Get Help in RHEL**
+
+Aside from manual pages, RHEL provides several other methods for obtaining help:
+
+### **`--help` Option**
+Most commands in Linux support the `--help` option, which provides a brief overview of the command’s usage and available options.
+```bash
+ls --help    # Get help for the ls command
+```
+
+### **`info` Command**
+The `info` command provides more detailed documentation than man pages. It organizes content into sections and allows for better navigation between sections.
+```bash
+info ls    # Get information about the ls command
+```
+
+### **`apropos` Command**
+The `apropos` command searches for commands related to a specific keyword. It's useful when you don’t know the exact name of the command.
+```bash
+apropos copy    # Search for all commands related to "copy"
+```
+
+### **`whatis` Command**
+The `whatis` command provides a short description of a command.
+```bash
+whatis ls    # Get a brief description of the ls command
+```
+
+### **`help` Built-in Command (for Shell)**
+For shell built-in commands, you can use the `help` command to get usage details.
+```bash
+help cd     # Get help for the built-in command cd
+```
+
+### **Access Online Resources**
+- **Red Hat Customer Portal**: Provides extensive documentation and troubleshooting guides.
+- **Online Communities**: Platforms like Stack Overflow, Linux forums, and Red Hat-specific forums offer help from the broader Linux community.
+
+---
+
+## **5. Summary**
+
+- **`man` Command**: The primary way to access manual pages in RHEL.
+- **Search Within Man Pages**: Use `/` to search for specific patterns.
+- **Other Help Commands**: Use `--help`, `info`, `apropos`, `whatis`, and `help` to get additional help.
+- **External Resources**: Leverage online documentation and communities for more assistance.
+
+    
+# **Creating, Viewing, and Editing Test Files in Linux**
+
+## **1. Introduction to Files in Linux**
+
+In Linux, files are the building blocks for data storage, configuration, and execution. Working with files is crucial for system administrators and developers. You can create, view, and edit files using a variety of tools like `touch`, `cat`, `echo`, and text editors like **Vim**.
+
+### **Common File Commands**
+- **Creating a file**:
+  ```bash
+  touch testfile.txt   # Creates an empty file
+  echo "Hello World" > testfile.txt   # Creates a file with content
+  ```
+- **Viewing a file**:
+  ```bash
+  cat testfile.txt     # Displays content of the file
+  less testfile.txt    # View file content in a paginated form
+  ```
+- **Editing a file**: 
+  - Text editors like **Vim** or **Nano** can be used to modify files.
+  ```bash
+  vim testfile.txt
+  nano testfile.txt
+  ```
+
+---
+
+## **2. Input/Output Redirection**
+
+Linux allows you to redirect the standard input (stdin), output (stdout), and error (stderr) of commands to files or other commands. This is helpful for managing outputs and saving logs.
+
+### **Input Redirection (`<`)**
+- Redirects input from a file to a command:
+  ```bash
+  command < inputfile
+  ```
+
+### **Output Redirection (`>`, `>>`)**
+- **`>`**: Overwrites the content of a file with the output of a command.
+  ```bash
+  echo "New content" > outputfile.txt   # Overwrites file content
+  ```
+- **`>>`**: Appends the output of a command to a file without overwriting.
+  ```bash
+  echo "More content" >> outputfile.txt   # Appends to file
+  ```
+
+### **Error Redirection (`2>`, `2>>`)**
+- Redirects standard error to a file.
+  ```bash
+  command 2> errorfile.txt     # Redirects errors to a file
+  command 2>> errorfile.txt    # Appends errors to a file
+  ```
+
+---
+
+## **3. Piping in Linux**
+
+Piping allows the output of one command to be used as input to another command. It helps create complex commands by chaining simpler ones.
+
+### **Pipe (`|`)**
+- Combines commands:
+  ```bash
+  ls -l | grep "testfile"     # Passes the output of `ls -l` to `grep`
+  ```
+- Example:
+  ```bash
+  cat testfile.txt | wc -l    # Counts the number of lines in the file
+  ```
+
+---
+
+## **4. VIM Editor Command Operating Modes**
+
+**Vim** is a powerful text editor in Linux with multiple operating modes to navigate, edit, and manipulate text. It's widely used for configuring system files and programming.
+
+### **Command Mode**
+- Default mode when you open Vim. It allows navigation and executing commands.
+  - To enter Command Mode: Press `ESC`.
+  
+### **Insert Mode**
+- Used to input and modify text.
+  - To enter Insert Mode: Press `i` from Command Mode.
+
+### **Extended Mode**
+- For executing extended Vim commands like saving, quitting, searching, and more.
+  - To enter Extended Mode: Press `:` from Command Mode.
+  - Example commands:
     ```bash
-    ls -ltr
-    ```
-    Output shows files with the latest modification time at the bottom.
-
-### 2. **Create Directories**
-- `mkdir -p dir1/dir2/dir3`: Creates directories `dir1`, `dir2`, and `dir3` in a nested structure.
-    - Example:
-    ```bash
-    mkdir -p project/src/components
+    :w    # Save the file
+    :q    # Quit Vim
+    :wq   # Save and quit
     ```
 
-## Links in Linux
-
-### 3. **Hard Link**
-- `ln <file> <hardlink>`: Creates a hard link, which is another name for a file referring to the actual data.
-    - Example:
-    ```bash
-    ln original_file hard_link_file
-    ```
-    Now `hard_link_file` points to the same data as `original_file`.
-
-### 4. **Soft Link (Symbolic Link)**
-- `ln -s <file> <softlink>`: Creates a soft link, which is a pointer to another file (similar to Windows shortcuts).
-    - Example:
-    ```bash
-    ln -s /path/to/original_file soft_link_file
-    ```
-
-### 5. **View Inode Numbers**
-- `ls -li`: Lists files along with their inode numbers.
-    - Example:
-    ```bash
-    ls -li
-    ```
-    Output shows inode numbers in the first column.
-
-## Pattern Matching
-
-### 6. **Wildcards**
-- `*`: Matches any string of zero or more characters.
-    - Example:
-    ```bash
-    ls *.txt
-    ```
-    Lists all files ending with `.txt`.
-
-- `?`: Matches any single character.
-    - Example:
-    ```bash
-    ls file?.txt
-    ```
-    Lists files like `file1.txt`, `fileA.txt` but not `file12.txt`.
-
-- `[abc...]`: Matches any one character within the brackets.
-    - Example:
-    ```bash
-    ls [abc]*.txt
-    ```
-    Lists files starting with `a`, `b`, or `c` and ending with `.txt`.
-
-## Basic Regular Expressions
-
-### 7. **Common Regex Operators**
-- `.`: Matches any character.
-    - Example:
-    ```bash
-    grep 'a.b' file.txt
-    ```
-    Finds occurrences of `a`, any character, and `b` in `file.txt`.
-
-- `^`: Matches the start of a string.
-    - Example:
-    ```bash
-    grep '^start' file.txt
-    ```
-    Finds lines starting with `start` in `file.txt`.
-
-- `$`: Matches the end of a string.
-    - Example:
-    ```bash
-    grep 'end$' file.txt
-    ```
-    Finds lines ending with `end` in `file.txt`.
-
-## File Operations
-
-### 8. **Cut Command**
-- `cut -d <delimiter> -f <fields> <file>`: Extracts specific fields from a file.
-    - Example:
-    ```bash
-    cut -d: -f1,7 /etc/passwd
-    ```
-    Extracts the 1st and 7th fields from `/etc/passwd`, using `:` as the delimiter.
-
-### 9. **Word Count (wc)**
-- `wc <file>`: Counts words, lines, and characters in a file.
-    - Example:
-    ```bash
-    echo "I Love Linux" | wc
-    ```
-    Output: `1 3 13`, meaning 1 line, 3 words, and 13 characters.
-
-## Vim Basics
-
-### 10. **Basic Navigation**
-- `h`, `j`, `k`, `l`: Move left, down, up, and right, respectively.
-- `w`: Jump to the beginning of the next word.
-- `b`: Jump to the beginning of the previous word.
-
-    - Example:
-    Open a file in Vim and use `w` to move forward through words.
-
-### 11. **Editing Commands**
-- `i`: Enter insert mode before the cursor.
-- `a`: Enter insert mode after the cursor.
-- `dd`: Delete the current line.
-
-    - Example:
-    In Vim, press `i` to start inserting text.
-
-### 12. **Copy, Paste, and Undo**
-- `yy`: Yank (copy) the current line.
-- `p`: Paste after the cursor.
-- `u`: Undo the last action.
-    - Example:
-    Yank a line with `yy` and paste it with `p`.
-
-## Environment Variables
-
-### 13. **Viewing and Setting Variables**
-- `set`: Lists all shell variables.
-    - Example:
-    ```bash
-    set
-    ```
-
-- `echo $HOME`: Displays the value of the `HOME` environment variable.
-    - Example:
-    ```bash
-    echo $HOME
-    ```
-
-- `export <variable>`: Exports a variable to child processes.
-    - Example:
-    ```bash
-    export MY_VAR="hello"
-    ```
-
-### 14. **Working with PATH**
-- `PATH`: Defines directories where the shell looks for executable files.
-    - Example:
-    ```bash
-    export PATH=$PATH:/home/mohamed/bin
-    ```
-
-## User Management
-
-### 15. **Creating and Modifying Users**
-- `useradd <username>`: Adds a new user.
-    - Example:
-    ```bash
-    useradd -m -s /bin/bash user01
-    ```
-
-- `usermod <username>`: Modifies an existing user.
-    - Example:
-    ```bash
-    usermod -aG sudo user01
-    ```
-
-### 16. **Deleting Users**
-- `userdel <username>`: Deletes a user without removing their home directory.
-    - Example:
-    ```bash
-    userdel user01
-    ```
-
-## File Permissions and Ownership
-
-### 17. **Changing File Permissions**
-- `chmod u+rwx,g=rx,o-wx <file>`: Modifies file permissions using the symbolic method.
-    - Example:
-       ```bash
-    chmod u+rwx,g=rx,o-wx myfile.txt
-    ```
-    This command gives the file owner (`u`) read, write, and execute permissions, the group (`g`) read and execute permissions, and removes write and execute permissions for others (`o`).
-
-- `chmod 755 <file>`: Modifies file permissions using the numeric method.
-    - Example:
-    ```bash
-    chmod 755 script.sh
-    ```
-    This sets read, write, and execute permissions for the owner, and read and execute permissions for the group and others.
-
-### 18. **Changing File Ownership**
-- `chown <owner>:<group> <file>`: Changes the ownership of a file.
-    - Example:
-    ```bash
-    chown mohamed:developers project.txt
-    ```
-    This command changes the owner to `mohamed` and the group to `developers` for the file `project.txt`.
-
-## Process Management
-
-### 19. **Viewing Running Processes**
-- `ps -aux`: Displays detailed information about all running processes.
-    - Example:
-    ```bash
-    ps -aux | grep python
-    ```
-    Lists all processes and filters for those related to `python`.
-
-### 20. **Killing a Process**
-- `kill <PID>`: Sends a termination signal to a process based on its process ID (PID).
-    - Example:
-    ```bash
-    kill 1234
-    ```
-    This terminates the process with PID `1234`.
-
-- `kill -9 <PID>`: Forcefully kills a process that isn't responding.
-    - Example:
-    ```bash
-    kill -9 5678
-    ```
-
-### 21. **Background and Foreground Jobs**
-- `&`: Runs a command in the background.
-    - Example:
-    ```bash
-    python myscript.py &
-    ```
-    Runs `myscript.py` in the background.
-
-- `fg`: Brings a background job to the foreground.
-    - Example:
-    ```bash
-    fg %1
-    ```
-    Brings the first background job to the foreground.
-
-### 22. **Checking CPU and Memory Usage**
-- `top`: Displays real-time system processes, CPU, and memory usage.
-    - Example:
-    ```bash
-    top
-    ```
-    Press `q` to quit.
-
-- `htop`: An enhanced version of `top` with a more user-friendly interface.
-    - Example:
-    ```bash
-    htop
-    ```
-
-## Disk Usage and Quotas
-
-### 23. **Checking Disk Usage**
-- `df -h`: Displays the disk space usage in a human-readable format.
-    - Example:
-    ```bash
-    df -h
-    ```
-    Shows the available and used space on all mounted filesystems.
-
-### 24. **Checking Directory Size**
-- `du -sh <directory>`: Displays the total size of a directory in a human-readable format.
-    - Example:
-    ```bash
-    du -sh /var/log
-    ```
-    Displays the size of the `/var/log` directory.
-
-## Network Commands
-
-### 25. **Check Network Interface Information**
-- `ifconfig`: Displays network interface configurations.
-    - Example:
-    ```bash
-    ifconfig
-    ```
-
-- `ip addr`: Shows IP address configuration and more detailed network information.
-    - Example:
-    ```bash
-    ip addr show
-    ```
-
-### 26. **Ping a Host**
-- `ping <hostname>`: Sends ICMP packets to test connectivity to a host.
-    - Example:
-    ```bash
-    ping google.com
-    ```
-    Sends a series of pings to `google.com`.
-
-### 27. **Traceroute**
-- `traceroute <hostname>`: Shows the route packets take to reach a host.
-    - Example:
-    ```bash
-    traceroute google.com
-    ```
-
-### 28. **Download Files Using `wget`**
-- `wget <URL>`: Downloads a file from the web.
-    - Example:
-    ```bash
-    wget https://example.com/file.zip
-    ```
-
-## Searching for Files and Content
-
-### 29. **Find Files**
-- `find <path> -name <filename>`: Searches for files by name.
-    - Example:
-    ```bash
-    find /home -name "*.txt"
-    ```
-    Searches for all `.txt` files under `/home`.
-
-### 30. **Grep: Search Inside Files**
-- `grep <pattern> <file>`: Searches for a pattern inside a file.
-    - Example:
-    ```bash
-    grep "error" /var/log/syslog
-    ```
-    Searches for lines containing "error" in the syslog file.
-
-### 31. **Locate Command**
-- `locate <filename>`: Searches for a file using a prebuilt index.
-    - Example:
-    ```bash
-    locate passwd
-    ```
-    Finds files related to `passwd`.
-
-## System Monitoring
-
-### 32. **View System Uptime**
-- `uptime`: Displays how long the system has been running.
-    - Example:
-    ```bash
-    uptime
-    ```
-
-### 33. **View Memory Usage**
-- `free -h`: Shows memory usage in a human-readable format.
-    - Example:
-    ```bash
-    free -h
-    ```
-    Displays the total, used, and available memory.
-
-## Archive and Compression
-
-### 34. **Tar Command**
-- `tar -cvf archive.tar <files>`: Creates a tar archive.
-    - Example:
-    ```bash
-    tar -cvf backup.tar /home/mohamed/documents
-    ```
-
-- `tar -xvf archive.tar`: Extracts a tar archive.
-    - Example:
-    ```bash
-    tar -xvf backup.tar
-    ```
-
-### 35. **Compress Files with gzip**
-- `gzip <file>`: Compresses a file using gzip.
-    - Example:
-    ```bash
-    gzip largefile.txt
-    ```
-
-- `gunzip <file.gz>`: Decompresses a gzipped file.
-    - Example:
-    ```bash
-    gunzip largefile.txt.gz
-    ```
-
-## Miscellaneous Commands
-
-### 36. **Viewing Command History**
-- `history`: Displays the command history.
-    - Example:
-    ```bash
-    history
-    ```
-
-### 37. **Clear Terminal**
-- `clear`: Clears the terminal screen.
-    - Example:
-    ```bash
-    clear
-    ```
-
-## Scheduling Tasks
-
-### 38. **Cron Jobs**
-- `crontab -e`: Edits the current user's cron jobs (used for scheduling commands).
-    - Example:
-    ```bash
-    # Run a script at 5 AM every day
-    0 5 * * * /home/mohamed/scripts/backup.sh
-    ```
-
-### 39. **View Scheduled Cron Jobs**
-- `crontab -l`: Lists the current user's scheduled cron jobs.
-    - Example:
-    ```bash
-    crontab -l
-    ```
+### **Visual Mode**
+- Used to select text for copying, cutting, and pasting.
+  - To enter Visual Mode: Press `v` from Command Mode.
+
+---
+
+## **5. VIM Cheat Sheet**
+
+| **Action**                        | **Command**              |
+|------------------------------------|--------------------------|
+| Save file                          | `:w`                     |
+| Quit Vim                           | `:q`                     |
+| Save and Quit                      | `:wq`                    |
+| Quit without saving                | `:q!`                    |
+| Undo last action                   | `u`                      |
+| Redo last undone action            | `Ctrl + r`               |
+| Copy selected text (in Visual mode)| `y`                      |
+| Paste copied text                  | `p`                      |
+| Delete text                        | `d`                      |
+| Search for text                    | `/search_term`           |
+| Jump to the start of the file      | `gg`                     |
+| Jump to the end of the file        | `G`                      |
+
+---
+
+## **6. Shell Variables (Part 1, 2, 3)**
+
+Shell variables store data temporarily while the shell is running. Variables can store text, numbers, or the output of commands.
+
+### **Defining and Accessing Variables**
+```bash
+MYVAR="Hello"         # Defines a variable
+echo $MYVAR           # Accesses and prints the value of MYVAR
+```
+
+### **Part 1: User-Defined Variables**
+- User-defined variables are created by the user and can hold any value.
+  ```bash
+  NAME="Mohamed"
+  echo "Welcome $NAME"
+  ```
+
+### **Part 2: Environment Variables**
+- Environment variables are system-wide and inherited by all processes.
+  - Example: `$PATH`, `$HOME`
+  ```bash
+  echo $HOME     # Prints the user's home directory
+  echo $PATH     # Prints the system's PATH variable
+  ```
+
+### **Part 3: Positional Parameters**
+- Used in shell scripts to refer to script arguments.
+  ```bash
+  ./script.sh arg1 arg2
+  echo "First argument: $1"
+  echo "Second argument: $2"
+  ```
+
+---
+
+## **7. Set and Unset Permanent Shell Variables**
+
+- **Temporary Variables**: Exist only for the current session.
+  ```bash
+  VAR="temporary value"
+  ```
+
+- **Permanent Variables**: To make a variable permanent, add it to your `.bashrc` or `.bash_profile`.
+  ```bash
+  echo "export MYVAR='Hello World'" >> ~/.bashrc   # Adds variable to .bashrc
+  source ~/.bashrc                                # Applies the changes
+  ```
+
+- **Unset Variables**: Removes a variable from the environment.
+  ```bash
+  unset MYVAR    # Unsets MYVAR
+  ```
+
+---
+
+## **8. Summary**
+
+- **Creating Files**: Use `touch`, `echo`, or text editors to create files.
+- **Viewing Files**: Use `cat`, `less`, and `more` to display content.
+- **Editing Files**: Editors like Vim allow you to modify files.
+- **Redirection**: Redirect input/output using `>`, `>>`, and `<`.
+- **Piping**: Chain commands together with `|`.
+- **Vim**: A robust text editor with multiple modes for efficient text editing.
+- **Shell Variables**: Store and manage temporary or permanent data in shell scripts.
 
 
 # **Managing Local Users and Groups in Linux**
