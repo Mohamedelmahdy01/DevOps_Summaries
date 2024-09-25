@@ -421,6 +421,669 @@
     ```
 
 
+# **Managing Local Users and Groups in Linux**
+
+Linux organizes users into categories like superusers, system users, and regular users. Each user has a specific User ID (UID) and Group ID (GID) associated with them. Proper management of users and groups is crucial for security and system functionality.
+
+## **User Categories:**
+1. **Superuser (root)**: UID 0.
+2. **System Users**: Static (UID 1-200) and Dynamic (UID 201-999).
+3. **Regular Users**: UID 1000 and above.
+
+## **Basic Commands**
+
+- **whoami**: Displays the effective user.
+  
+- **Difference between `su` and `su -`**:
+  - `su <username>`: Switches the user without changing the current working directory.
+  - `su - <username>`: Switches the user and changes to their home directory.
+
+## **sudo Privileges**
+
+- **sudo**: Allows permitted users to run commands as the superuser or another user.
+  - In many systems, the root user might not have a valid password for security reasons.
+  - If a user tries to run a command without permission, it will be blocked, logged, and an email may be sent to the root user (log stored in `/var/log/secure`).
+
+### **sudo Configuration File:**
+- **/etc/sudoers**: Main configuration file for managing sudo access.
+  - Use `visudo` to safely edit this file:
+    ```bash
+    visudo
+    ```
+  - Examples:
+    ```bash
+    user01 ALL=(ALL) ALL     # Grant full sudo access to user01
+    %group01 ALL=(ALL) ALL   # Grant full sudo access to group group01
+    ```
+
+## **Managing Users**
+
+### **Adding Users**
+- **useradd**: Adds a new user with various options.
+  ```bash
+  useradd <username>
+  useradd -md /home/user_1 -c "Planning user" -s /bin/sh -g mohamed -G wheel -u 5000 user01
+  ```
+  - `-m`: Create the user's home directory.
+  - `-d`: Specify home directory path.
+  - `-c`: Comment field (usually for user descriptions).
+  - `-s`: Specify the user's default shell.
+  - `-g`: Primary group.
+  - `-G`: Secondary groups.
+  - `-u`: User ID.
+
+### **Modifying Users**
+- **usermod**: Modify existing users.
+  ```bash
+  usermod <username>
+  usermod -c "Another comment" user01
+  usermod -aG mohamed user01     # Add user to a secondary group
+  usermod -L mohamed             # Lock user account
+  usermod -U mohamed             # Unlock user account
+  usermod -s /sbin/nologin mohamed  # Set shell to nologin (disables login)
+  ```
+
+### **Deleting Users**
+- **userdel**: Delete users.
+  ```bash
+  userdel <username>           # Delete user without removing their home directory
+  userdel -r <username>        # Delete user and their home directory
+  ```
+
+## **Managing Groups**
+
+### **Adding Groups**
+- **groupadd**: Adds a new group.
+  ```bash
+  groupadd -g 3000 group01    # Create a group with a specific GID
+  ```
+
+### **Modifying Groups**
+- **groupmod**: Modify existing groups.
+  ```bash
+  groupmod -n newgroup group01  # Rename group
+  ```
+
+### **Deleting Groups**
+- **groupdel**: Delete a group.
+  ```bash
+  groupdel group01
+  ```
+
+# **Managing User Passwords**
+
+In Linux, user passwords are stored in the `/etc/shadow` file, which contains important information for each user account.
+
+### **Example Entry in `/etc/shadow`:**
+```
+user03:$6$CSsX...:17933:0:9999:7::18113:
+```
+The fields in this file are separated by colons and include:
+1. **Username**: The account name.
+2. **Encrypted Password**: The hashed password.
+3. **Last Password Change**: The number of days since 1/1/1970 when the password was last changed.
+4. **Minimum Days**: The minimum number of days between password changes.
+5. **Maximum Days**: The maximum number of days the password is valid before it must be changed.
+6. **Warning Period**: The number of days before expiration to warn the user.
+7. **Inactive Period**: Days of inactivity before the account is locked.
+8. **Expiration Date**: Days since 1/1/1970 after which the password expires.
+9. **Reserved for future use**.
+
+### **Configuring Password Aging**
+Use `chage` to configure password expiration policies:
+```bash
+chage -m 0 -M 90 -W 7 -I 14 user03
+```
+- `-m`: Minimum number of days between password changes.
+- `-M`: Maximum number of days the password is valid.
+- `-W`: Warning days before the password expires.
+- `-I`: Days of inactivity before the account is locked.
+
+### Example:
+```bash
+chage -m 0 -M 90 -W 7 user03   # Password can be changed anytime, expires in 90 days, 7-day warning
+``` 
+
+This ensures that user accounts are secure and managed according to policy.
+# **Controlling Access to Files**
+
+In Linux, controlling file access and permissions is essential for system security and efficient multi-user environments. Files can have different types and permissions that determine who can read, write, or execute them.
+
+## **File Types**
+
+- **d**: Directory
+- **-**: Regular file
+- **c**: Character device file
+- **b**: Block device file
+- **l**: Symbolic link file
+- **p**: Named pipe file
+
+Example of file permissions:
+```
+-rwxr-x--- 1 root root 0 oct 31 11:06 test
+```
+
+## **Changing Permissions**
+
+### **Symbolic Method**
+Permissions are split into three categories for **user (u)**, **group (g)**, and **other (o)**. You can modify these permissions using symbols:
+
+- **r**: Read permission
+- **w**: Write permission
+- **x**: Execute permission
+
+Permissions are added or removed with:
+- **+**: Add permission
+- **-**: Remove permission
+- **=**: Set exactly the specified permission
+
+Example commands:
+```bash
+chmod u+r test  # Add read permission for the user
+chmod g-w test  # Remove write permission for the group
+chmod a+x test  # Add execute permission for all (user, group, others)
+```
+
+You can combine permissions:
+```bash
+chmod u+rwx, g=rx, o-w test
+```
+
+### **Numeric Method**
+Permissions can also be changed using a numeric representation. Each set of permissions is represented by a number:
+
+- **7**: Full permission (rwx)
+- **6**: Read and write (rw-)
+- **5**: Read and execute (r-x)
+- **4**: Read only (r--)
+- **3**: Write and execute (-wx)
+- **2**: Write only (-w-)
+- **1**: Execute only (--x)
+
+Example command:
+```bash
+chmod 777 test  # Full permissions for everyone
+```
+
+## **Changing Ownership**
+
+You can change the ownership of files and directories using the following commands:
+
+- Change the owner of a file:
+  ```bash
+  chown mohamed file1
+  ```
+
+- Change both the owner and group:
+  ```bash
+  chown mohamed:mohamed file1
+  ```
+
+- Change only the group ownership:
+  ```bash
+  chown :mohamed file1
+  chgrp mohamed file1
+  ```
+
+- Recursively change ownership for directories and their contents:
+  ```bash
+  chown -R root:root dir1
+  ```
+
+## **Special Permissions**
+
+Special permissions add advanced features to files and directories:
+
+- **setuid (u+s)**: Grants the file’s owner permissions when the file is executed.
+- **setgid (g+s)**: Ensures that files created within a directory inherit the group ID of the directory.
+- **sticky bit (o+t)**: Prevents users from deleting files in a directory unless they are the owner.
+
+Symbolic method:
+```bash
+chmod u+s file    # Apply setuid
+chmod g+s dir1    # Apply setgid to a directory
+chmod o+t dir1    # Apply sticky bit to a directory
+```
+
+Numeric method (fourth preceding digit):
+```bash
+chmod 2770 dir1   # Apply setgid and full permission for the owner and group
+```
+
+## **Searching for Files**
+
+- Search for a file's location:
+  ```bash
+  which <file>
+  ```
+- Search using a database:
+  ```bash
+  locate <file>
+  ```
+- Update the search database (required for `locate` to find newly created files):
+  ```bash
+  updatedb
+  ```
+
+## **Default File Permissions**
+
+**umask** defines the default permissions for new files and directories. The umask value is subtracted from the default permissions (777 for directories, 666 for files).
+
+- View the current umask value:
+  ```bash
+  umask
+  ```
+
+### **Default umask Values**:
+- **root**: `0022` (results in `755` permissions for directories and `644` for files)
+- **regular users**: `0002` (results in `775` for directories and `664` for files)
+
+### **Setting umask**:
+- Set a new umask:
+  ```bash
+  umask 007
+  ```
+
+- **Umask Calculation Example**:
+  - If the umask is `0022`:
+    - Directory: `777` - `022` = `755` (`rwxr-xr-x`)
+    - File: `666` - `022` = `644` (`rw-r--r--`)
+  - If the umask is `0007`:
+    - Directory: `777` - `007` = `770` (`rwxrwx---`)
+    - File: `666` - `007` = `660` (`rw-rw----`)
+
+### **Persistent umask**:
+To make the umask setting permanent for the current user, add it to `.bashrc` or `.bash_profile`:
+
+```bash
+echo "umask 007" >> ~/.bashrc
+```
+
+- **.bashrc**: Executed every time a new shell is opened.
+- **.bash_profile**: Executed once when you log in.
+
+By mastering file types, permissions, ownership, and special permissions, you can manage access control effectively in a Linux system.
+
+# **Monitoring and Managing Linux Processes**
+
+In Linux, a **process** is an instance of a running executable program. Each process is assigned a **Process ID (PID)**, and every process has a **Parent Process ID (PPID)**, which represents the parent process that created it.
+
+## **Basic Commands for Process Management**
+
+1. **Identify the User**:
+   - Display the current effective user:
+     ```bash
+     whoami
+     ```
+
+2. **Process Listing**:
+   - List current running processes:
+     ```bash
+     ps
+     ```
+   - Display all processes, including those without a controlling terminal:
+     ```bash
+     ps aux
+     ```
+   - A long listing with more technical details:
+     ```bash
+     ps lax
+     ```
+   - Interactive process viewer similar to Task Manager in Windows:
+     ```bash
+     top
+     ```
+   - Show processes in a tree structure:
+     ```bash
+     pstree
+     ```
+   - Show processes as a tree with their PIDs:
+     ```bash
+     pstree -p
+     ```
+   - Display processes of a specific user:
+     ```bash
+     pstree -p mohamed
+     ```
+
+3. **Find Specific Processes**:
+   - Show process names for a specific user:
+     ```bash
+     pgrep -u mohamed -l
+     ```
+
+## **Managing Background and Foreground Processes**
+
+1. **Running Processes in the Background**:
+   - Run a command in the background:
+     ```bash
+     <command> &
+     ```
+   - List processes running in the background:
+     ```bash
+     jobs
+     ```
+
+2. **Bringing Processes to the Foreground**:
+   - Bring a background process to the foreground:
+     ```bash
+     fg %<job number>
+     ```
+
+## **Killing and Stopping Processes**
+
+1. **Killing a Process**:
+   - Kill a process by PID:
+     ```bash
+     kill <PID>
+     ```
+   - List all available kill signals:
+     ```bash
+     kill -l
+     ```
+   - Default termination signal (SIGTERM):
+     ```bash
+     kill -15 <PID>
+     ```
+   - Forcefully terminate a process (SIGKILL):
+     ```bash
+     kill -9 <PID>
+     ```
+   - Reload configuration without terminating the process (SIGHUP):
+     ```bash
+     kill -1 <PID>
+     ```
+
+2. **Finding and Killing Processes**:
+   - Find the PID of a process by name:
+     ```bash
+     pidof <process_name>
+     ```
+   - Kill all instances of a process by name:
+     ```bash
+     killall sleep
+     ```
+   - Kill all processes of a specific user:
+     ```bash
+     pkill -U mohamed
+     ```
+
+## **Monitoring and Scheduling Processes**
+
+1. **Monitoring System Processes with `top`**:
+   - View dynamic information about system processes:
+     ```bash
+     top
+     ```
+   - Limit the number of updates:
+     ```bash
+     top -n 2
+     ```
+   - Set the delay between updates (in seconds):
+     ```bash
+     top -d 2
+     ```
+
+2. **Process Scheduling and Priorities**:
+   - List processes with their **nice** values (priority levels):
+     ```bash
+     ps lax | less
+     ```
+   - Show user, PID, nice value, and command:
+     ```bash
+     ps axo user,pid,nice,command
+     ```
+
+3. **Setting Process Priorities with `nice`**:
+   - Start a process with a defined priority (default is 10):
+     ```bash
+     nice vim text
+     ```
+   - Start a process with a custom priority (e.g., 10):
+     ```bash
+     nice -n 10 vim text &
+     ```
+
+4. **Changing Process Priorities with `renice`**:
+   - Change the priority of a running process:
+     ```bash
+     renice <nice_value> <PID>
+     ```
+   - Set the priority of all `sleep` processes to 19 (lowest priority):
+     ```bash
+     renice 19 $(pgrep sleep)
+     ```
+
+By mastering these commands, you can efficiently monitor, manage, and schedule processes in Linux, ensuring system resources are used effectively.
+
+
+# **Controlling Services and Daemons in Linux**
+
+In Red Hat Enterprise Linux, **systemd** is the first process that starts (PID 1), managing all other system services and processes.
+
+### **Common `systemctl` Commands**
+
+1. **Listing Services**:
+   - To list all active services:
+     ```bash
+     systemctl list-units --type=service
+     ```
+   - To list all active and inactive services:
+     ```bash
+     systemctl list-units --type=service --all
+     ```
+   - To list failed services:
+     ```bash
+     systemctl --failed --type=service
+     ```
+
+2. **Viewing Service Status**:
+   - To check the status of a specific service (e.g., `sshd`):
+     ```bash
+     systemctl status sshd.service
+     ```
+
+3. **Service State Queries**:
+   - Check if a service is active:
+     ```bash
+     systemctl is-active sshd.service
+     ```
+   - Check if a service is enabled to start at boot:
+     ```bash
+     systemctl is-enabled sshd.service
+     ```
+   - Check if a service has failed:
+     ```bash
+     systemctl is-failed sshd.service
+     ```
+
+### **Managing Services**
+
+1. **Starting and Stopping Services**:
+   - Start a service:
+     ```bash
+     systemctl start sshd.service
+     ```
+   - Stop a service:
+     ```bash
+     systemctl stop sshd.service
+     ```
+   - Restart a service:
+     ```bash
+     systemctl restart sshd.service
+     ```
+
+2. **Reloading a Service**:
+   - Reload a service to re-read its configuration file without stopping it:
+     ```bash
+     systemctl reload sshd.service
+     ```
+
+3. **Managing Service Startup at Boot**:
+   - Enable a service to start at boot:
+     ```bash
+     systemctl enable sshd.service
+     ```
+   - Disable a service from starting automatically at boot:
+     ```bash
+     systemctl disable sshd.service
+     ```
+
+### **Masking and Unmasking Services**
+
+- **Masking** a service prevents it from being started (either manually or automatically):
+   ```bash
+   systemctl mask sendmail.service
+   ```
+
+- **Unmasking** a service re-enables it:
+   ```bash
+   systemctl unmask sendmail.service
+   ```
+
+### **Additional Commands**
+
+1. **Listing Service Dependencies**:
+   - To display a hierarchy of service dependencies:
+     ```bash
+     systemctl list-dependencies <unit>
+     ```
+   
+By mastering these `systemctl` commands, you can control, monitor, and manage services and daemons effectively on a Linux system.
+
+# **Configuration and Securing SSH**
+
+### **Basic SSH Usage**
+
+1. **SSH for Remote Interactive Shell**:
+   - The command below opens a remote interactive shell on a remote system.
+   
+   ```bash
+   ssh <username>@<remotehost>
+   ```
+
+   Example:
+   ```bash
+   ssh student@serverb
+   ```
+
+2. **SSH Command Execution without Interactive Shell**:
+   - You can use SSH to execute a command on the remote system without accessing the interactive shell.
+   
+   Example:
+   ```bash
+   ssh <student>@<serverb> hostname
+   ```
+   This command runs the `hostname` command on the remote system as the `student` user.
+
+3. **Execute Multiple Commands Remotely**:
+   - Execute a series of commands without an interactive shell:
+   
+   ```bash
+   ssh <username>@<remotehost> 'date; ls -lh'
+   ```
+
+---
+
+### **Types of SSH Authentication**
+
+There are two main types of authentication in SSH:
+
+1. **Password Authentication**:
+   - Requires the user to enter their password to access the remote system.
+
+2. **Key-Based Authentication**:
+   - A more secure method involving a key pair: a **private key** and a **public key**.
+
+---
+
+### **Generating SSH Key Pair**
+
+- To generate a key pair, use the `ssh-keygen` command:
+
+   ```bash
+   ssh-keygen
+   ```
+
+   - The keys are saved in your `~/.ssh/` directory:
+     - **Private key**: `~/.ssh/id_rsa`
+     - **Public key**: `~/.ssh/id_rsa.pub`
+
+   **File Permissions**:
+   - The private key must have permissions set to `600`:
+     
+     ```bash
+     chmod 600 ~/.ssh/id_rsa
+     ```
+   - The public key should have permissions `644`:
+
+     ```bash
+     chmod 644 ~/.ssh/id_rsa.pub
+     ```
+
+---
+
+### **Copying Public Key to Remote Server**
+
+1. **Using `ssh-copy-id`**:
+   - Automatically copies your public key to the remote system:
+
+     ```bash
+     ssh-copy-id -i ~/.ssh/id_rsa.pub mohamed@192.168.1.10
+     ```
+
+2. **Manually Copying the Public Key**:
+   - If `ssh-copy-id` is not available, you can manually copy the key:
+
+   1. **Copy the public key**:
+      ```bash
+      clip < ~/.ssh/id_rsa.pub
+      ```
+   
+   2. **Access the remote server** and navigate to the `.ssh` directory:
+      ```bash
+      cd /root/.ssh
+      ```
+
+   3. **Add the public key** to the `authorized_keys` file:
+      ```bash
+      vi authorized_keys
+      ```
+
+   4. **Paste** the copied public key and save the file.
+
+---
+
+### **Customizing SSH Service Configuration**
+
+The OpenSSH service is controlled by a daemon called **sshd**, and its main configuration file is located at `/etc/ssh/sshd_config`.
+
+1. **Disabling Root Login**:
+   - To enhance security, disable root login via SSH by modifying the `PermitRootLogin` setting in `/etc/ssh/sshd_config`:
+   
+   ```bash
+   PermitRootLogin no
+   ```
+
+2. **Disabling Password Authentication**:
+   - To force users to authenticate using SSH keys and disable password authentication, modify the `PasswordAuthentication` setting:
+   
+   ```bash
+   PasswordAuthentication no
+   ```
+
+3. **Reloading the SSH Service**:
+   - After making changes to the configuration file, reload the SSH service to apply the changes:
+   
+   ```bash
+   sudo systemctl reload sshd.service
+   ```
+
+### **Note:**
+- By default, SSH listens on **port 22**. You can change this by modifying the `Port` setting in `/etc/ssh/sshd_config`.
+
+---
+
 
 # Analyzing and Storing Logs
 
