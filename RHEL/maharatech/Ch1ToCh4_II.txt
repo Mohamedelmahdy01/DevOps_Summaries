@@ -1,0 +1,589 @@
+=============CH1 - Improving comand-line Productivity.
+What, Why, When use shell scripts?
+    Goal
+        Run commands more efficiently by using advanced features of the Bash shell,shell scripts, 
+        and various utilities provided by Red Hat Enterprise Linux.
+    Objectives
+        • Automate sequences of commands by writing a simple shell script.
+        • Efficiently run commands over lists of items in a script or from the command-line using for loops and conditionals.
+        • Find text matching a pattern in log files and command output using the grep command and regular expressions.
+    
+    what is the script?
+        • A script is nothing more than a list of system commands stored in an executable file.
+        At the very least, this saves the effort of retyping that particular sequence of commands 
+        each time it is invoked.
+
+    Why shell scripting?
+        • A working knowledge of shell scripting is essential to anyone wishing to become reasonably proficient at system administration.
+        • Consider that as a Linux machine boots up, it executes the shell scripts in /etc/rc.d to restore the system configuration and set up services.
+        • The craft of scripting is not hard to master, since the scripts can be built in bite-sized sections and there is only a fairly small
+         set of shell-specific operators and options to learn
+        • The syntax is simple and straightforward, similar to that of invoking and chaining together utilities at the command line.
+
+    When not to use shell scripts?
+        • Resource-intensive tasks, especially where speed is a factor (sorting, hashing, recursion ...).
+        • Procedures involving heavy-duty math operations, especially floating-point arithmetic,
+         arbitrary precision calculations, or complex numbers (use C++ or FORTRAN instead).
+        • Need native support for multi-dimensional arrays.
+        • Need to generate/ manipulate graphics or GUls.
+        • Need direct access to system hardware.
+        • Need to use libraries or interface with legacy code.
+
+        If any of the above applies, consider a more powerful scripting language -- perhaps Perl,
+        Python, Ruby or possibly a compiled language such as C, C++, or Java.
+
+    Useful tips for writing effective bash scripts in Linux
+        • Always use comments in scripts.
+        • Make a script exit when fails.
+        • Make a script exit when bash uses undeclared variable.
+        • Use double quotes to reference variables.
+        • Use functions in scripts.
+        • Always perform debugging for long scripts.
+        • Make your functions and variable names more descriptive.
+
+What is a sha-bang?
+    • The sha-bang (#!) at the head of a script tells your system that this file is a set of commands to be fed to the command interpreter indicated.
+    • Immediately following the sha-bang is a path name. This is the path to the program that interprets the commands in the script.
+    • This command interpreter then executes the commands in the script, starting at the top (line following the sha-bang line), ignoring comments.
+    • Note that the path given at the "sha-bang" must be correct, otherwise an error message -- usually "Command not found." -- will be the only result of
+    running the script.
+    • The default shell is bash in a Linux system - try "echo $SHELL" to display your current shell.
+    • #! can be omitted if the script consists only of a set of generic system commands, using no internal shell directives.
+
+        #!/bin/sh
+        #!/bin/bash
+        #!/usr/bin/csh
+        #!/usr/bin/perl
+        #!/ust/bin/python   
+    
+    Invoking the script
+        • Having written the script, you can invoke it by "sh scriptname" or alternatively "bash scriptname".
+        • But not recommended is using sh ‹ scriptname, since this effectively disables reading from stdin within the script.
+        • Much more convenient is to make the script itself directly executable with a chmod.
+            chmod 555 scriptname (gives everyone read/execute permission).
+            chmod +rx scriptname (gives everyone read/execute permission).
+            chmod u+rx scriptname (gives only the script owner read/execute permission).
+        • Having made the script executable, you may now test it by ./scriptname.
+        • If it begins with a "sha-bang" line, invoking the script calls the correct command interpreter to run it.
+        • As a final step, after testing and debugging, you would likely want to move it to 
+        /usr/local/bin (as root, of course), to make the script available to yourself and all otherusers as a systemwide executable.
+         The script could then be invoked by simply typing scriptname [ENTER] from the command line.
+
+
+Providing Output From a Shell Script
+
+    which <command> : to get command location.
+        which bash : get bash location. /usr/bin/bash
+
+    create simply script print "hello,world!.
+        touch hello.sh  hello.py 
+        vim hello.sh 
+            #!/bin/bash
+            
+            echo "hello,world!"
+        :wq
+        vim hello.py 
+            #!/bin/python
+
+            print("hello,world")
+        :wq
+
+    run scripts.
+        chmod +x hello.sh hello.py #Execute permission
+    
+        ./hello.sh #run bash script.
+        ./hello.py #run python script.
+
+        bash hello.sh #Another way to run the script.
+        python hello.py #Another way to run the script.
+
+        echo $PATH 
+        mv hello.* /usr/local/bin
+        #new you can run script from anywhere.
+
+    writing effective bash Script.
+        touch backup.sh
+        vi backup.sh
+            #!usr/bin/bash
+
+            #tar the  /etc directly
+            tar -cf etc_backup.tar /etc
+
+            #Transfer the tar archive to the buckup server  using scp command.
+            scp etc_backup.tar root@192.168.1.2:/buckup
+
+
+            clean up :remove the local tar archive.
+            rm -rf etc_backup.tar
+        :wq
+
+        ./backup.sh #run script.
+
+
+Quoting special characters
+    • A number of characters and words have special meaning to the Bash shell.
+    However, occasionally you will want to use these characters for their literal values,
+    rather than for their special meanings. To do this, use one of three tools to remove
+    (or escape) the special meaning: the backslash (V), single quotes (*), or
+    double quotes (''').
+    • The backslash escape character removes the special meaning of the single character
+    immediately following it. For example, to display the literal string # not a comment
+    with the echo command, the # sign must not be interpreted by Bash as having special
+    meaning. Place the backslash character in front of the # sign.
+        echo # not a comment
+
+        echo \# not a comment
+            # not a comment
+        echo \# not a comment\#
+            \# not a comment\#
+        echo "not a comment"
+            not a comment
+
+    hostname : show or set the system's host name
+        -s : Display the short host name. This is the host name cut at the first dot.
+    HOST='hostname -s'
+    echo $HOST  : Display the short host name.
+
+    HOST=$(hostname -s)
+    echo $HOST : also display the short host name.
+
+    echo \$HOST 
+        $HOST
+
+    echo 'your username variable is $USER'
+        your username variable is root
+    echo "your username variable is $USER"
+            your username variable is $USER
+    echo \"your username variable is $USER\"
+            " your username variable is $USER"
+
+
+    
+File name handling using quoating
+    Create a file or directory whose name contains a space
+        touch "file 1" : Create a file named "file 1"
+              'file 1'
+               file\ 1
+
+
+        mkdir 'dir 1' : Create a directory named "dir 1"
+        mkdir "dir 1"
+        mkdir  dir\ 1
+
+         cd /home/mohamed/"dir 1"
+         cd /home/mohamed/'dir 1'
+         cd /home/mohamed/dir\ 1
+        
+        x=5
+        y=10
+
+        echo $x $y
+            5 10 
+        echo x + y = $[x+y]
+            x + y = 15
+        echo x + y = \$[x+y]
+            x + y = $[x+y]
+        echo "x + y = $[x+y]"
+            x + y = 15
+        echo 'x + y = $[x+y]'
+            x + y = $[x+y]
+        echo x \* y = $[x*y]
+            x * y = 50
+        
+Special characters
+    • "dot", as a component of a filename. When working with filenames, a leading dot is the prefix of a "hidden" file,
+     a file that a Is will not normally show.
+        touch .hidden-file
+    • When considering directory names, a single dot represents the current working directory, and two dots denote the parent directory.
+         pwd
+            /home/karim/projects
+         cd ..
+         pwd
+            /home/karim
+    
+    The dot often appears as the destination (directory) of a file movement command, in this context meaning current directory.
+        cp /home/karim/projects/*
+
+    "dot" character match. When matching characters, as part of a regular expression, a "dot" matches a single character.
+
+    ' command substitution. The 'command' construct makes available the output of command for assignment to a variable. 
+    This is also known as backquotes or backticks.
+        DATE='date' == DATE=$(date)
+        echo $DATE
+            Tue Dec 22 21:35:27 EET 2020
+
+
+
+
+    ! It also inverts the meaning of a test operator. This can, for example, change the
+    sense of equal ( = ) to not-equal (!=). The ! operator is a Bash keyword.
+    * wild card [asterisk]. The * character serves as a "wild card" for filename expansion in
+    globing. By itself, it matches every filename in a given directory
+    The * also represents any number (or zero) characters in a regular expression.
+    In the context of arithmetic operations, the * denotes multiplication.
+    ? wild card. The ? character serves as a single-character "wild card" for filename
+    expansion in globbing, as well as representing one character in an extended
+    regular expression.
+
+    $ Variable substitution (contents of a variable).
+    $ end-of-line. In a regular expression, a "$" addresses the end of a line of text.
+    $? exit status variable. The $? variable holds the exit status of a command, a function, or of the script itself.
+    $$ process ID variable. The $$ variable holds the process ID of the script in which it appears.
+
+    () command group. (a=hello; echo $a)
+    () array initialization. Array=(element1 element element)
+
+    {xxx,yVY,zzz,...} Brace expansion.
+        touch {file1,file2,file3,file4}
+        ls 
+            file1   file2   file3 file4
+    {a..z} : Extended Brace expansion.
+        echo {1..12}
+            1 2 3 4 5 6 7 8 9 10 11 12
+    
+    {}\: pathname. Nostly used in find constructs.
+        find . -name file1 -exec rm -f {}\;
+
+    [ ] Test expression between [ ].
+    [[ ]] Test expression between [[ ]]. More flexible than the single-bracket [ ] test.
+        x=5;y=10
+        [[ $s -lt $y ]] && echo $y
+            10
+        [[ $s -gt $y ]] && echo $y
+
+    > &>>&>> < redirection.
+        scriptname > filename redirects the output of scriptname to file filename.
+        Overwrite filename if it already exists.
+    
+        command & > filename redirects both the stdout and the stderr of command to filename.
+
+        command 2>&1 redirects stdout of command to stderr.
+        scriptname >> filename appends the output of scriptname to file filename.
+        If filename does not already exist, it is created.
+   
+    | [pipe] Passes the output (stdout of a previous command to the input (stdin) of the next one, or to the shell.
+
+
+For loop
+    Running commands more efficiently using loops
+        Operations on code blocks are the key to structured and
+        organized shell scripts. Looping and branching constructs
+        provide the tools for accomplishing this.
+
+    A loop is a block of code that iterates a list of commands as long as the loop control condition is true.
+        for loop
+            for arg
+            do
+
+            commandl
+            command2
+            command3
+             
+            done
+
+
+            NUMBERS="1 2 3 4 5"
+            for number in $NUMBERS
+            echo -n "$number"
+            done
+                12345
+            
+            
+            for file in file*
+            do
+            ls -l $file
+            done
+                1 root root 0 Dec 26 11:23 file4
+                1 root root 0 Dec 26 11:23 file5    
+            
+            for file in file*
+            do
+            mv $file New_$file* : renaming 
+            ls New* 
+            sleep 2 : Wait two seconds
+            done
+While, Until loop
+    while true : infinite loop
+    do 
+    echo hello, world
+    done
+
+    i=1
+    while [$i -le 10 ]
+    do 
+    echo $i
+    let $i+=1
+    done
+
+    until != while
+
+    until [ $i -gt 10 ]
+    do 
+    echo $i 
+    let $i+=1
+    done
+
+ Exit and Exit Status
+    Exit and exit status
+    • The exit command may be used to terminate a script, just as in a C program. 
+    It can also return a value, which is available to the script's parent process.
+
+    • Every command returns an exit status (sometimes referred to as a return statusor exit code). A successful command returns a 0,
+     while an unsuccessful one returns a non-zero value that usually may be interpreted as an error code.
+     
+    • When a script ends with an exit that has no parameter, the exit status of the script is the exit status of 
+    the last command executed in the script (previous to the exit).
+
+             #! /bin/bash                                          #! /bin/bash                                      
+             COMMAND_1                                             COMMAND_1             
+
+            . . . .                                                . . . .
+
+             # Will exit with status of last command.              # Will exit with status of last command.                                                
+             COMMAND_LAST                                          COMMAND_LAST    
+             exit                                                  exit $?    
+
+             $? : is used to find the return value of the last executed command. (0 == "sucssess") 
+
+
+
+Testing script Inputs
+    Every reasonably complete programming language can test for a condition, then act according to the result of the test. Bash
+    has the test command, various bracket and parenthesis operators, and the if/then construct.
+
+    Test constructs
+        • An if/ then construct tests whether the exit status of a list of commands is 0 (since O means "success" by UNIX convention),
+         and if so, executes one or more commands.
+
+        There exists a dedicated command called [ (left bracket special character). It is
+        a synonym for test, and a built-in for efficiency reasons. This command considers
+        its arguments as comparison expressions or file tests and returns an exit status
+        corresponding to the result of the comparison (0 for true, 1 for false).
+       
+        • Bash introduced the [[ ... ]] extended test command, which performs comparisons in a manner more familiar to
+         programmers from other languages. Note that [[ is a keyword, not a command.
+        
+        Bash sees [[ $a -It $b ]] as a single element, which returns an exit status.
+             x=5;y=10
+            [[ $x -lt $y ]] && echo $?
+            0
+            [[ $y -lt $x ]] || echo $?
+            1
+
+    Conditional structures
+        • There are various types of conditional statements in Bash
+            • if-else statement.    • if..elif..else statement.     • Nested if/ then condition
+       
+       
+        • if-else statement
+            if [ condition-true ]
+            then
+                command 1
+                command 2
+                . . .
+
+            else
+                * Optional (may be left out if not needed) •
+                # Adds default code block executing if original condition tests false.
+                command 3
+                command 4
+                . . .
+            fi
+
+
+    • if..elif..else statement
+        • elif is a contraction for else if. The effect is to nest an inner if/then construct within an outer one.
+            if [ condition1 ]
+            then
+                commandl
+                command2
+                command3
+            elif [ condition2 ]
+            # Same as else if
+            then
+                command4
+                command5
+            else
+                default-command
+            fi
+
+
+    • Nested if/ then Condition
+        • Condition tests using the if/then construct may be nested. The net result is equivalent to using the && compound comparison operator above.
+            if [ condition1 ]
+            then
+                if [ condition2 ]
+                then
+                    do-something # But only if both "conditionl" and "condition2" valid.
+                fi
+            fi
+        • When if and then are on same line in a condition test, a semicolon must terminate the
+        if statement. Both if and then are keywords. Keywords (or commands) begin statements,
+        and before a new statement on the same line begins, the old one must terminate.
+            if [ -x "$filename" ]; then
+    
+Examples on [[...]] and unary operators
+
+        [ 1 -eq 1 ];echo $? # -eq : equal
+            0
+        [ 1 -ne 1 ];echo $? # -ne : not equal
+            1
+        [ 8 -gt 4 ];echo $? # -gt : greater than
+            0
+        [ 8 -ge 8 ];echo $?  # -ge : greater or equal
+            1
+        [ 8 -lt 8 ];echo $? # -lt : less than
+            1
+        [ 8 -le 8 ];echo $? # -le : less than or equal
+            0
+        
+
+
+        [[ "abc" = "abc" ]];echo $?
+            0
+        [[ "abc" = "rfd" ]];echo $?
+            1
+        [[ "abc" != "def" ]];echo $?
+            0
+        
+        STRING=''
+        [ -z "$STRING" ];echo $? # -z : zero
+            0
+        STRING='asdf'
+        
+        [ -z "$STRING" ];echo $? 
+            1        
+        [ -n "$STRING" ];echo $? # -n : not zero
+            0
+        
+
+
+        [ -d /etc ];echo $? # -d :  directory exist ?
+            0
+        [ -d /ett ];echo $? # -d :  directory exist ?
+            1
+        [ -f /etc/passwd ];echo $? # -d :  file exist ?
+            0
+        [ -f /etc/passwr ];echo $? # -d :  file exist ?
+            1
+        [ -r /etc/passwd ];echo $? # -d :  Does the user have read permission?
+        [ -w /etc/passwd ];echo $? # -d :  Does the user have write permission?
+        [ -x /etc/passwd ];echo $? # -d :  Does the user have execute permission?
+        
+
+
+Examples on if statements
+
+        x=5
+        y=10 
+        
+        if [ $x -gt $y ]
+        then 
+        echo "X is greater than y"
+        else
+        echo "X is lower than y"
+        fi
+            # "X is lower than y"
+        
+        cmp <file1> <file2> : Compare two files, if there is a difference, print where the difference is, if there is no difference, print nothing.
+            cmp etc/passwd etc/passwd
+                #print nothing
+            cmp etc/passwd etc/shadow
+                #etc/passwd etc/shadow differ: byte 6. line 1
+
+            cmp etc/passwd etc/passwd ; $?
+                0
+            
+            cmp etc/passwd etc/shadow &> /dev/null : compare two files and redirects output to /dev/null
+
+        if cmp etc/passwd etc/shadow &> /dev/null ; then echo "both files are matched"; else echo " both files are differnt" ; if
+        
+        systemctl is-active psacct.service : Check if the server is active or not and return active or inactive 
+        
+        $? : # 0 or 3
+
+        if [ $? -ne 0 ]
+        then 
+        systemctl start psacct.service
+        else 
+        systemctl stop psacct.service
+        fi
+
+        if systemctl is-active psacct.service $>/dev/null
+        then 
+        systemctl start psacct.service
+        else 
+        systemctl stop psacct.service
+        fi
+
+
+
+Example using for loop and if
+    touch backup_script.sh
+    vi backup_script.sh
+
+        #!/usr/bin/bash
+        for dir in /etc /home / tmp
+        do
+                [ ! -d $dir ] && echo "$dir is not exist " && containue
+
+                tar -cf "$dir"_backup.tar $dir
+
+                if [ $? -eq 0 ]; then echo "Tar archive for $dir is done successfully" ; else echo "some error occurred when pressing $dir "; fi
+
+                scp "$dir"_backup.tar root@192.168.1.0:/buckup
+
+                if [ $? -eq 0 ]; then echo "secure copy for $dir is done successfully" ; else echo "some error occurred when remote file copy for  $dir "; fi
+        done 
+
+    ./backup_script.sh
+
+Regular Expressions
+    To fully utilize the power of shell scripting, you need to masterRegular Expressions. 
+    Certain commands and utilities commonlyused in scripts, such as grep
+
+    Regular expressions
+        Some of the commonly used commands with Regular expressions are tr, sed, vi and grep. Listed below are some of the basic Regex.
+
+        symbol                  Descriptions
+        
+        .                       replaces any character(grep)
+        ^                       matches start of string
+        $                       matches end of string
+        *                       matches up zero or more times the preceding character
+        \                       Represent special characters
+        ()                      Groups regular expressions
+        ?                       Matches up exactly one character(ls)
+
+        examples 
+            ls fil* : list any file start with fil
+            ls ??? : List any file consisting of 3 letters
+            ls file? : list  any file start with file+any letter
+
+            ls [ab]* : list any file that start with a or b + *
+            ls [!ab]* : list any file that not start with a or b 
+            ls [a-c]* : List any file that starts with any letter from the range a to c.
+            ls [^a-c]* : List any file that not starts with any letter from the range a to c.
+            ls file[ab] : list any file that start with file and The fifth letter is either A or B.
+            ls *[[:space:]] : list any file that start and end with zero or more character and containing the blank space.
+            ls file[[:alnum:]] : list any file that start with file and end with alpha numeric.
+
+Use grep and Regular Expressions
+    grep cat /usr/share/dict/words : list each line that containing cat 
+    grep ^cat /usr/share/dict/words : list any list that start with cat
+    grep cat$ /usr/share/dict/words : list any list that end with cat
+    grep ^cat$ /usr/share/dict/words : list any list that start and end with cat
+    grep ^c.t$ /usr/share/dict/words : list any list that start with c, end with t and containing any character.
+    grep ^c[auo]t$ /usr/share/dict/words : 
+    grep ^c[^auo]t$ /usr/share/dict/words : 
+
+Summary
+    In this chapter, you learned:
+        • How to create and execute simple Bash scripts.
+        • How to use loops to iterate through a list of items from the command-line and in a shell script.
+        • How to search for text in log files and configuration files using regular expressions and grep.
+
+
+
+
+
