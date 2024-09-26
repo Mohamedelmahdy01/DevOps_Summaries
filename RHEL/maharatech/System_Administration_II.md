@@ -1,7 +1,3 @@
-Here’s the updated version of your chapter with consistent formatting and style:
-
----
-
 # CH1 - Improving Command-Line Productivity
 
 ### **What, Why, and When to Use Shell Scripts?**
