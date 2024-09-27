@@ -94,7 +94,7 @@ Networks allow for the sharing of hardware (like printers, scanners) and data, e
   - **Organizationally Unique Identifier (OUI)**: Identifies the manufacturer.
   - **Network Interface Controller (NIC) Specific**: Identifies the device.
 
-  ### OSI (Open Systems Interconnection) Model:
+### OSI (Open Systems Interconnection) Model:
 The OSI model is a conceptual framework that standardizes the functions of a telecommunication or computing system into seven distinct layers. It facilitates communication between systems and is used to guide the development and troubleshooting of network systems.
 
 **Layers from Source to Destination:**
