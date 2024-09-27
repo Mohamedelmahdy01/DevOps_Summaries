@@ -93,3 +93,99 @@ Networks allow for the sharing of hardware (like printers, scanners) and data, e
 - Divided into:
   - **Organizationally Unique Identifier (OUI)**: Identifies the manufacturer.
   - **Network Interface Controller (NIC) Specific**: Identifies the device.
+
+  ### OSI (Open Systems Interconnection) Model:
+The OSI model is a conceptual framework that standardizes the functions of a telecommunication or computing system into seven distinct layers. It facilitates communication between systems and is used to guide the development and troubleshooting of network systems.
+
+**Layers from Source to Destination:**
+1. **Physical (Layer 1)**: Concerned with the transmission of raw bits over a physical medium (cables, wireless).
+2. **Data Link (Layer 2)**: Handles MAC (Media Access Control) addresses and ensures reliable data transfer over the physical medium (Frames).
+3. **Network (Layer 3)**: Manages logical IP addresses and routes data from source to destination (Packets).
+4. **Transport (Layer 4)**: Segments data, ensures data transfer is reliable, and manages port addresses (Segments).
+5. **Session (Layer 5)**: Establishes, maintains, and terminates communication sessions.
+6. **Presentation (Layer 6)**: Ensures data is in the correct format (encryption, compression, syntax).
+7. **Application (Layer 7)**: Provides network services to end-users and applications (HTTP, FTP, SMTP).
+
+---
+
+### Advantages of the OSI Model:
+1. **Simplification**: Breaks down network communication into smaller, manageable layers for easier design and troubleshooting.
+2. **Standardization**: Allows for the development of network components by different vendors.
+3. **Interoperability**: Ensures different types of hardware and software can communicate.
+4. **Troubleshooting**: Helps isolate and resolve networking issues efficiently.
+
+---
+
+### Functions by Layer:
+- **Application Layer (7)**: Services like HTTP, FTP, SMTP operate here.
+- **Presentation Layer (6)**: Handles data encryption, compression, and translation of formats.
+- **Session Layer (5)**: Manages session establishment and termination.
+  
+**Transport Layer (4)**:
+- Segments data for transmission (uses **segments**).
+- Ensures data arrives correctly using port addresses.
+  
+**Network Layer (3)**:
+- Handles logical IP addressing and routing (uses **packets**).
+- Assigns IP addresses to devices.
+
+**Data Link Layer (2)**:
+- Handles MAC addresses and ensures data reaches its destination within the local network (uses **frames**).
+- Divided into:
+  - **LLC (Logical Link Control)**: Provides error correction and flow control.
+  - **MAC (Media Access Control)**: Manages access to the physical medium.
+
+**Physical Layer (1)**:
+- Converts data into bits for transmission through physical media like cables or wireless signals.
+
+---
+
+### Layer-wise Addressing:
+1. **Transport Layer**: Uses **port addresses** (e.g., 80 for HTTP).
+2. **Network Layer**: Uses **logical (IP) addresses** (e.g., `192.168.1.5`).
+3. **Data Link Layer**: Uses **physical (MAC) addresses** (e.g., `A1-B2-C3-D4-E5-F6`).
+
+### Port Address:
+- **Physical ports**: The actual hardware ports on a device.
+- **Logical ports**: Software-defined communication endpoints. There are **65,534 ports** available (0 to 65,533).
+
+---
+
+### Example: Communication Between Web Client and Web Server:
+- **Client**: 
+  - IP: `192.168.1.5`
+  - MAC: `A`
+- **Server**:
+  - IP: `192.168.1.200`
+  - MAC: `B`
+  
+When a client requests a webpage:
+1. Client sends a request using `HTTP://192.168.1.200`.
+2. **Source Port**: Any port above 1023 (e.g., 1027).
+3. **Destination Port**: 80 (standard HTTP).
+4. **Logical (IP) Addresses**: 
+   - Source IP: `192.168.1.5`
+   - Destination IP: `192.168.1.200`
+5. **Physical (MAC) Addresses**: 
+   - Source MAC: `A`
+   - Destination MAC: `B`.
+
+---
+
+### ARP (Address Resolution Protocol):
+- **ARP Cache**: A table that stores IP-to-MAC address mappings.
+- When a device needs to communicate with another device, it uses ARP to resolve the destination's MAC address.
+- If the destination MAC is unknown, the source sends a broadcast ARP request, where the destination MAC is initially `FF-FF-FF-FF-FF-FF`.
+
+---
+
+### Data Flow from Client to Web Server:
+1. **Application Layer (HTTP)**: The client sends an HTTP request.
+2. **Presentation Layer**: Data might be compressed or encrypted.
+3. **Session Layer**: A session is established between client and server.
+4. **Transport Layer**: The HTTP request is segmented, and source/destination port numbers are added (1027 to 80).
+5. **Network Layer**: The segment is encapsulated into a packet, and source/destination IP addresses are assigned.
+6. **Data Link Layer**: The packet is encapsulated into a frame, with source/destination MAC addresses.
+7. **Physical Layer**: The frame is transmitted as bits over the physical medium.
+
+Each layer at the source prepares the data for the corresponding layer at the destination.
