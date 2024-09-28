@@ -587,3 +587,65 @@ Summary
 
 
 
+=============Scheduling Furtre tasks ===========
+
+Scheduling one-time tasks with "at" command
+    Goal
+        • Schedule tasks to automatically execute in the future.
+    Objectives
+        • Set up a command that runs once at some point in the future.
+        * Schedule commands to run on a repeating schedule using a user's crontab file.
+        * Schedule commands to run on a repeating schedule using the system crontab file and directories.
+        • Enable and disable systemd timers, and configure a timer that manages temporary files.
+
+
+    Scheduling one-time tasks with at command
+        Use the at TIMESPEC command to schedule a new job. The at command then  reads the commands to execute from the stdin channel.
+        While manually entering commands, you can finish your input by pressing CtrI+D. 
+        For more complex commands that are prone to typographical errors, it is often easier to use input redirection from a script file,
+        for example, at now +5min < myscript,rather than typing all the commands manually in a terminal window.
+       
+        • The TIMESPEC argument with the at command accepts many powerful combinations, allowing users to describe exactly when a job should run.
+        Typically, they start with a time, for example, 02:00pm, 15:59, or even teatime, followed by an optional date or number of days in the future.
+       
+        • The following lists some examples of combinations that can be used.
+            • now +5min
+            • teatime tomorrow (teatime is 16:00)
+            • noon +4 days
+            • 5pm august 3 2021
+
+    Inspecting and managing deferred user jobs
+        • To get an overview of the pending jobs for the current user, use the command atq or the at -i commands.
+
+        atq : ists the user's pending jobs, unless the user is the superuser; in that case, everybody's jobs are listed.
+              The format of the output lines (one for each job) is: Job number, date, hour, queue, and username.
+            
+            (1)28 (2)Mon Feb 2 05:13:00 2015 (3)a (4)user
+            29 Mon Feb 3 16:00:00 2014 h user
+            27 Tue Feb 4 12:00:00 2014 a user
+            In the preceding output, every line represents a different job scheduled to run in the future.
+            (1) The unique job number for this job.
+            (2) The execution date and time for the scheduled job.
+            (3) Indicates that the job is scheduled with the default queue a. Different jobs may be scheduled with different queues.
+            (4) The owner of the job (and the user that the job will run as).
+
+    Create at task
+        • at +time ( to make a schedule for some commands to run in this time then enter.
+        • Time like now, 1hour, 6AM,tomorrow, 4PM+ 3days , 10AM Jul 31, teatime ---> 4 pm).
+        • at> write the commands you want to execute in this time each command in one line then CTRL +d ---> to finish.
+        • atq ------> show you all schedules created.
+        • atrm + job ----> to delete the schedule.
+            • Time can be:
+            • HH:MM 23:15
+            • Midnight 12:00 am
+            • Noon 12:00 pm
+
+
+        
+Create "at" task
+    systemctl status atd : check atd prosess running or not
+
+    at noon 
+    at> echo "hello">>/tmp/hello.txt 
+    
+
