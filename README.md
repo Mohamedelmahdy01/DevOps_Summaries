@@ -7,7 +7,7 @@ This section of my repository is dedicated to summarizing key DevOps tools that 
 
 1. [Red Hat System Administration I](./RHEL/maharatech/System_Administration_I.md)
 2. [Git & GitHub](./Version_Control/GitAndGitHub.md)
-3. [Data Version Control (DVC)](./Version_Control/DVC.md.md)
+3. [Data Version Control (DVC)](./Version_Control/DVC.md)
 4. [Network](./Network/Network.md)
 5. [Docker](./DOCKER/dock.md)
 
