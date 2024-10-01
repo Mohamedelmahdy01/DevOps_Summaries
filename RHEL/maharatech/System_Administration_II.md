@@ -459,3 +459,67 @@ In this chapter, we covered:
 - Working with regular expressions to match patterns in text and how to use `grep` to search through files.
 - Practical examples of how regular expressions can simplify complex text searches.
 
+---
+
+### **1. Scheduling One-Time Tasks with the `at` Command:**
+
+- **Goal**: Schedule commands to run at a future time.
+  
+- **Usage**: 
+  - `at TIME_SPEC`: Schedule a job using a time specification (e.g., `now + 5min`, `5pm August 3 2021`).
+  - Enter commands to execute (use **Ctrl+D** to finish).
+  - `atq`: Lists pending jobs for the user.
+  - `atrm JOB_ID`: Removes a specific job.
+  - **Time formats**: Examples include `now`, `1hour`, `tomorrow`, `noon`, etc.
+
+- **Key Files**:
+  - `/etc/at.allow`: Users allowed to use `at`.
+  - `/etc/at.deny`: Users denied from using `at`.
+
+---
+
+### **2. Scheduling Recurring Tasks with Cron:**
+
+- **Recurring Jobs**: Use **cron** to schedule tasks that need to repeat (e.g., daily, weekly).
+  
+- **Crontab File Format**:
+  ```
+  * * * * *  command
+  | | | | |
+  | | | | Day of the week (0-7)
+  | | | Month (1-12)
+  | | Day of the month (1-31)
+  | Hour (0-23)
+  Minute (0-59)
+  ```
+
+- **Common Commands**:
+  - `crontab -e`: Edit the user's crontab.
+  - `crontab -l`: List the user's crontab.
+  - `crontab -r`: Remove the user's crontab.
+  
+- **Cron Job Directories**:
+  - `/etc/cron.d/`: Stores system-wide cron jobs.
+  - `/var/spool/cron/`: Contains cron jobs for all users.
+
+---
+
+### **3. Managing Temporary Files with `systemd-tmpfiles`:**
+
+- **Purpose**: Manages creation, deletion, and cleanup of files in `/tmp` or other temporary directories.
+  
+- **Key Commands**:
+  - `systemd-tmpfiles --create --remove`: Creates and removes temporary files based on configuration.
+  - `systemctl list-units --type=timer`: Lists active timers (including those managing temp files).
+  - `systemctl cat systemd-tmpfiles-clean.timer`: Displays timer configuration for cleaning temporary files.
+  
+- **Configuration Files**:
+  - `/usr/lib/tmpfiles.d/`: System-provided defaults.
+  - `/etc/tmpfiles.d/`: Custom administrator configurations.
+
+- **Timers**:
+  - `systemd-tmpfiles-clean.timer`: Triggers regular cleanup of temporary files (e.g., after system boot or at intervals like 24 hours).
+
+---
+
+This chapter covered setting up future task execution, both one-time (with `at`) and recurring (with cron), along with managing system resources via `systemd-tmpfiles` for cleaning up temporary files.
