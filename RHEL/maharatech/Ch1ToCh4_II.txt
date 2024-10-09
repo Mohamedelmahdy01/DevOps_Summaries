@@ -751,3 +751,110 @@ Example recurring user jobs
         32      14      1      1       1       ???  (caveat!)
 
 
+
+Crontab Examples
+    crontab -l : list crontab for current user.
+    crontab -e : add tasks to crontab.
+
+        * * * * * echo "hello word!" >> /tmp/hello.txt
+
+    Example (create backup script automation every Monday at 8PM)
+        crontab -e : open crontat editor
+
+            0 20 * * 1 /root/Desktop/backup.sh 
+
+        :wq
+
+    Create a crontab backup
+        crontab -l >crontab_backup
+
+
+    remove crontab
+        crontab -r 
+
+    Restore a crontab backup
+        crontab crontab_backup
+    
+
+    Each crontab is stored in /var/root/cron
+
+Cron Job Important Files
+    Cron Job Important Files
+        • /etc/cron.d (This is the path to put (your) cron files created).
+        • /etc/cron.deny (the file to put who users you want to deny them from creating cron).
+        • /etc/cron.allow (to put the users who allowed to create cron).
+        • /var/spool/cron (it contains all the crons of all users, so you can access any file you want).
+        • /etc/crontab (to see the syntax for writing a cron task).
+        • /etc/anacrontab (its a file contain all scripts runs in specific time, if you cat this file you will see all scripts which will run in future and time ...etc).
+        • /etc/cron.daily (list scripts which will be executed daily).
+        • /etc/cron.monthly (list scripts which will be executed every month).
+
+
+
+Managing Services with systemd
+    Managing temporary files
+        • Some applications (and users) use the /tmp directory to hold temporary data, Red Hat Enterprise Linux 7 and later include a new
+         tool called systemd-tmpfiles, which provides a structured and configurable method to manage temporary directories and files.
+        • When systemd starts a system, one of the first service units launched is systemd-tmpfiles setup. This service runs the command 
+        systemd-tmpfiles --create --remove.
+         This command reads configuration files from /usr/lib/tmpfiles.d/*.conf, /run/tmpfiles.d/*.conf, and /etc/tmpfiles.d/*.conf.
+        Any files and directories marked for deletion in those configuration files is removed, and any files and directories marked for 
+        creation (or permission fixes) will be created with the correct permissions if necessary.
+        • To ensure that long-running systems do not fill up their disks with stale data,
+        a systemd timer unit called systemd-tmpfiles-clean.timer triggers systemd-tmpfiles-clean.
+        service on a regular interval, which executes the systemd-tmpfiles --clean command.
+
+        Systemctl list-unites --type=timer : list timers
+
+        yum install sysstat : install system status package.
+
+        sar -r : display statistics
+
+        systemctl  cat <timer name> : 
+            systemctl cat  sysstat-collect.timer 
+        
+    if u want to edit timer 
+        cp /usr/lib/systemd/system/sysstat-collect.timer /etc/systemd/system/sysstat-collect.timer
+        vi /etc/systemd/system/sysstat-collect.timer
+            #change timer 
+
+    Cleaning temporary files manually
+        • Use the following systemctl command to view the contents of the systemd-tmpfilesclean. timer unit configuration file.
+        • [user@host ~]$ systemctl cat systemd-tmpfiles-clean.timer.
+        • In the preceding configuration the parameter OnBootSec=15min indicates that the service unit called systemd-tmpfiles-clean.service gets triggered
+        15 minutes after the system has booted up. The parameter OnUnitActiveSec= 1d indicates that any further trigger to the systemd-tmpfiles-clean.
+        service service unit happens 24 hours after the service unit was activated last.
+
+         • Based on your requirement, you can change the parameters in the systemd-mpfilesclean.timer timer unit configuration file.
+          For example, the value 30min for the parameter OnUnitActiveSec triggers the systemd-tmpfiles-clean.service service unit 30 minutes after the service unit was last activated.
+           As a result, systemd-tmpfiles-clean.service gets triggered every 30 minutes after bringing the changes into effect.
+
+         • After changing the timer unit configuration file, use the systemcti daemon-reload command to ensure that systemd is aware of the change.
+          This command reloads the systemd manager configuration.
+                  systemcti daemon-reload
+
+    Configuration file precedence
+        • Configuration files can exist in three places:
+        • /etc/tmpfiles.d/*.conf
+        • /run/tmpfiles.d/*.conf
+        • /usr/lib/tmpfiles.d/*.conf
+
+        • The files in /usr/lib/tmpfiles.d/ are provided by the relevant RPM packages, and you should not edit these files.
+
+        • The files under /run/tmpfiles.d/ are themselves volatile files, normally used by daemons to manage their own runtime temporary files.
+
+        • The files under /etc/ tmpfiles.d/ are meant for administrators to configure custom temporary locations, and to override vendor-provided defaults.
+
+Examples on managing temporary files
+    systemctl list-units --type=timer :
+
+    systemctl cat <
+
+
+
+Summary
+In this chapter, you learned:
+    • Jobs that are scheduled to run once in the future are called deferred jobs or tasks.
+    • Recurring user jobs execute the user's tasks on a repeating schedule.
+    • Recurring system jobs accomplish administrative tasks on a repeating schedule that have system-wide impact.
+    • The systemd timer units can execute both the deferred or recurring jobs.
