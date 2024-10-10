@@ -4,12 +4,14 @@
 This section of my repository is dedicated to summarizing key DevOps tools that I have studied. Each tool is described in detail, covering its purpose, features, and practical usage in DevOps workflows. 
 
 ## Table of Contents
+1. [Fundamentals](./Fundamentals/IT_Fundamentals.md)
+2. [Red Hat System Administration I](./RHEL/maharatech/System_Administration_I.md)
+3. [Red Hat System Administration II](./RHEL/maharatech/System_Administration_II.md)
+4. [Git & GitHub](./Version_Control/GitAndGitHub.md)
+5. [Data Version Control (DVC)](./Version_Control/DVC.md)
+6. [Network](./Network/Network.md)
+7. [Docker](./DOCKER/Docker.md)
 
-1. [Red Hat System Administration I](./RHEL/maharatech/System_Administration_I.md)
-2. [Git & GitHub](./Version_Control/GitAndGitHub.md)
-3. [Data Version Control (DVC)](./Version_Control/DVC.md)
-4. [Network](./Network/Network.md)
-5. [Docker](./DOCKER/dock.md)
 
 ## 🖥️ System Administration I & II Topics
 
