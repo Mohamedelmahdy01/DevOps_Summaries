@@ -160,6 +160,63 @@
    ```bash
    git restore --staged <file>
    ```
+### `git rm --cached <filename>`
+
+The `git rm --cached` command is used to remove a file from the Git index (staging area) without deleting the actual file from your working directory. In other words, it untracks a file that was previously tracked by Git but keeps it in your local file system.
+
+#### Example:
+
+```bash
+git rm --cached filename
+```
+
+- This will remove the file `filename` from Git's tracking, but the file will remain on your local system.
+- After running the command, you need to commit the change to remove the file from the repository.
+
+```bash
+git commit -m "Untrack file 'filename' but keep it locally"
+```
+
+This is especially useful when you accidentally committed a file that shouldn't be tracked (e.g., configuration files, logs, or sensitive data).
+
+---
+
+### `.gitignore`
+
+A `.gitignore` file tells Git which files (or patterns of files) it should ignore and not track. When you place certain filenames or patterns in a `.gitignore` file, Git will stop tracking those files.
+
+#### Example `.gitignore`:
+
+```
+# Ignore log files
+*.log
+
+# Ignore all files in the temp directory
+/temp/
+
+# Ignore a specific config file
+config/settings.py
+```
+
+- **Wildcards** (`*`) can be used to match multiple files.
+- **Directories** are ignored by placing a slash (`/`) at the end.
+  
+Once you have a `.gitignore` file, Git will ignore the files listed there in future commits.
+
+#### If you have already committed files that should be ignored:
+1. Add the files or directories to `.gitignore`.
+2. Use `git rm --cached` to untrack those files:
+   
+   ```bash
+   git rm --cached filename
+   ```
+
+3. Commit the changes:
+   ```bash
+   git commit -m "Untrack ignored files"
+   ```
+
+After this, Git will stop tracking the files listed in `.gitignore`, and they won't be included in future commits.
 
 ### Amending and Resetting Commits
 1. **Modify the last commit message:**
