@@ -389,3 +389,241 @@ You can also configure remote logging, centralizing logs across multiple servers
 - Use central logging solutions for distributed environments.
 - Implement monitoring for high-priority logs (errors, critical, alert).
 
+### CH1 - Improving Command-line Productivity
+
+#### What, Why, and When to Use Shell Scripts?
+
+**Goal:**
+- Run commands more efficiently using advanced Bash shell features, shell scripts, and various utilities from Red Hat Enterprise Linux.
+
+**Objectives:**
+- Automate command sequences with shell scripts.
+- Run commands over lists or items efficiently using `for` loops and conditionals.
+- Use `grep` and regular expressions to find matching text patterns in logs or command output.
+
+#### What is a Shell Script?
+- A script is a list of system commands stored in an executable file.
+- Saves time by avoiding retyping sequences of commands.
+
+#### Why Shell Scripting?
+- Essential for Linux system administration (e.g., setting up services at boot with `/etc/rc.d` scripts).
+- Simple and straightforward syntax.
+- Scripts can be built in sections, with only a few operators to learn.
+
+#### When Not to Use Shell Scripts?
+Avoid shell scripts for:
+- Resource-intensive tasks (e.g., sorting, recursion).
+- Complex mathematical operations (use C++/FORTRAN).
+- Multi-dimensional arrays.
+- Graphics/GUIs.
+- Direct system hardware access.
+- Using external libraries (consider Perl, Python, Ruby, or C/C++).
+
+#### Tips for Writing Effective Bash Scripts:
+- Use comments.
+- Ensure scripts exit when they fail.
+- Exit when using undeclared variables.
+- Use double quotes when referencing variables.
+- Use functions and perform debugging.
+- Make variable and function names descriptive.
+
+---
+
+### What is a Sha-Bang (`#!`)?
+- The sha-bang (`#!`) at the top of a script tells the system which interpreter to use.
+- Example: `#!/bin/bash` specifies the Bash interpreter.
+- The path after `#!` must be correct, or the script will fail.
+
+### Invoking the Script:
+- Use `sh scriptname` or `bash scriptname` to run a script.
+- Alternatively, use `chmod +x scriptname` to make it executable, then run it with `./scriptname`.
+
+---
+
+### Providing Output from a Shell Script
+- Use `which <command>` to find the location of a command.
+  - Example: `which bash` returns `/usr/bin/bash`.
+
+#### Writing a Simple "Hello, World!" Script:
+1. Create the file:
+   - `touch hello.sh`
+   - `vim hello.sh`
+   ```bash
+   #!/bin/bash
+   echo "Hello, World!"
+   ```
+   - Save and exit (`:wq`).
+
+2. Make it executable:
+   - `chmod +x hello.sh`
+
+3. Run the script:
+   - `./hello.sh`
+
+---
+
+### Writing an Effective Backup Script:
+1. Create the file:
+   - `touch backup.sh`
+   - `vim backup.sh`
+   ```bash
+   #!/bin/bash
+   tar -cf etc_backup.tar /etc
+   scp etc_backup.tar root@192.168.1.2:/backup
+   rm -rf etc_backup.tar
+   ```
+   - Save and exit (`:wq`).
+
+2. Make it executable and run:
+   - `chmod +x backup.sh`
+   - `./backup.sh`
+
+---
+
+### Quoting Special Characters in Bash
+
+Use `\`, `'`, or `"` to remove special meanings from characters:
+- `\` escapes special meaning for the next character.
+  - Example: `echo \# not a comment` will output `# not a comment`.
+- Single quotes (`'`) prevent variable substitution.
+- Double quotes (`"`) allow variable substitution.
+
+---
+
+### Special Characters and Operators in Bash:
+- `.` (dot): Represents the current directory or matches any single character in regex.
+- `$`: Refers to variables or marks the end of a line in regex.
+- `*`: Wildcard for filename expansion or multiple characters in regex.
+- `?`: Wildcard for single-character filename expansion or one character in regex.
+- `()` and `{}`: Used for command grouping and brace expansion.
+- `>` and `>>`: Redirect output (overwrite or append).
+- `|` (pipe): Pass output from one command as input to another.
+
+---
+
+### Loops in Bash
+
+#### `for` Loop:
+- Iterates over a list of items.
+```bash
+for item in list
+do
+  command
+done
+```
+Example:
+```bash
+for number in 1 2 3 4 5
+do
+  echo -n "$number"
+done
+# Outputs: 12345
+```
+
+#### `while` Loop:
+- Runs as long as the condition is true.
+```bash
+i=1
+while [ $i -le 10 ]
+do
+  echo $i
+  i=$((i+1))
+done
+```
+
+#### `until` Loop:
+- Runs until the condition becomes true.
+```bash
+i=1
+until [ $i -gt 10 ]
+do
+  echo $i
+  i=$((i+1))
+done
+```
+
+
+### Exit and Exit Status
+- **Exit Command**: Terminates a script and can return a value to the parent process. If no value is returned, the status of the last executed command is used.
+- **Exit Status**: A successful command returns `0`, while an unsuccessful one returns a non-zero value.
+- **$?**: Used to check the return value of the last executed command.
+
+### Testing Script Inputs
+- **Test Constructs**: Bash uses `if`, `test`, `[` (synonym for `test`), and `[[` (extended test) for condition testing.
+- **Conditional Statements**: Includes `if-else`, `if-elif-else`, and nested `if` statements.
+  
+  Example:
+  ```bash
+  x=5; y=10
+  if [ $x -gt $y ]; then 
+      echo "X is greater than y"
+  else
+      echo "X is lower than y"
+  fi
+  ```
+
+### Loop and Condition Examples
+- **For Loops**: Example provided on creating a backup script using loops, conditions, and `tar` for archiving directories.
+  
+  ```bash
+  for dir in /etc /home /tmp
+  do
+      [ ! -d $dir ] && echo "$dir does not exist" && continue
+      tar -cf "$dir"_backup.tar $dir
+      # Add further conditions and actions
+  done
+  ```
+
+### Regular Expressions and `grep`
+- **Regex Symbols**: Basic regex symbols used for matching patterns in text (e.g., `.`, `^`, `$`, `*`, etc.).
+- **Examples with `grep`**: Demonstrates pattern matching using `grep`, such as finding words that start or end with a specific pattern.
+
+### Summary
+- This chapter covers Bash scripting fundamentals, including command execution, loops, condition testing, and using regular expressions for searching text.
+
+This section outlines various methods to schedule tasks on Linux systems, either for a one-time execution or for repeated intervals. Here's a summary of the main concepts:
+
+# **Scheduling One-Time Tasks with the `at` Command**
+- **`at` Command Usage**: The `at` command allows scheduling tasks to run once at a specific time. You provide a **TIME SPEC** (like "now +5min", "noon", or "tomorrow 4PM") to specify when the task should be executed.
+    - Example: `at now +5min` will execute the given command 5 minutes from now.
+    - Commands to be executed are entered into the `at` command interface, followed by **Ctrl+D** to save.
+- **Manage Jobs**:
+    - Use `atq` to view scheduled jobs.
+    - Use `atrm <job_id>` to remove a scheduled job.
+    - Check the process running `systemctl status atd`.
+
+## **Recurring Tasks with `crontab`**
+- **`crontab` Command**: This command is used to schedule recurring jobs. It follows a specific format where the user specifies **minute**, **hour**, **day of the month**, **month**, **day of the week**, and the **command** to be run.
+    - Example: `0 20 * * 1 /root/Desktop/backup.sh` will run a backup script every Monday at 8 PM.
+    - **Crontab Commands**:
+        - `crontab -e`: Open the crontab editor.
+        - `crontab -l`: List all jobs for the current user.
+        - `crontab -r`: Remove all jobs for the current user.
+    - **Backup Crontab**:
+        - Use `crontab -l > crontab_backup` to backup.
+        - Restore using `crontab crontab_backup`.
+
+## **System-Wide Cron Jobs**
+- System administrators can manage recurring tasks that affect the whole system by placing scripts in directories like:
+    - **`/etc/cron.daily`**: For daily tasks.
+    - **`/etc/cron.monthly`**: For monthly tasks.
+    - **`/var/spool/cron`**: Contains crontabs for individual users.
+    - **`/etc/crontab`**: System-wide cron tasks.
+
+## **Managing Temporary Files with `systemd-tmpfiles`**
+- **systemd-tmpfiles**: A service that manages temporary files. It automatically cleans up old or unnecessary files, ensuring system directories like `/tmp` do not fill up over time.
+    - You can view the configuration with `systemctl cat systemd-tmpfiles-clean.timer`.
+    - To edit timers, copy the existing timer file to `/etc/systemd/system/` and modify it.
+
+## **Key Files for `at` and `cron` Jobs**
+- **For `at`**:
+    - **`/etc/at.allow`** and **`/etc/at.deny`**: Files that control which users are allowed or denied from using the `at` command.
+    - **`/var/spool/at/`**: Holds scheduled jobs.
+- **For `cron`**:
+    - **`/etc/cron.allow`** and **`/etc/cron.deny`**: Files that control access to the `cron` command.
+    - **`/etc/cron.d`**: Contains system-wide cron jobs.
+    - **`/var/spool/cron`**: Stores individual user cron jobs.
+
+---
+
+This chapter covers essential commands for scheduling tasks and managing system timers, focusing on using `at` for one-time tasks and `cron` for recurring jobs.
