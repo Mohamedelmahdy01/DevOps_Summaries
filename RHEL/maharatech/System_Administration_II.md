@@ -461,67 +461,574 @@ In this chapter, we covered:
 
 ---
 
-# CH2 - Scheduling Furtre tasks 
+# Chapter 2: Scheduling Future Tasks
 
-## **1. Scheduling One-Time Tasks with the `at` Command:**
+## Scheduling One-Time Tasks with the "at" Command
 
-- **Goal**: Schedule commands to run at a future time.
-  
-- **Usage**: 
-  - `at TIME_SPEC`: Schedule a job using a time specification (e.g., `now + 5min`, `5pm August 3 2021`).
-  - Enter commands to execute (use **Ctrl+D** to finish).
-  - `atq`: Lists pending jobs for the user.
-  - `atrm JOB_ID`: Removes a specific job.
-  - **Time formats**: Examples include `now`, `1hour`, `tomorrow`, `noon`, etc.
+### Goal
+- Schedule tasks to automatically execute in the future.
 
-- **Key Files**:
-  - `/etc/at.allow`: Users allowed to use `at`.
-  - `/etc/at.deny`: Users denied from using `at`.
+### Objectives
+- Set up a command that runs once at a specific point in the future.
+- Schedule commands to run on a repeating schedule using a user's crontab file.
+- Schedule commands to run on a repeating schedule using the system crontab file and directories.
+- Enable and disable `systemd` timers, and configure a timer that manages temporary files.
 
 ---
 
-## **2. Scheduling Recurring Tasks with Cron:**
+### Scheduling One-Time Tasks with the `at` Command
 
-- **Recurring Jobs**: Use **cron** to schedule tasks that need to repeat (e.g., daily, weekly).
-  
-- **Crontab File Format**:
+- Use the `at TIMESPEC` command to schedule a new job. The `at` command reads the commands to execute from the stdin channel.
+- When manually entering commands, finish your input by pressing `Ctrl+D`.
+- For more complex commands, it's easier to use input redirection from a script file. For example:
+  ```bash
+  at now + 5min < myscript
   ```
-  * * * * *  command
-  | | | | |
-  | | | | Day of the week (0-7)
-  | | | Month (1-12)
-  | | Day of the month (1-31)
-  | Hour (0-23)
-  Minute (0-59)
+  This method avoids typing all the commands manually in the terminal.
+
+### TIMESPEC Argument in the `at` Command
+- The `TIMESPEC` argument accepts powerful combinations to describe exactly when a job should run.
+- Typically, it starts with a time (e.g., `02:00pm`, `15:59`, or even `teatime`), followed by an optional date or number of days in the future.
+
+#### Examples of TIMESPEC Combinations:
+- `now + 5min`
+- `teatime tomorrow` (teatime is 16:00)
+- `noon + 4 days`
+- `5pm August 3 2021`
+
+### Inspecting and Managing Deferred User Jobs
+- To view pending jobs for the current user, use the `atq` command (or `at -i`).
+  ```bash
+  atq
+  ```
+  This lists the user's pending jobs. If the user is a superuser, it lists everybody's jobs.
+  
+  Format of output:
+  ```
+  Job number, date, hour, queue, username.
   ```
 
-- **Common Commands**:
-  - `crontab -e`: Edit the user's crontab.
-  - `crontab -l`: List the user's crontab.
-  - `crontab -r`: Remove the user's crontab.
-  
-- **Cron Job Directories**:
-  - `/etc/cron.d/`: Stores system-wide cron jobs.
-  - `/var/spool/cron/`: Contains cron jobs for all users.
+  Example:
+  ```
+  28 Mon Feb 2 05:13:00 2015 a user
+  29 Mon Feb 3 16:00:00 2014 h user
+  ```
+
+#### Managing Jobs
+- To delete a scheduled job, use the `atrm` command followed by the job number:
+  ```bash
+  atrm <job number>
+  ```
 
 ---
 
-## **3. Managing Temporary Files with `systemd-tmpfiles`:**
+## Creating and Managing "at" Jobs
 
-- **Purpose**: Manages creation, deletion, and cleanup of files in `/tmp` or other temporary directories.
-  
-- **Key Commands**:
-  - `systemd-tmpfiles --create --remove`: Creates and removes temporary files based on configuration.
-  - `systemctl list-units --type=timer`: Lists active timers (including those managing temp files).
-  - `systemctl cat systemd-tmpfiles-clean.timer`: Displays timer configuration for cleaning temporary files.
-  
-- **Configuration Files**:
-  - `/usr/lib/tmpfiles.d/`: System-provided defaults.
-  - `/etc/tmpfiles.d/`: Custom administrator configurations.
+### Basic Steps to Schedule an "at" Task
+1. Use the `systemctl` command to check if the `atd` service is running:
+   ```bash
+   systemctl status atd
+   ```
+2. To create an "at" task, specify the time and command:
+   ```bash
+   at noon
+   at> echo "Hello" >> /tmp/hello.txt
+   Ctrl+D to save and exit
+   ```
+3. You can use a variety of time formats such as:
+   - `now`
+   - `1hour`
+   - `6AM`
+   - `tomorrow`
+   - `4PM + 3days`
+   - `10AM Jul 31`
+   - `teatime`
 
-- **Timers**:
-  - `systemd-tmpfiles-clean.timer`: Triggers regular cleanup of temporary files (e.g., after system boot or at intervals like 24 hours).
+### Viewing and Managing Jobs
+- View scheduled jobs:
+  ```bash
+  atq
+  ```
+- Display job script:
+  ```bash
+  at -c <jobid>
+  ```
+
+### Important Files for "at" Jobs
+- `/etc/at.allow`: Users listed here can use `at` commands.
+- `/etc/at.deny`: Users listed here are denied from using `at`.
+- `/var/spool/at/`: Contains the job scripts.
+
+**Notes**:
+- If both `at.allow` and `at.deny` files do not exist, all users are denied access to `at`.
+- By default, the installation creates `at.deny`, allowing all users to use `at`.
 
 ---
 
-This chapter covered setting up future task execution, both one-time (with `at`) and recurring (with cron), along with managing system resources via `systemd-tmpfiles` for cleaning up temporary files.
+## Recurring Jobs with Crontab
+
+### Overview
+- Recurring jobs execute tasks on a repeating schedule.
+- The `crond` daemon (provided by the `cronie` package) manages recurring jobs. The `crond` daemon reads configuration files that define when and what tasks to run.
+  
+### Crontab Syntax
+- Fields in the crontab file appear in the following order:
+  - Minutes (0-59)
+  - Hours (0-23)
+  - Day of month (1-31)
+  - Month (1-12 or Jan, Feb, etc.)
+  - Day of week (0-6 or Sun, Mon, etc.)
+
+### Basic Crontab Commands
+- Create or edit a crontab for the current user:
+  ```bash
+  crontab -e
+  ```
+- List crontabs for the current user:
+  ```bash
+  crontab -l
+  ```
+- Remove all jobs for the current user:
+  ```bash
+  crontab -r
+  ```
+
+#### Example Crontab Job
+- Run a backup script every Monday at 8:00 PM:
+  ```bash
+  0 20 * * 1 /root/Desktop/backup.sh
+  ```
+
+### Crontab File Locations
+- `/etc/cron.d`: Place cron jobs here.
+- `/etc/cron.deny`: Users listed here are denied from creating cron jobs.
+- `/etc/cron.allow`: Users listed here are allowed to create cron jobs.
+- `/var/spool/cron/`: Contains all user crontabs.
+- `/etc/crontab`: Contains the system-wide crontab configuration.
+
+---
+
+## Managing Services with Systemd Timers
+
+### Managing Temporary Files
+- Some applications use `/tmp` for temporary data. Systemd manages temporary files with the `systemd-tmpfiles` tool.
+- The command:
+  ```bash
+  systemd-tmpfiles --create --remove
+  ```
+  reads configuration files from:
+  - `/usr/lib/tmpfiles.d/*.conf`
+  - `/run/tmpfiles.d/*.conf`
+  - `/etc/tmpfiles.d/*.conf`
+
+#### Listing Systemd Timers
+```bash
+systemctl list-units --type=timer
+```
+
+#### Changing Timer Configuration
+1. Copy the timer file:
+   ```bash
+   cp /usr/lib/systemd/system/sysstat-collect.timer /etc/systemd/system/sysstat-collect.timer
+   ```
+2. Edit the timer file:
+   ```bash
+   vi /etc/systemd/system/sysstat-collect.timer
+   ```
+
+3. After changes, reload the `systemd` configuration:
+   ```bash
+   systemctl daemon-reload
+   ```
+
+---
+
+## Summary
+
+- Deferred jobs are tasks scheduled to run once in the future.
+- Recurring jobs are tasks that repeat on a regular schedule.
+- `systemd` timers can execute both deferred and recurring jobs.
+
+---
+
+# CH03: Tuning System Performance
+
+## Goal:
+- Improve system performance by setting tuning parameters and adjusting the scheduling priority of processes.
+
+## Objectives:
+- Optimize system performance by selecting a tuning profile managed by the `tuned` daemon.
+- Prioritize or de-prioritize specific processes using the `nice` and `renice` commands.
+
+---
+
+## Tuning the System
+
+System administrators can optimize system performance by adjusting various device settings based on workload requirements. The `tuned` daemon applies tuning adjustments either statically or dynamically using tuning profiles designed for specific performance needs.
+
+### Configuring Static Tuning:
+- Static tuning involves predefined kernel parameters in profiles that are applied at runtime. 
+- The parameters are set based on performance expectations and remain constant regardless of workload changes.
+
+### Configuring Dynamic Tuning:
+- Dynamic tuning, managed by the `tuned` daemon, continuously monitors system activity and adjusts settings dynamically based on real-time behavior. It starts with predefined settings in the chosen profile and adjusts them as necessary.
+
+---
+
+## Installing and Enabling Tuned
+
+To install and enable the `tuned` package manually:
+```bash
+yum install tuned
+systemctl enable --now tuned
+```
+
+---
+
+## Selecting a Tuning Profile
+
+The `tuned` application offers profiles divided into the following categories:
+- **Power-saving profiles**: To save power.
+- **Performance-boosting profiles**: To maximize performance. These include profiles focused on:
+  - Low latency for storage and network
+  - High throughput for storage and network
+  - Virtual machine performance
+  - Virtualization host performance
+
+---
+
+## Tuning Profiles Distributed with RHEL 9
+
+| **Tuned Profile**           | **Purpose**                                                                 |
+|-----------------------------|-----------------------------------------------------------------------------|
+| `balanced`                  | Compromise between power saving and performance.                            |
+| `desktop`                   | Faster response for interactive applications (derived from balanced).       |
+| `throughput-performance`     | Maximum throughput for storage and network.                                |
+| `latency-performance`        | Low latency for servers, sacrificing power consumption.                    |
+| `network-latency`            | Adds low-latency tuning parameters to the latency-performance profile.      |
+| `network-throughput`         | Focus on maximum network throughput, based on the throughput-performance profile. |
+| `powersave`                  | Maximizes power savings.                                                   |
+| `virtual-guest`              | Optimizes performance for virtual machines.                                |
+| `virtual-host`               | Optimizes performance for virtualization hosts.                            |
+
+---
+
+## Managing Profiles with `tuned-adm`
+
+The `tuned-adm` command is used to manage the `tuned` daemon. It can:
+- Query current settings
+- List available profiles
+- Recommend a profile based on system characteristics
+- Switch between profiles
+- Deactivate tuning
+
+### Examples:
+1. **Check Active Profile**:
+    ```bash
+    tuned-adm active
+    ```
+    Example output:
+    ```bash
+    Current active profile: virtual-guest
+    ```
+
+2. **List Available Profiles**:
+    ```bash
+    tuned-adm list
+    ```
+    Example output:
+    ```bash
+    Available profiles:
+    - balanced
+    - desktop
+    - latency-performance
+    ```
+
+3. **Switch Profiles**:
+    ```bash
+    tuned-adm profile throughput-performance
+    tuned-adm active
+    ```
+    Example output:
+    ```bash
+    Current active profile: throughput-performance
+    ```
+
+4. **Get Profile Recommendation**:
+    ```bash
+    tuned-adm recommend
+    ```
+    Example output:
+    ```bash
+    virtual-guest
+    ```
+
+5. **Deactivate Tuning**:
+    ```bash
+    tuned-adm off
+    tuned-adm active
+    ```
+    Example output:
+    ```bash
+    No current active profile.
+    ```
+
+---
+
+## Creating Custom Tuning Profiles
+
+Custom tuning profiles can be created to tailor performance for specific workloads.
+
+### Example: Create a Web Server Profile
+```bash
+mkdir /usr/lib/tuned/web-server
+cd /usr/lib/tuned/web-server
+touch tuned.conf
+vim tuned.conf
+```
+
+Contents of `tuned.conf`:
+```
+[main]
+summary=Optimize for web server
+include=throughput-performance
+
+[script]
+script=custom-script.sh
+```
+
+Create the custom script:
+```bash
+touch custom-script.sh
+chmod +x custom-script.sh
+vim custom-script.sh
+```
+
+Contents of `custom-script.sh`:
+```bash
+#!/bin/bash
+echo "Custom tuned profile for web-server" >> /var/log/custom_script.log
+```
+
+Activate the profile:
+```bash
+tuned-adm list
+tuned-adm profile web-server
+tuned-adm active
+```
+
+Deactivate the profile:
+```bash
+tuned-adm off
+systemctl disable --now tuned
+```
+
+---
+
+## Linux Process Scheduling and Multitasking
+
+Linux handles process multitasking using a **time-slicing** technique. The **process scheduler** within the Linux kernel is responsible for switching between processes.
+
+- Processes have 40 different levels of **niceness**, ranging from `-20` (highest priority) to `19` (lowest priority).
+- Default nice level is `0`, inherited from the parent process.
+- **Root users** can set negative nice levels, while **non-root users** can only set positive nice levels for processes they own.
+
+### View Process Niceness:
+```bash
+ps axo user,pid,nice,command
+ps axo --sort=nice
+```
+
+---
+
+## Setting Process Priority Using `nice` and `renice`
+
+1. **Start a Process with a Specific Niceness Level**:
+   ```bash
+   nice -n 10 vim text &
+   ```
+
+2. **Change the Niceness of a Running Process**:
+   ```bash
+   renice 19 9182  # Changes the nice value of process 9182 to 19
+   ```
+
+3. **Use `top` to Renice**:
+   - Open `top`
+   - Press `r` to renice a process.
+
+---
+
+## Summary
+
+- **`tuned`** is a daemon used to optimize system performance using predefined or custom tuning profiles.
+- **Linux process niceness** allows users to control the priority of processes to balance system resources.
+
+---
+
+# CH4: Controlling Access to Files with ACLs
+
+## Goal
+- Interpret and set Access Control Lists (ACLs) on files to handle situations requiring complex user and group access permissions.
+
+## Objectives
+- Describe use cases for ACLs, identify files that have ACLs set, and interpret the effect of those ACLs.
+- Set and remove ACLs on files and define default ACLs automatically set by a directory on newly created files.
+
+---
+
+## Access Control List (ACL)
+
+Access Control Lists (ACLs) provide an additional flexible permission mechanism for the file system on a Linux system. They enhance traditional UNIX file permissions for files and folders. With ACLs, you can give permissions for any user or group with fine-grained access rights.
+
+ACLs can be configured per user, per group, or via the effective rights mask. These permissions can then be applied to an individual user or group, similar to the `rwx` (Read, Write, Execute) permissions found in regular file or folder permissions.
+
+### Check Kernel for ACL Support
+
+To check if the file system and kernel support ACLs, use the following command:
+```bash
+grep -i acl /boot/config*
+```
+You should see output like this:
+```bash
+CONFIG_XFS_POSIX_ACL=y
+CONFIG_BTRFS_FS_POSIX_ACL=y
+```
+If you see `N` instead of `Y`, the kernel does not support ACLs, and it may need to be recompiled.
+
+---
+
+## Viewing and Interpreting ACL Permissions
+
+The `ls -l` command only outputs minimal ACL setting details:
+```bash
+ls -l reports.txt
+```
+Example output:
+```bash
+-rwxrw----+ 1 user operators 130 Mar 19 23:56 reports.txt
+```
+The plus sign (`+`) at the end of the permission string indicates that an extended ACL structure exists on this file.
+
+To display ACL settings on a file, use the `getfacl` command:
+```bash
+getfacl reports.txt
+```
+Example output:
+```bash
+# file: reports.txt
+# owner: user
+# group: operators
+user::rwx
+user:consultant3:---
+user:1005:rwx         #effective:rw-
+group::rwx            #effective:rw-
+group:consultant1:r--
+group:2210:rwx        #effective:rw-
+mask::rw-
+other::---
+```
+
+### Key Points:
+
+1. **User Entries:**
+   - `user::rwx`: The file owner (`user`) has `rwx` permissions.
+   - `user:consultant3:---`: The user `consultant3` has no permissions.
+   - `user:1005:rwx`: The user with UID `1005` has `rwx`, but the mask limits it to `rw-`.
+
+2. **Group Entries:**
+   - `group::rwx`: The group owner (`operators`) has `rwx`, but the mask limits it to `rw-`.
+   - `group:consultant1:r--`: The group `consultant1` has `r` permissions only.
+   - `group:2210:rwx`: The group with GID `2210` has `rwx`, but the mask limits it to `rw-`.
+
+3. **Mask Entry:**
+   - `mask::rw-`: The mask defines the maximum permissions possible for named users, the group owner, and named groups. The mask does not restrict the file owner's permissions.
+
+4. **Other Entry:**
+   - `other::---`: All other users and groups have no permissions.
+
+---
+
+## ACL Permission Precedence
+
+- **ACL Mask:**
+  - The ACL mask defines the maximum permissions that can be granted to named users, the group owner, and named groups. It does not affect the file owner's or the "other" entry's permissions. The mask can be set explicitly with `setfacl` or will be automatically added if not set.
+
+- **Permission Precedence:**
+  When determining file access:
+  1. If the process is run by the file owner, the owner's ACL permissions apply.
+  2. If the process is run by a user listed in a named user ACL entry, the named user ACL permissions apply (limited by the mask).
+  3. If the process is run by a group that matches the group owner or a named group, the group ACL permissions apply (limited by the mask).
+  4. If none of the above match, the "other" ACL permissions apply.
+
+---
+
+## Setting ACLs
+
+Use the `setfacl` command to set or modify ACLs on any file or directory.
+
+Examples:
+```bash
+setfacl -m u:karim:rw file.txt    # Set read and write for user karim
+setfacl -m g:sales:rw dir1        # Set read and write for group sales
+setfacl -R -m g:sales:rw dir1     # Apply recursively to dir1
+setfacl -m u::rwx,g:consultants:rx,o::- file.txt    # Multiple entries in one command
+```
+
+You can use the output of `getfacl` as input for `setfacl` to copy ACL settings from one file to another:
+```bash
+getfacl file-A | setfacl --set-file=- file-B
+```
+
+---
+
+## Backup and Restore ACLs
+
+1. **Backup ACLs:**
+   ```bash
+   getfacl reports.txt > acl_backup.txt
+   ```
+
+2. **Restore ACLs:**
+   ```bash
+   setfacl --set-file=acl_backup.txt reports.txt
+   ```
+
+3. **Backup and Restore in One Command:**
+   ```bash
+   getfacl reports.txt | setfacl --set-file=- file2.txt
+   ```
+
+---
+
+## Removing ACLs
+
+To remove ACL permissions for a user or group, use the `-x` option. To remove all ACLs and reset to default permissions, use the `-b` option.
+
+Examples:
+```bash
+setfacl -x u:karim file.txt       # Remove ACL for user karim
+setfacl -b file.txt               # Roll back to default ACL
+```
+
+---
+
+## Setting Default ACLs and Recursive Application
+
+1. **Set default ACLs:**
+   ```bash
+   setfacl -m d:u:mohamed:rw- dir1    # Set default permissions for all files created inside dir1
+   ```
+
+2. **Apply ACLs recursively:**
+   ```bash
+   setfacl -R -m u:mohamed:rw dir2    # Apply permissions recursively to dir2
+   ```
+
+---
+
+## Summary
+
+- ACLs provide fine-grained access control to files and directories beyond traditional UNIX permissions.
+- The `getfacl` command displays ACL settings.
+- The `setfacl` command sets, modifies, and removes ACLs on files and directories.
