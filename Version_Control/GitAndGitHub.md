@@ -488,8 +488,109 @@ Now, Git will use SSH to interact with your remote repository, allowing for secu
 
 ### Summary
 
-- **SSH Keys** allow secure, password-free access to GitHub.
-- You need a **public key** (stored on GitHub) and a **private key** (stored locally).
-- Use `ssh-keygen` to create the key pair, add the key to GitHub, and configure your repository to use SSH for secure access.
+---
 
-This makes GitHub operations both secure and convenient, as you won’t need to repeatedly enter credentials.
+### Overview of the Git Workflow
+
+The workflow relies on a **central repository (origin)** with two main branches: `master` (for production-ready code) and `develop` (for ongoing development and integration).
+
+In addition, there are **supporting branches** with specific purposes and limited lifetimes to handle parallel development, release management, and urgent bug fixes. These branches include:
+
+1. **Feature Branches** - Used for new features
+2. **Release Branches** - For preparing a new production release
+3. **Hotfix Branches** - For urgent fixes in live production
+
+Each branch type follows specific naming conventions and branch merge rules to keep the workflow organized and predictable.
+
+---
+
+### Main Branches
+
+- **master**: Contains the production-ready code. Each merge into `master` represents a new release.
+- **develop**: Integrates all new features and fixes intended for the next release. Automatic builds often pull from this branch.
+
+### Supporting Branches
+
+#### Feature Branches
+- **Purpose**: Develop new features, without affecting `develop` until ready.
+- **Origin**: Branches from `develop`
+- **Merge Target**: Back into `develop`
+- **Naming**: Use descriptive names, avoiding `master`, `develop`, `release-*`, or `hotfix-*`
+
+   **Steps to create and merge a feature branch**:
+   ```bash
+   # Create a feature branch
+   git checkout -b myfeature develop
+
+   # After finishing, merge into develop with --no-ff to retain branch history
+   git checkout develop
+   git merge --no-ff myfeature
+   git branch -d myfeature
+   git push origin develop
+   ```
+
+#### Release Branches
+- **Purpose**: Prepare code for release, apply minor bug fixes, and finalize metadata.
+- **Origin**: Branches from `develop`
+- **Merge Target**: Merges into both `develop` and `master`
+- **Naming**: `release-*` (e.g., `release-1.2`)
+
+   **Steps to create and finish a release branch**:
+   ```bash
+   # Create a release branch
+   git checkout -b release-1.2 develop
+
+   # Make final tweaks (e.g., bump version), then merge into master
+   git checkout master
+   git merge --no-ff release-1.2
+   git tag -a 1.2  # Tagging the release for easy reference
+
+   # Merge changes back into develop to keep it up-to-date
+   git checkout develop
+   git merge --no-ff release-1.2
+
+   # Delete the release branch
+   git branch -d release-1.2
+   ```
+
+#### Hotfix Branches
+- **Purpose**: Address urgent bugs in the current release.
+- **Origin**: Branches from `master`
+- **Merge Target**: Merges into both `master` and `develop`
+- **Naming**: `hotfix-*` (e.g., `hotfix-1.2.1`)
+
+   **Steps to create and finish a hotfix branch**:
+   ```bash
+   # Create a hotfix branch
+   git checkout -b hotfix-1.2.1 master
+
+   # Apply bug fix, bump version, then merge into master
+   git checkout master
+   git merge --no-ff hotfix-1.2.1
+   git tag -a 1.2.1
+
+   # Merge into develop as well to retain fix for future releases
+   git checkout develop
+   git merge --no-ff hotfix-1.2.1
+
+   # Delete the hotfix branch
+   git branch -d hotfix-1.2.1
+   ```
+
+---
+
+### Summary
+
+This workflow ensures:
+1. **Continuous Integration** through `develop`, allowing for streamlined feature integration.
+2. **Stable Production Releases** with `master`, ensuring only well-tested code reaches production.
+3. **Efficient Bug Fixing** using hotfix branches, ensuring minimal impact on ongoing development.
+
+### Sources
+
+1. [git and github `ahmed samy`](https://www.youtube.com/watch?v=Q6G-J54vgKc&t=16s)
+2. [Git workflow](https://www.youtube.com/watch?v=7OTrHx56GfE)
+3. [Git Docurmentation](https://git-scm.com/doc)
+4. [Gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
+5. [Vincent Dressen's website](https://nvie.com/posts/a-successful-git-branching-model/)
+
