@@ -486,13 +486,15 @@ Once your SSH key is set up, you can configure Git to use SSH instead of HTTPS b
 
 Now, Git will use SSH to interact with your remote repository, allowing for secure, password-less operations.
 
-### Summary
 
 ---
 
 ### Overview of the Git Workflow
 
+
 The workflow relies on a **central repository (origin)** with two main branches: `master` (for production-ready code) and `develop` (for ongoing development and integration).
+
+![Git-Workflow](./images/git-model@2x.png)
 
 In addition, there are **supporting branches** with specific purposes and limited lifetimes to handle parallel development, release management, and urgent bug fixes. These branches include:
 
@@ -509,6 +511,8 @@ Each branch type follows specific naming conventions and branch merge rules to k
 - **master**: Contains the production-ready code. Each merge into `master` represents a new release.
 - **develop**: Integrates all new features and fixes intended for the next release. Automatic builds often pull from this branch.
 
+![Main-Branches](./images/main-branches@2x.png)
+
 ### Supporting Branches
 
 #### Feature Branches
@@ -516,6 +520,8 @@ Each branch type follows specific naming conventions and branch merge rules to k
 - **Origin**: Branches from `develop`
 - **Merge Target**: Back into `develop`
 - **Naming**: Use descriptive names, avoiding `master`, `develop`, `release-*`, or `hotfix-*`
+
+![Feature-Branches](./images/fb@2x.png)
 
    **Steps to create and merge a feature branch**:
    ```bash
@@ -528,6 +534,9 @@ Each branch type follows specific naming conventions and branch merge rules to k
    git branch -d myfeature
    git push origin develop
    ```
+
+![merge-without-ff](./images/merge-without-ff@2x.png)
+   
 
 #### Release Branches
 - **Purpose**: Prepare code for release, apply minor bug fixes, and finalize metadata.
@@ -559,6 +568,8 @@ Each branch type follows specific naming conventions and branch merge rules to k
 - **Merge Target**: Merges into both `master` and `develop`
 - **Naming**: `hotfix-*` (e.g., `hotfix-1.2.1`)
 
+![hotfix-branches](./images/hotfix-branches@2x.png)
+
    **Steps to create and finish a hotfix branch**:
    ```bash
    # Create a hotfix branch
@@ -579,12 +590,23 @@ Each branch type follows specific naming conventions and branch merge rules to k
 
 ---
 
-### Summary
+#### Summary
 
 This workflow ensures:
 1. **Continuous Integration** through `develop`, allowing for streamlined feature integration.
 2. **Stable Production Releases** with `master`, ensuring only well-tested code reaches production.
 3. **Efficient Bug Fixing** using hotfix branches, ensuring minimal impact on ongoing development.
+---
+=
+
+
+
+
+
+
+
+
+---
 
 ### Sources
 
