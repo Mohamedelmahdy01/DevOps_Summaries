@@ -1,118 +1,335 @@
-The most common command in Docker is likely the `docker run` command. It is used to create and start a new container from a specified image. Here's a basic usage example:
+# **Docker Command Cheat Sheet with Examples**
 
-```sh
-docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
-```
+## **1. Docker System and Version Commands**  
+These commands help you manage and get information about Docker’s setup and environment.
 
-Common options include:
+- **`docker version`**  
+  Displays the Docker version installed.
 
-- `-d`: Run container in background and print container ID
-- `-p`: Publish a container's port(s) to the host
-- `-v`: Bind mount a volume
-- `--name`: Assign a name to the container
+  ```sh
+  docker version
+  ```
 
-Example:
+- **`docker info`**  
+  Provides detailed information about the Docker installation.
 
-```sh
-docker run -d -p 80:80 --name mynginx nginx
-```
+  ```sh
+  docker info
+  ```
 
-This command runs the `nginx` image in detached mode, maps port 80 of the container to port 80 of the host, and names the container "mynginx".
+- **`docker system df`**  
+  Shows disk usage information for Docker resources.
 
-Here are some of the most common commands used in Docker:
+  ```sh
+  docker system df
+  ```
 
-### Docker Image Commands
-- **`docker images`**: Lists all Docker images on your local machine.
-- **`docker pull <image>`**: Downloads an image from a Docker registry.
-- **`docker build -t <tag> <path>`**: Builds a Docker image from a Dockerfile in a specified directory.
-- **`docker rmi <image>`**: Removes a Docker image.
+- **`docker system prune [OPTIONS]`**  
+  Removes unused data like containers, images, and volumes.
 
-### Docker Container Commands
-- **`docker ps`**: Lists all running containers.
-- **`docker ps -a`**: Lists all containers, including those that are stopped.
-- **`docker run <image>`**: Runs a command in a new container.
-- **`docker run -d <image>`**: Runs a container in detached mode.
-- **`docker run -it <image>`**: Runs a container in interactive mode with a terminal.
-- **`docker stop <container>`**: Stops a running container.
-- **`docker start <container>`**: Starts a stopped container.
-- **`docker restart <container>`**: Restarts a running container.
-- **`docker rm <container>`**: Removes a stopped container.
+  - **Example (remove all unused data, including volumes):**
+    ```sh
+    docker system prune -a --volumes
+    ```
 
-### Docker Network Commands
-- **`docker network ls`**: Lists all Docker networks.
-- **`docker network create <network>`**: Creates a new network.
-- **`docker network rm <network>`**: Removes a network.
+---
 
-### Docker Volume Commands
-- **`docker volume ls`**: Lists all Docker volumes.
-- **`docker volume create <volume>`**: Creates a new volume.
-- **`docker volume rm <volume>`**: Removes a volume.
+## **2. Docker Image Commands**  
+Images are templates used to create containers.
 
-### Docker Compose Commands
-- **`docker-compose up`**: Builds, (re)creates, starts, and attaches to containers for a service.
-- **`docker-compose down`**: Stops containers and removes containers, networks, volumes, and images created by `up`.
-- **`docker-compose build`**: Builds or rebuilds services.
-- **`docker-compose logs`**: Views output from containers.
+- **`docker images [OPTIONS]`**  
+  Lists all local Docker images.
 
-### Miscellaneous Commands
-- **`docker exec -it <container> <command>`**: Runs a command in a running container.
-- **`docker logs <container>`**: Fetches the logs of a container.
-- **`docker inspect <container>`**: Displays detailed information on a container or image.
+  ```sh
+  docker images
+  ```
 
-These commands are essential for managing Docker images, containers, networks, and volumes.
+- **`docker pull <image>`**  
+  Downloads a Docker image from Docker Hub or another registry.
 
-Certainly! Here are additional Docker commands that can be very useful:
+  ```sh
+  docker pull nginx
+  ```
 
-### Docker Image Commands (continued)
-- **`docker tag <image> <new_tag>`**: Tags an image with a new name.
-- **`docker history <image>`**: Shows the history of an image.
+- **`docker build [OPTIONS] <path>`**  
+  Builds an image from a Dockerfile.
 
-### Docker Container Commands (continued)
-- **`docker attach <container>`**: Attaches to a running container.
-- **`docker cp <container>:<path> <local_path>`**: Copies files/folders between a container and the local filesystem.
-- **`docker commit <container> <new_image>`**: Creates a new image from a container’s changes.
-- **`docker diff <container>`**: Inspects changes to files or directories on a container’s filesystem.
-- **`docker export <container>`**: Exports a container’s filesystem as a tar archive.
-- **`docker import <tarball> <new_image>`**: Creates an image from a tarball.
-- **`docker pause <container>`**: Pauses all processes within a container.
-- **`docker unpause <container>`**: Unpauses all processes within a container.
-- **`docker kill <container>`**: Kills a running container.
-- **`docker rename <container> <new_name>`**: Renames a container.
-- **`docker stats <container>`**: Displays a live stream of container(s) resource usage statistics.
-- **`docker top <container>`**: Displays the running processes of a container.
-- **`docker wait <container>`**: Blocks until a container stops, then prints the exit code.
+  ```sh
+  docker build -t myapp:latest .
+  ```
 
-### Docker Network Commands (continued)
-- **`docker network inspect <network>`**: Displays detailed information on a network.
-- **`docker network connect <network> <container>`**: Connects a container to a network.
-- **`docker network disconnect <network> <container>`**: Disconnects a container from a network.
+- **`docker rmi [OPTIONS] <image>`**  
+  Removes an image.
 
-### Docker Volume Commands (continued)
-- **`docker volume inspect <volume>`**: Displays detailed information on a volume.
-- **`docker volume prune`**: Removes all unused local volumes.
+  ```sh
+  docker rmi nginx
+  ```
 
-### Docker Registry Commands
-- **`docker login`**: Logs in to a Docker registry.
-- **`docker logout`**: Logs out from a Docker registry.
-- **`docker push <image>`**: Pushes an image to a Docker registry.
-- **`docker search <term>`**: Searches the Docker Hub for images.
+- **`docker tag <image> <new_tag>`**  
+  Assigns a new tag to an image.
 
-### Docker System Commands
-- **`docker system df`**: Displays disk usage information by Docker.
-- **`docker system prune`**: Removes all unused data.
-- **`docker info`**: Displays system-wide information.
-- **`docker version`**: Shows Docker version information.
+  ```sh
+  docker tag myapp:latest myapp:v2
+  ```
 
-### Docker Compose Commands (continued)
-- **`docker-compose ps`**: Lists containers.
-- **`docker-compose exec <service> <command>`**: Executes a command in a running service container.
-- **`docker-compose stop`**: Stops running containers without removing them.
-- **`docker-compose restart`**: Restarts services.
+---
 
-### Docker Context Commands
-- **`docker context ls`**: Lists all Docker contexts.
-- **`docker context create <name>`**: Creates a new Docker context.
-- **`docker context use <name>`**: Switches to a different Docker context.
-- **`docker context rm <name>`**: Removes a Docker context.
+## **3. Docker Container Commands**  
+Containers are instances of images that run applications.
 
-These additional commands cover more advanced and specific tasks that can be performed with Docker, providing a comprehensive set of tools for managing Docker environments effectively.
+- **`docker run [OPTIONS] <image> [COMMAND]`**  
+  Creates and starts a new container.
+
+  ```sh
+  docker run -d -p 80:80 --name mynginx nginx
+  ```
+
+  - **Common options:**  
+    - `-d`: Run in detached mode.  
+    - `-p <host_port>:<container_port>`: Map ports.  
+    - `--name <name>`: Assign a container name.  
+    - `-v <host_path>:<container_path>`: Mount a volume.  
+    - `-e <env_var>`: Set environment variables.
+
+- **`docker ps [OPTIONS]`**  
+  Lists running containers.
+
+  ```sh
+  docker ps
+  ```
+
+  - **To list all containers (including stopped):**
+    ```sh
+    docker ps -a
+    ```
+
+- **`docker stop <container>`**  
+  Stops a running container.
+
+  ```sh
+  docker stop mynginx
+  ```
+
+- **`docker start <container>`**  
+  Starts a stopped container.
+
+  ```sh
+  docker start mynginx
+  ```
+
+- **`docker restart <container>`**  
+  Restarts a running container.
+
+  ```sh
+  docker restart mynginx
+  ```
+
+- **`docker rm [OPTIONS] <container>`**  
+  Removes a container.
+
+  ```sh
+  docker rm mynginx
+  ```
+
+- **`docker exec [OPTIONS] <container> <command>`**  
+  Runs a command inside an existing container.
+
+  ```sh
+  docker exec -it mynginx bash
+  ```
+
+- **`docker logs [OPTIONS] <container>`**  
+  Fetches the logs of a container.
+
+  ```sh
+  docker logs -f mynginx
+  ```
+
+  - **Follow real-time logs:**
+    ```sh
+    docker logs -f mynginx
+    ```
+
+- **`docker inspect <container>`**  
+  Displays detailed information about a container.
+
+  ```sh
+  docker inspect mynginx
+  ```
+
+---
+
+## **4. Docker Volume Commands**  
+Volumes are used for persistent data storage.
+
+- **`docker volume create <volume>`**  
+  Creates a new volume.
+
+  ```sh
+  docker volume create myvolume
+  ```
+
+- **`docker volume ls`**  
+  Lists all volumes.
+
+  ```sh
+  docker volume ls
+  ```
+
+- **`docker volume inspect <volume>`**  
+  Displays information about a volume.
+
+  ```sh
+  docker volume inspect myvolume
+  ```
+
+- **`docker volume rm <volume>`**  
+  Removes a volume.
+
+  ```sh
+  docker volume rm myvolume
+  ```
+
+---
+
+## **5. Docker Network Commands**  
+Networks allow communication between containers.
+
+- **`docker network create <network>`**  
+  Creates a new network.
+
+  ```sh
+  docker network create mynetwork
+  ```
+
+- **`docker network ls`**  
+  Lists all networks.
+
+  ```sh
+  docker network ls
+  ```
+
+- **`docker network inspect <network>`**  
+  Displays details of a network.
+
+  ```sh
+  docker network inspect mynetwork
+  ```
+
+- **`docker network connect <network> <container>`**  
+  Connects a container to a network.
+
+  ```sh
+  docker network connect mynetwork mynginx
+  ```
+
+- **`docker network disconnect <network> <container>`**  
+  Disconnects a container from a network.
+
+  ```sh
+  docker network disconnect mynetwork mynginx
+  ```
+
+---
+
+## **6. Docker Compose Commands**  
+Docker Compose simplifies multi-container deployments.
+
+- **`docker-compose up [OPTIONS]`**  
+  Builds and starts containers defined in a `docker-compose.yml` file.
+
+  ```sh
+  docker-compose up -d
+  ```
+
+  - **Options:**  
+    - `-d`: Detached mode (background).  
+    - `--build`: Force rebuild of images.
+
+- **`docker-compose down [OPTIONS]`**  
+  Stops and removes containers and networks created by `up`.
+
+  ```sh
+  docker-compose down
+  ```
+
+- **`docker-compose logs [OPTIONS]`**  
+  Displays logs for containers managed by Docker Compose.
+
+  ```sh
+  docker-compose logs -f
+  ```
+
+- **`docker-compose ps`**  
+  Lists containers managed by Docker Compose.
+
+  ```sh
+  docker-compose ps
+  ```
+
+---
+
+## **7. Docker Registry Commands**  
+Manage interactions with Docker registries.
+
+- **`docker login`**  
+  Logs into a Docker registry.
+
+  ```sh
+  docker login
+  ```
+
+- **`docker logout`**  
+  Logs out from a Docker registry.
+
+  ```sh
+  docker logout
+  ```
+
+- **`docker push <image>`**  
+  Uploads an image to a registry.
+
+  ```sh
+  docker push myapp:latest
+  ```
+
+- **`docker search <term>`**  
+  Searches for images on Docker Hub.
+
+  ```sh
+  docker search nginx
+  ```
+
+---
+
+## **8. Advanced Docker Commands**
+
+- **`docker stats [OPTIONS]`**  
+  Displays real-time resource usage of containers.
+
+  ```sh
+  docker stats
+  ```
+
+- **`docker commit <container> <new_image>`**  
+  Creates a new image from a container's changes.
+
+  ```sh
+  docker commit mynginx mycustomnginx
+  ```
+
+- **`docker export <container>`**  
+  Exports a container's filesystem as a tar archive.
+
+  ```sh
+  docker export mynginx > mynginx.tar
+  ```
+
+- **`docker import <tarball> <new_image>`**  
+  Creates an image from a tarball.
+
+  ```sh
+  docker import mynginx.tar mynginx:v1
+  ```
+
+---
