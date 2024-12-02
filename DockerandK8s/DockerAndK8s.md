@@ -169,7 +169,7 @@ Here's a comprehensive document combining the topics discussed in both files on 
 
 ---
 
-# Docker
+# **Docker Introduction**
 
 ## What is Docker?
 
@@ -222,6 +222,10 @@ Docker is an open platform designed to develop, ship, and run applications. It e
 6. **Streamlined Development & Deployment**:  
    Docker provides a consistent environment that simplifies development, testing, and deployment processes, making it ideal for CI/CD workflows.
 
+Understood! I will reorganize the content without cutting down on details. I'll focus on improving structure and flow while keeping everything intact. I'll send the updated sections progressively. Let's begin with **Docker Components: Runtime, Daemon, and Orchestrator**.
+
+---
+
 ## The Docker Platform
 
 Docker enables you to encapsulate an application in a container. Containers hold everything needed to run the application, avoiding dependencies on the host environment and ensuring a stable, reproducible setup.
@@ -232,211 +236,230 @@ The Docker platform provides tools for managing the entire container lifecycle:
 2. **Distribute**: Test and share your containerized application.
 3. **Deploy**: Run your containerized application in any environment, from local systems to cloud infrastructure.
 
-## Docker Architecture
 
-### **Docker Components: Runtime, Daemon, and Orchestrator**  
+# **Docker Architecture** 
 
-#### **1. The Runtime: runc and containerd**
+Docker uses a client-server architecture. The Docker client talks to the Docker daemon, which does the heavy lifting of building, running, and distributing your Docker containers. The Docker client and daemon can run on the same system, or you can connect a Docker client to a remote Docker daemon. The Docker client and daemon communicate using a REST API, over UNIX sockets or a network interface. Another Docker client is Docker Compose, that lets you work with applications consisting of a set of containers.
 
-The runtime is the layer responsible for creating and managing containers by interacting directly with the host system's kernel and hardware.
 
-##### **a. `runc`:**  
+![Docker Components](Img/docker-architecture.png)
+
+
+---
+## **1. Docker Components: Runtime, Daemon, and Orchestrator**
+
+![Docker_Components](Img/Docker_Component.png)
+### **1.1 The Runtime: runc and containerd**  
+
+The **Runtime** is responsible for interacting with the host system’s kernel and hardware to create and manage containers. It serves as the bridge between Docker and the underlying system resources.
+
+#### **a. `runc`:**  
 - **Definition:**  
-  `runc` is a lightweight, low-level container runtime. It implements the **Open Containers Initiative (OCI)** runtime specifications.
-- **Key Responsibilities:**  
-  - **Start/Stop Containers:**  
-    Responsible for launching and stopping containers based on OCI-compliant configuration files.
-  - **Build OS Constructs:**  
-    Creates essential components like namespaces, control groups (cgroups), and other isolation mechanisms.
+  `runc` is a lightweight, low-level container runtime that adheres to the **Open Containers Initiative (OCI)** specifications.
   
-##### **b. `containerd`:**  
-- **Definition:**  
-  `containerd` is a higher-level container runtime that abstracts and manages `runc` operations. It is an open-source project governed by the **Cloud Native Computing Foundation (CNCF)**.
 - **Key Responsibilities:**  
-  - **Pull Images:**  
-    Downloads container images from registries like Docker Hub.
-  - **Create Network Interfaces:**  
-    Sets up network interfaces for container communication.
-  - **Manage `runc`:**  
-    Delegates tasks like starting and stopping containers to `runc`.
+  - **Start and Stop Containers:**  
+    It initializes and terminates containers based on configurations defined in OCI-compliant files.  
+  - **OS Constructs:**  
+    `runc` sets up essential components such as:
+    - **Namespaces:** For process and resource isolation.
+    - **Control Groups (cgroups):** To allocate and monitor resources like CPU and memory.
+  
+#### **b. `containerd`:**  
+- **Definition:**  
+  `containerd` is a higher-level runtime that manages `runc` and simplifies container lifecycle tasks. It is a CNCF (Cloud Native Computing Foundation) project.
+
+- **Key Responsibilities:**  
+  - **Image Management:**  
+    Pulls and manages images from container registries (e.g., Docker Hub).  
+  - **Container Management:**  
+    Delegates tasks such as starting, stopping, and monitoring containers to `runc`.  
+  - **Networking:**  
+    Sets up network interfaces for container communication.  
 
 ---
 
-#### **2. The Daemon (`dockerd`):**  
+### **1.2 The Daemon (`dockerd`):**  
 
-The Docker daemon, known as **`dockerd`**, is the brain of the Docker ecosystem. It runs in the background and manages containers, images, networks, and volumes.
+The **Docker Daemon** (`dockerd`) is the core service that controls and manages all Docker operations. It listens for API requests and interacts with both the Docker CLI and container runtimes.
 
-- **Expose the Docker Remote API:**  
-  `dockerd` exposes a REST API, allowing external clients (like the Docker CLI) to interact with Docker.
-  
-- **Manage Images:**  
-  - Handles operations like pulling, pushing, listing, and deleting Docker images.
-  - Stores images locally and maintains image layers for efficient storage.
+- **Key Functions:**
+  - **Expose the Docker API:**  
+    `dockerd` provides a REST API that allows external tools and the Docker CLI to communicate with it.
+  - **Manage Images:**  
+    Handles pulling, pushing, and deleting images, as well as managing image layers for efficiency.
+  - **Manage Volumes:**  
+    Creates and manages Docker volumes to persist data across container lifecycles.
+  - **Manage Networks:**  
+    Configures networks for container communication, supporting various types such as:
+    - **Bridge Networks** (default for containers on the same host).  
+    - **Overlay Networks** (for multi-host container communication).  
+    - **Host Networks** (sharing the host’s network namespace).  
+  - **Monitor and Control Containers:**  
+    Tracks container states (running, stopped, paused) and manages resource allocation.  
 
-- **Manage Volumes:**  
-  - Creates and manages Docker volumes, which allow data persistence across container restarts.
-  
-- **Manage Networks:**  
-  - Creates Docker networks to enable communication between containers.
-  - Supports bridge, overlay, and host networks.
-
-- **Other Responsibilities:**  
-  - Monitors container state (running, stopped, paused).
-  - Handles resource allocation and limits (memory, CPU).
-  
 ---
 
-#### **3. The Orchestrator: Swarm**  
+### **1.3 The Orchestrator: Swarm**  
 
-The orchestrator is responsible for managing and scheduling containers across multiple nodes in a cluster to ensure high availability, scalability, and resource efficiency.
+Orchestration is critical for managing large-scale container deployments across multiple nodes. Docker’s native orchestration tool is **Swarm**, though Kubernetes is also widely used.
 
+#### **Docker Swarm Overview:**  
 - **Definition:**  
-  Docker's native orchestration tool is called **Swarm**, and it allows Docker to run as a **cluster of nodes**.
-  
+  Swarm transforms a group of Docker hosts into a single virtual cluster, where tasks can be distributed and managed efficiently.
+
 - **Key Concepts:**  
-  - **Cluster of Nodes:**  
-    A **swarm** is a group of machines (nodes) running Docker, where:
-    - **Manager Nodes** control and schedule tasks.
-    - **Worker Nodes** execute tasks assigned by the managers.
-  
-  - **Tasks and Services:**  
-    - A **service** is a definition of how containers should run.
-    - A **task** is an instance of the service running on a node.
-  
-  - **High Availability:**  
-    Ensures that containers are distributed across nodes, minimizing downtime if one node fails.
+  - **Nodes:**  
+    - **Manager Nodes:** Handle cluster management and scheduling.  
+    - **Worker Nodes:** Execute tasks assigned by managers.  
+  - **Services and Tasks:**  
+    - A **service** defines how a container should run.  
+    - A **task** is an individual instance of a service running on a node.  
+  - **Load Balancing:**  
+    Distributes workloads evenly across nodes.  
+  - **Self-Healing:**  
+    Automatically restarts or reschedules failed tasks.
 
-##### **Why Orchestration Matters:**
+#### **Why Orchestration Matters:**  
 - **Scalability:**  
-  Easily scale applications by adding more nodes or containers.
-- **Load Balancing:**  
-  Distributes requests across containers to optimize performance.
-- **Self-Healing:**  
-  Automatically restarts failed containers and reallocates them as needed.
+  Easily scale services by adding more nodes or containers.  
+- **High Availability:**  
+  Ensures minimal downtime by redistributing tasks if a node fails.  
+- **Automation:**  
+  Simplifies container deployment and management across multiple environments.
+
+
+## **2. Docker Client-Server Architecture**  
+
+Docker uses a client-server model where the Docker client communicates with the Docker daemon (server).
+
+#### **Docker Client:**  
+- The Docker client (`docker`) is the primary interface for users to interact with Docker. It sends commands to the Docker daemon.  
+- Common commands:  
+  - `docker build`: Build images from a Dockerfile.  
+  - `docker run`: Create and run containers from images.  
+  - `docker ps`: List running containers.
+
+#### **Docker Daemon:**  
+- The daemon (`dockerd`) handles all the heavy lifting, such as managing images, containers, and networks. It interacts with `containerd` and `runc` to manage the lifecycle of containers.
 
 ---
 
-### **Summary of Roles in Docker Architecture:**
+## **3. Docker Objects**  
 
-| **Component**      | **Purpose**                                          | **Key Tools**            |
-|--------------------|------------------------------------------------------|--------------------------|
-| **Runtime**        | Directly manages container lifecycle and OS-level isolation. | `runc`, `containerd`     |
-| **Daemon**         | Core service that manages Docker's images, containers, volumes, and networks. | `dockerd`                |
-| **Orchestrator**   | Manages and scales clusters of containers across multiple nodes. | Docker Swarm, Kubernetes |
+Docker manages several types of objects:
 
-![docker-architecture](./Img/2.png)
+#### **3.1 Images:**  
+- Images are read-only templates used to create containers. They consist of layers, with each layer representing an instruction in the Dockerfile.  
+- **Commands:**  
+  - `docker pull`: Pull an image from a registry.  
+  - `docker build`: Build an image from a Dockerfile.
 
+#### **3.2 Containers:**  
+- Containers are runnable instances of images, providing an isolated environment with their own filesystem, network, and resources.  
+- **Commands:**  
+  - `docker start`: Start a stopped container.  
+  - `docker stop`: Stop a running container.  
+  - `docker exec`: Run a command inside a container.
 
-Docker operates with a client-server architecture:
+#### **3.3 Volumes:**  
+- Volumes are used for persistent storage, allowing data to survive container restarts.  
+- **Commands:**  
+  - `docker volume create`: Create a new volume.  
+  - `docker volume ls`: List available volumes.
 
-- **Docker Daemon (`dockerd`)**:  
-   The Docker daemon listens for Docker API requests and manages Docker objects like images, containers, networks, and volumes. It can also interact with other daemons to manage Docker services.
-
-- **Docker Client (`docker`)**:  
-   The primary interface for interacting with Docker, allowing users to run commands for tasks like container management, image creation, and more. The Docker client communicates with `dockerd` either locally or remotely.
-
-- **Docker Desktop**:  
-   Docker Desktop is an easy-to-install application for Mac, Windows, and Linux. It includes Docker Daemon, Docker CLI, Docker Compose, Kubernetes, and Credential Helper for streamlined Docker management.
-
-- **Docker Registries**:  
-   A Docker registry stores Docker images, making it easy to pull and push images as needed. Docker Hub is the default public registry, but private registries can be set up as well.
-
-### Docker Architecture Diagram
-
-![docker-architecture](./Img/docker-architecture.png)
-
-## Docker Objects
-
-Docker enables you to work with various objects:
-
-1. **Images**:  
-   An image is a read-only template used to create containers, often based on a parent image with added customizations. Images are typically built using a Dockerfile, where each instruction in the Dockerfile creates a layer, making them lightweight and efficient.
-
-2. **Containers**:  
-   A container is a runnable instance of an image, offering a separate filesystem, network settings, and other resources. Containers can be run, stopped, restarted, and removed, allowing fine-grained control over application instances.
-
-3. **Networks**:  
-   Docker allows you to define networks to connect containers, enabling communication between them in isolated or shared environments.
-
-4. **Volumes**:  
-   Docker volumes store data generated and used by containers, enabling persistence beyond container lifecycle. Volumes are the preferred mechanism for persistent data storage.
-
-5. **Plugins**:  
-   Docker plugins extend Docker’s functionalities, offering additional capabilities like network drivers, volume drivers, and security features.
-
-
-
-### **The Open Container Initiative (OCI)**  
-
-#### **Overview:**  
-The **Open Container Initiative (OCI)** is an open governance structure formed in 2015 to establish standards for container formats and runtimes. It is supported by the **Linux Foundation** and major tech companies, aiming to promote interoperability and avoid fragmentation in the container ecosystem.
+#### **3.4 Networks:**  
+- Docker networks enable communication between containers.  
+- Types of networks:  
+  - **Bridge:** Default network type.  
+  - **Host:** Shares the host’s networking namespace.  
+  - **Overlay:** Enables multi-host networking for Swarm services.  
+- **Commands:**  
+  - `docker network create`: Create a network.  
+  - `docker network connect`: Connect a container to a network.
 
 ---
 
-### **Key Objectives of OCI:**
-1. **Standardization:**  
-   Create industry-wide standards for container image formats and runtime specifications, ensuring containers can run consistently across different platforms and tools.
+## **4. Docker Compose**  
 
-2. **Interoperability:**  
-   Enable container portability between different environments (e.g., development, staging, production) and across various tools and orchestration platforms (Docker, Kubernetes, etc.).
+Docker Compose is a tool for defining and managing multi-container applications using a YAML file (`docker-compose.yml`).
 
-3. **Vendor Neutrality:**  
-   Provide a neutral, community-driven space for developing container standards, free from vendor lock-in.
-
----
-
-### **Core Components of OCI:**
-
-#### 1. **OCI Runtime Specification (runtime-spec):**  
-   - Defines how to run a container, including process lifecycle management, namespaces, cgroups, and file system mounts.
-   - **Example:**  
-     - `runc` is an implementation of the OCI runtime-spec. It handles container creation, starting, and stopping based on the defined standard.
-
-#### 2. **OCI Image Specification (image-spec):**  
-   - Defines the format and structure of container images, including how images are built, stored, and distributed.
-   - **Layers and Manifests:**  
-     Images are composed of layers, and the specification dictates how these layers are organized and referenced.
-
-#### 3. **OCI Distribution Specification (distribution-spec):**  
-   - Standardizes how container images are distributed across different registries, ensuring consistent image pulls and pushes.
-   - **Example:**  
-     Docker Hub and other container registries adhere to this spec to ensure seamless image transfers.
+- **Usage:**  
+  - Define services, networks, and volumes in a single file.  
+  - Run the entire application stack with one command: `docker-compose up`.  
+- **Example:**
+  ```yaml
+  version: '3'
+  services:
+    web:
+      image: nginx
+      ports:
+        - "80:80"
+    db:
+      image: mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: example
+  ```
 
 ---
 
-### **How OCI Relates to DevOps:**
+## **5. Docker Registry**  
 
-1. **Portability Across Environments:**  
-   DevOps pipelines rely on container standards to ensure that applications run consistently from development to production. OCI-compliant containers can move between different CI/CD pipelines, cloud providers, and orchestration tools without modification.
+A Docker registry stores Docker images. Docker Hub is the default public registry, but private registries can be set up.
 
-2. **Interchangeability of Tools:**  
-   Since OCI defines the standards, DevOps teams can choose different tools (e.g., Docker, Podman, Kubernetes) that comply with OCI specs, reducing tool lock-in.
-
-3. **Automation and CI/CD:**  
-   With standardized containers, DevOps teams can automate builds, tests, and deployments more effectively, leveraging OCI-compliant runtimes and images across their pipelines.
-
-4. **Security and Compliance:**  
-   By adhering to a standard, organizations can more easily implement security measures and compliance checks on container images and runtimes, improving the overall reliability and security of deployments.
+- **Commands:**  
+  - `docker push`: Push an image to a registry.  
+  - `docker pull`: Pull an image from a registry.
 
 ---
 
-### **Conclusion:**
-The Open Container Initiative (OCI) plays a crucial role in creating a unified and interoperable container ecosystem. For DevOps teams, adopting OCI standards ensures portability, flexibility, and consistency across environments, enabling more efficient and reliable software delivery.
-## What Can I Use Docker For?
+## **6. Open Container Initiative (OCI)**  
 
-### Fast, Consistent Delivery of Applications
+The **Open Container Initiative (OCI)** is a project under the Linux Foundation that establishes open standards for container formats and runtimes.
+
+- **Key Standards:**  
+  - **Runtime Specification:** Defines how containers should be run.  
+  - **Image Specification:** Defines how images are built and distributed.  
+- **Example Implementations:**  
+  - `runc` is a reference implementation of the OCI runtime spec.
+
+---
+
+## **7. Summary of Docker Components**
+
+| **Component**       | **Role**                                             | **Examples/Tools**        |
+|---------------------|------------------------------------------------------|---------------------------|
+| **Runtime**          | Manages container lifecycle and isolation.           | `runc`, `containerd`      |
+| **Daemon**           | Core service managing Docker objects.                | `dockerd`                 |
+| **Orchestrator**     | Manages container clusters and scaling.              | Docker Swarm, Kubernetes  |
+| **Client**           | User interface for Docker commands.                  | Docker CLI (`docker`)     |
+| **Registry**         | Stores and distributes container images.             | Docker Hub, Private Registry |
+
+---
+
+### **Conclusion:**  
+
+Docker provides a robust architecture for containerization, offering flexibility, scalability, and efficiency. Understanding its core components, from the runtime and daemon to orchestration, is crucial for managing and deploying containerized applications effectively.
+
+
+---
+# Install Docker
+
+### **What Can I Use Docker For?**
+
+#### Fast, Consistent Delivery of Applications
 
 Docker streamlines the development lifecycle by providing standardized environments with containers, perfect for CI/CD workflows. Developers can work on code locally and share it via Docker, ensuring consistency across all environments. The application can be tested and validated in containerized test environments and deployed by pushing updated images to production.
 
-### Responsive Deployment and Scaling
+#### Responsive Deployment and Scaling
 
 Docker’s container-based approach allows highly portable workloads, making it easy to run containers in various setups, from local machines to cloud providers. This flexibility supports rapid scaling of applications up or down as needed.
 
-### Efficient Use of Resources
+#### Efficient Use of Resources
 
 Docker containers are lightweight, making them ideal for high-density environments where resource efficiency is crucial. They allow you to run more workloads on the same hardware, reducing costs and improving performance.
 
----
+
 
 ## How to Install Docker
 
@@ -448,11 +471,11 @@ To install Docker on your system, follow the official Docker installation guides
 
 ---
 
-## [Play with Docker](https://labs.play-with-docker.com/)
+### [Play with Docker](https://labs.play-with-docker.com/)
 
 
 
-# Setting Up User Permissions with Docker**
+## Setting Up User Permissions with Docker**
 
 ### **1. Confirming Docker Installation:**
 - **Command:**
@@ -521,14 +544,15 @@ To install Docker on your system, follow the official Docker installation guides
 
 ---
 
+# **Deep Dive in Docker**
 
-# Docker User Permissions, Basic Commands, and Image Management
+## Docker User Permissions, Basic Commands, and Image Management
 
 
-## **1. User Permissions and Docker Group Setup**  
+### **1. User Permissions and Docker Group Setup**  
 By default, Docker requires `sudo` to run commands. Adding a user to the **docker** group allows them to run Docker commands without `sudo`, improving efficiency and automation.
 
-### **Steps:**
+#### **Steps:**
 1. **Check Existing Groups:**
    ```sh
    sudo getent group
@@ -555,78 +579,78 @@ By default, Docker requires `sudo` to run commands. Adding a user to the **docke
 
 ---
 
-## **2. Managing Docker Images and Containers**
+### **2. Managing Docker Images and Containers**
 
-### **List Images:**
+#### **List Images:**
 ```sh
 docker image ls
 ```
 - Shows all downloaded images.
 
-### **Pull an Image:**
+#### **Pull an Image:**
 ```sh
 docker image pull ubuntu:latest
 ```
 - Downloads the latest version of the Ubuntu image.
 
-### **Run a Container:**
+#### **Run a Container:**
 ```sh
 docker container run -it ubuntu:latest /bin/bash
 ```
 - Launches a container interactively with a bash shell.
 
-### **Exit a Container Without Stopping:**
+#### **Exit a Container Without Stopping:**
 - **Shortcut:** `Ctrl + P, Ctrl + Q`
 
-### **Reattach to a Running Container:**
+#### **Reattach to a Running Container:**
 ```sh
 docker container exec -it <container_name> bash
 ```
 
-## **Stop a Running Container:**
+#### **Stop a Running Container:**
 ```sh
 docker container stop <container_name>
 ```
 
-### **Start a Stopped Container:**
+#### **Start a Stopped Container:**
 ```sh
 docker container start <container_name>
 ```
 
-### **Remove a Stopped Container:**
+#### **Remove a Stopped Container:**
 ```sh
 docker container rm <container_name>
 ```
 
 ---
 
-## **3. Building and Running Custom Images**  
+### **3. Building and Running Custom Images**  
 Useful for DevOps teams creating custom applications.
 
-### **Clone a Repository with a Dockerfile:**
+#### **Clone a Repository with a Dockerfile:**
 ```sh
 git clone https://github.com/nigelpoulton/psweb.git
 ```
 
-### **Inspect the Dockerfile:**
+#### **Inspect the Dockerfile:**
 ```sh
 cat Dockerfile
 ```
 - Displays the contents of the Dockerfile, detailing the image build instructions.
 
-### **Build a Custom Image:**
+#### **Build a Custom Image:**
 ```sh
 docker image build -t test:latest .
 ```
 - Builds an image from the Dockerfile in the current directory (`.`) and tags it as `test:latest`.
 
-### **List Built Images:**
+#### **List Built Images:**
 ```sh
 docker image ls
 ```
 - Confirms the creation of the new image alongside any base images used.
 
-### **Run a Container from the Custom Image:**
+#### **Run a Container from the Custom Image:**
 ```sh
 docker container run -d \
   --name web1 \
@@ -640,13 +664,13 @@ docker container run -d \
 
 ---
 
-## **4. DevOps Perspective**  
+### **4. DevOps Perspective**  
 - **Automation:** Automating Docker tasks in CI/CD pipelines boosts efficiency.  
 - **Customization:** Custom images allow teams to standardize environments.  
 - **Flexibility:** Docker supports dynamic deployments and simplifies testing in isolated environments.  
 
 
-# **The Docker Engine: Overview and Deep Dive**  
+## **The Docker Engine: Overview and Deep Dive**  
 
 
 ## **1. Docker Engine - TLDR**  
@@ -658,7 +682,7 @@ The Docker Engine manages the lifecycle of containers. It consists of several co
 
 ## **2. Docker Engine - Deep Dive Components**  
 
-![Docker Engine](./Img/6.png)
+![Docker Engine](./Img/Docker_Architecture.png)
 
 ### **CLI Wrapper (Docker CLI)**  
 - The command-line tool users interact with (`docker` command).  
