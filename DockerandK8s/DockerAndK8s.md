@@ -169,7 +169,7 @@ Here's a comprehensive document combining the topics discussed in both files on 
 
 ---
 
-# Docker
+# **Docker Introduction**
 
 ## What is Docker?
 
@@ -222,6 +222,10 @@ Docker is an open platform designed to develop, ship, and run applications. It e
 6. **Streamlined Development & Deployment**:  
    Docker provides a consistent environment that simplifies development, testing, and deployment processes, making it ideal for CI/CD workflows.
 
+Understood! I will reorganize the content without cutting down on details. I'll focus on improving structure and flow while keeping everything intact. I'll send the updated sections progressively. Let's begin with **Docker Components: Runtime, Daemon, and Orchestrator**.
+
+---
+
 ## The Docker Platform
 
 Docker enables you to encapsulate an application in a container. Containers hold everything needed to run the application, avoiding dependencies on the host environment and ensuring a stable, reproducible setup.
@@ -232,60 +236,230 @@ The Docker platform provides tools for managing the entire container lifecycle:
 2. **Distribute**: Test and share your containerized application.
 3. **Deploy**: Run your containerized application in any environment, from local systems to cloud infrastructure.
 
-## Docker Architecture
 
-Docker operates with a client-server architecture:
+# **Docker Architecture** 
 
-- **Docker Daemon (`dockerd`)**:  
-   The Docker daemon listens for Docker API requests and manages Docker objects like images, containers, networks, and volumes. It can also interact with other daemons to manage Docker services.
+Docker uses a client-server architecture. The Docker client talks to the Docker daemon, which does the heavy lifting of building, running, and distributing your Docker containers. The Docker client and daemon can run on the same system, or you can connect a Docker client to a remote Docker daemon. The Docker client and daemon communicate using a REST API, over UNIX sockets or a network interface. Another Docker client is Docker Compose, that lets you work with applications consisting of a set of containers.
 
-- **Docker Client (`docker`)**:  
-   The primary interface for interacting with Docker, allowing users to run commands for tasks like container management, image creation, and more. The Docker client communicates with `dockerd` either locally or remotely.
 
-- **Docker Desktop**:  
-   Docker Desktop is an easy-to-install application for Mac, Windows, and Linux. It includes Docker Daemon, Docker CLI, Docker Compose, Kubernetes, and Credential Helper for streamlined Docker management.
+![Docker Components](Img/docker-architecture.png)
 
-- **Docker Registries**:  
-   A Docker registry stores Docker images, making it easy to pull and push images as needed. Docker Hub is the default public registry, but private registries can be set up as well.
 
-### Docker Architecture Diagram
+---
+## **1. Docker Components: Runtime, Daemon, and Orchestrator**
 
-![docker-architecture](./Img/docker-architecture.png)
+![Docker_Components](Img/Docker_Component.png)
+### **1.1 The Runtime: runc and containerd**  
 
-## Docker Objects
+The **Runtime** is responsible for interacting with the host system’s kernel and hardware to create and manage containers. It serves as the bridge between Docker and the underlying system resources.
 
-Docker enables you to work with various objects:
+#### **a. `runc`:**  
+- **Definition:**  
+  `runc` is a lightweight, low-level container runtime that adheres to the **Open Containers Initiative (OCI)** specifications.
+  
+- **Key Responsibilities:**  
+  - **Start and Stop Containers:**  
+    It initializes and terminates containers based on configurations defined in OCI-compliant files.  
+  - **OS Constructs:**  
+    `runc` sets up essential components such as:
+    - **Namespaces:** For process and resource isolation.
+    - **Control Groups (cgroups):** To allocate and monitor resources like CPU and memory.
+  
+#### **b. `containerd`:**  
+- **Definition:**  
+  `containerd` is a higher-level runtime that manages `runc` and simplifies container lifecycle tasks. It is a CNCF (Cloud Native Computing Foundation) project.
 
-1. **Images**:  
-   An image is a read-only template used to create containers, often based on a parent image with added customizations. Images are typically built using a Dockerfile, where each instruction in the Dockerfile creates a layer, making them lightweight and efficient.
+- **Key Responsibilities:**  
+  - **Image Management:**  
+    Pulls and manages images from container registries (e.g., Docker Hub).  
+  - **Container Management:**  
+    Delegates tasks such as starting, stopping, and monitoring containers to `runc`.  
+  - **Networking:**  
+    Sets up network interfaces for container communication.  
 
-2. **Containers**:  
-   A container is a runnable instance of an image, offering a separate filesystem, network settings, and other resources. Containers can be run, stopped, restarted, and removed, allowing fine-grained control over application instances.
+---
 
-3. **Networks**:  
-   Docker allows you to define networks to connect containers, enabling communication between them in isolated or shared environments.
+### **1.2 The Daemon (`dockerd`):**  
 
-4. **Volumes**:  
-   Docker volumes store data generated and used by containers, enabling persistence beyond container lifecycle. Volumes are the preferred mechanism for persistent data storage.
+The **Docker Daemon** (`dockerd`) is the core service that controls and manages all Docker operations. It listens for API requests and interacts with both the Docker CLI and container runtimes.
 
-5. **Plugins**:  
-   Docker plugins extend Docker’s functionalities, offering additional capabilities like network drivers, volume drivers, and security features.
+- **Key Functions:**
+  - **Expose the Docker API:**  
+    `dockerd` provides a REST API that allows external tools and the Docker CLI to communicate with it.
+  - **Manage Images:**  
+    Handles pulling, pushing, and deleting images, as well as managing image layers for efficiency.
+  - **Manage Volumes:**  
+    Creates and manages Docker volumes to persist data across container lifecycles.
+  - **Manage Networks:**  
+    Configures networks for container communication, supporting various types such as:
+    - **Bridge Networks** (default for containers on the same host).  
+    - **Overlay Networks** (for multi-host container communication).  
+    - **Host Networks** (sharing the host’s network namespace).  
+  - **Monitor and Control Containers:**  
+    Tracks container states (running, stopped, paused) and manages resource allocation.  
 
-## What Can I Use Docker For?
+---
 
-### Fast, Consistent Delivery of Applications
+### **1.3 The Orchestrator: Swarm**  
+
+Orchestration is critical for managing large-scale container deployments across multiple nodes. Docker’s native orchestration tool is **Swarm**, though Kubernetes is also widely used.
+
+#### **Docker Swarm Overview:**  
+- **Definition:**  
+  Swarm transforms a group of Docker hosts into a single virtual cluster, where tasks can be distributed and managed efficiently.
+
+- **Key Concepts:**  
+  - **Nodes:**  
+    - **Manager Nodes:** Handle cluster management and scheduling.  
+    - **Worker Nodes:** Execute tasks assigned by managers.  
+  - **Services and Tasks:**  
+    - A **service** defines how a container should run.  
+    - A **task** is an individual instance of a service running on a node.  
+  - **Load Balancing:**  
+    Distributes workloads evenly across nodes.  
+  - **Self-Healing:**  
+    Automatically restarts or reschedules failed tasks.
+
+#### **Why Orchestration Matters:**  
+- **Scalability:**  
+  Easily scale services by adding more nodes or containers.  
+- **High Availability:**  
+  Ensures minimal downtime by redistributing tasks if a node fails.  
+- **Automation:**  
+  Simplifies container deployment and management across multiple environments.
+
+
+## **2. Docker Client-Server Architecture**  
+
+Docker uses a client-server model where the Docker client communicates with the Docker daemon (server).
+
+#### **Docker Client:**  
+- The Docker client (`docker`) is the primary interface for users to interact with Docker. It sends commands to the Docker daemon.  
+- Common commands:  
+  - `docker build`: Build images from a Dockerfile.  
+  - `docker run`: Create and run containers from images.  
+  - `docker ps`: List running containers.
+
+#### **Docker Daemon:**  
+- The daemon (`dockerd`) handles all the heavy lifting, such as managing images, containers, and networks. It interacts with `containerd` and `runc` to manage the lifecycle of containers.
+
+---
+
+## **3. Docker Objects**  
+
+Docker manages several types of objects:
+
+#### **3.1 Images:**  
+- Images are read-only templates used to create containers. They consist of layers, with each layer representing an instruction in the Dockerfile.  
+- **Commands:**  
+  - `docker pull`: Pull an image from a registry.  
+  - `docker build`: Build an image from a Dockerfile.
+
+#### **3.2 Containers:**  
+- Containers are runnable instances of images, providing an isolated environment with their own filesystem, network, and resources.  
+- **Commands:**  
+  - `docker start`: Start a stopped container.  
+  - `docker stop`: Stop a running container.  
+  - `docker exec`: Run a command inside a container.
+
+#### **3.3 Volumes:**  
+- Volumes are used for persistent storage, allowing data to survive container restarts.  
+- **Commands:**  
+  - `docker volume create`: Create a new volume.  
+  - `docker volume ls`: List available volumes.
+
+#### **3.4 Networks:**  
+- Docker networks enable communication between containers.  
+- Types of networks:  
+  - **Bridge:** Default network type.  
+  - **Host:** Shares the host’s networking namespace.  
+  - **Overlay:** Enables multi-host networking for Swarm services.  
+- **Commands:**  
+  - `docker network create`: Create a network.  
+  - `docker network connect`: Connect a container to a network.
+
+---
+
+## **4. Docker Compose**  
+
+Docker Compose is a tool for defining and managing multi-container applications using a YAML file (`docker-compose.yml`).
+
+- **Usage:**  
+  - Define services, networks, and volumes in a single file.  
+  - Run the entire application stack with one command: `docker-compose up`.  
+- **Example:**
+  ```yaml
+  version: '3'
+  services:
+    web:
+      image: nginx
+      ports:
+        - "80:80"
+    db:
+      image: mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: example
+  ```
+
+---
+
+## **5. Docker Registry**  
+
+A Docker registry stores Docker images. Docker Hub is the default public registry, but private registries can be set up.
+
+- **Commands:**  
+  - `docker push`: Push an image to a registry.  
+  - `docker pull`: Pull an image from a registry.
+
+---
+
+## **6. Open Container Initiative (OCI)**  
+
+The **Open Container Initiative (OCI)** is a project under the Linux Foundation that establishes open standards for container formats and runtimes.
+
+- **Key Standards:**  
+  - **Runtime Specification:** Defines how containers should be run.  
+  - **Image Specification:** Defines how images are built and distributed.  
+- **Example Implementations:**  
+  - `runc` is a reference implementation of the OCI runtime spec.
+
+---
+
+## **7. Summary of Docker Components**
+
+| **Component**       | **Role**                                             | **Examples/Tools**        |
+|---------------------|------------------------------------------------------|---------------------------|
+| **Runtime**          | Manages container lifecycle and isolation.           | `runc`, `containerd`      |
+| **Daemon**           | Core service managing Docker objects.                | `dockerd`                 |
+| **Orchestrator**     | Manages container clusters and scaling.              | Docker Swarm, Kubernetes  |
+| **Client**           | User interface for Docker commands.                  | Docker CLI (`docker`)     |
+| **Registry**         | Stores and distributes container images.             | Docker Hub, Private Registry |
+
+---
+
+### **Conclusion:**  
+
+Docker provides a robust architecture for containerization, offering flexibility, scalability, and efficiency. Understanding its core components, from the runtime and daemon to orchestration, is crucial for managing and deploying containerized applications effectively.
+
+
+---
+# Install Docker
+
+### **What Can I Use Docker For?**
+
+#### Fast, Consistent Delivery of Applications
 
 Docker streamlines the development lifecycle by providing standardized environments with containers, perfect for CI/CD workflows. Developers can work on code locally and share it via Docker, ensuring consistency across all environments. The application can be tested and validated in containerized test environments and deployed by pushing updated images to production.
 
-### Responsive Deployment and Scaling
+#### Responsive Deployment and Scaling
 
 Docker’s container-based approach allows highly portable workloads, making it easy to run containers in various setups, from local machines to cloud providers. This flexibility supports rapid scaling of applications up or down as needed.
 
-### Efficient Use of Resources
+#### Efficient Use of Resources
 
 Docker containers are lightweight, making them ideal for high-density environments where resource efficiency is crucial. They allow you to run more workloads on the same hardware, reducing costs and improving performance.
 
----
+
 
 ## How to Install Docker
 
@@ -296,6 +470,672 @@ To install Docker on your system, follow the official Docker installation guides
 - **[Install Docker for Linux](https://docs.docker.com/engine/install/)**
 
 ---
+
+### [Play with Docker](https://labs.play-with-docker.com/)
+
+
+
+## Setting Up User Permissions with Docker**
+
+### **1. Confirming Docker Installation:**
+- **Command:**
+   ```sh
+   sudo docker version
+   ```
+- **Purpose:**  
+  Displays the Docker client and server version information, confirming that Docker is installed and running properly.
+
+---
+
+### **2. Adding a User to the Docker Group:**
+- **Why?**  
+  By default, Docker commands require `sudo` because they need administrative privileges. Adding your user to the **docker** group allows you to run Docker commands without `sudo`.
+
+---
+
+### **3. Steps for Checking and Configuring Permissions:**
+
+#### **(1) Check Existing System Groups:**
+- **Command:**
+   ```sh
+   sudo getent group
+   ```
+- **Purpose:**  
+  Lists all groups on the system, including the **docker** group if it exists.
+
+#### **(2) Check Groups Associated with Your User:**
+- **Command:**
+   ```sh
+   groups
+   ```
+- **Purpose:**  
+  Shows the groups the current user belongs to. This helps confirm if you are already a member of the **docker** group.
+
+#### **(3) Add User to the Docker Group:**
+- **Command:**
+   ```sh
+   sudo usermod -a -G docker <username>
+   ```
+- **Details:**
+   - **`-a`:** Appends the user to the specified group without removing them from other groups.
+   - **`-G docker`:** Specifies the **docker** group.
+   - **`<username>`:** Replace with your actual username.
+
+- **Example:**
+   ```sh
+   sudo usermod -a -G docker mohamed
+   ```
+
+#### **(4) Verify Group Membership:**
+- **Command:**
+   ```sh
+   groups
+   ```
+- **Purpose:**  
+  Confirms that the user has been added to the **docker** group.
+
+
+
+---
+
+
+# **Docker Storage**
+
+By default all files created inside a container are stored on a writable container layer. This means that:
+
+- The data doesn't persist when that container no longer exists, and it can be difficult to get the data out of the container if another process needs it.
+- A container's writable layer is tightly coupled to the host machine where the container is running. You can't easily move the data somewhere else.
+- Writing into a container's writable layer requires a storage driver to manage the filesystem. The storage driver provides a union filesystem, using the Linux kernel. This extra abstraction reduces performance as compared to using data volumes, which write directly to the host filesystem.
+Docker has two options for containers to store files on the host machine, so that the files are persisted even after the container stops: volumes, and bind mounts.
+
+Docker also supports containers storing files in-memory on the host machine. Such files are not persisted. If you're running Docker on Linux, tmpfs mount is used to store files in the host's system memory. If you're running Docker on Windows, named pipe is used to store files in the host's system memory.
+
+## Choose the right type of mount
+No matter which type of mount you choose to use, the data looks the same from within the container. It is exposed as either a directory or an individual file in the container's filesystem.
+
+An easy way to visualize the difference among volumes, bind mounts, and tmpfs mounts is to think about where the data lives on the Docker host.
+
+
+![types-of-mounts](./Img/types-of-mounts.png)
+
+- **Volumes**: Volumes are stored in a part of the host filesystem which is managed by Docker (/var/lib/docker/volumes/ on Linux). Non-Docker processes should not modify this part of the filesystem. Volumes are the best way to persist data in Docker.
+
+- **Bind Mounts**: Bind mounts may be stored anywhere on the host system. They may even be important system files or directories. Non-Docker processes on the Docker host or a Docker container can modify them at any time.
+- **tmpfs Mounts**:  mounts are stored in the host system's memory only, and are never written to the host system's filesystem.
+
+- **Named Pipes**: Mechanism for communication between the Docker host and containers.
+
+Bind mounts and volumes can both be mounted into containers using the -v or --volume flag, but the syntax for each is slightly different. For tmpfs mounts, you can use the --tmpfs flag. We recommend using the --mount flag for both containers and services, for bind mounts, volumes, or tmpfs mounts, as the syntax is more clear.
+Each storage option provides unique benefits and trade-offs. Choosing the right one depends on your application's needs, whether you prioritize portability, performance, or security.
+
+---
+
+## Docker Storage: Volumes, Bind Mounts, tmpfs, and Named Pipes
+
+### 1. Volumes
+
+Volumes are the preferred mechanism for persisting data in Docker. They offer advantages such as easy sharing of data between containers and the ability to use volume drivers for storage on remote hosts or cloud providers.
+
+
+### Why Use Volumes:
+- **Independence**: Volumes are managed by Docker, unlike bind mounts, which depend on the host OS.
+- **Portability**: Easier to back up and migrate.
+- **Cross-Platform**: Work on both Linux and Windows.
+- **Sharing**: Safely share data among multiple containers.
+- **Customization**: Support remote storage, encryption, and more through drivers.
+
+### Managing Volumes:
+- **Create**: `docker volume create <name>`
+- **List**: `docker volume ls`
+- **Inspect**: `docker volume inspect <name>`
+- **Remove**: `docker volume rm <name>`
+
+### Using Volumes:
+
+#### Creating and Using Volumes
+- **Create a named volume:**
+  ```bash
+  docker volume create my_volume
+  ```
+
+- **Mount a named volume to a container:**
+  ```bash
+  docker run -d --name my_container -v my_volume:/data nginx
+  ```
+
+- **Anonymous volumes:**
+  Docker creates an anonymous volume with a random name when no specific name is provided.
+  ```bash
+  docker run -d -v /data nginx
+  ```
+
+- **Remove unused volumes:**
+  ```bash
+  docker volume prune
+  ```
+
+#### Sharing Anonymous Volumes
+To share an anonymous volume, use its volume ID:
+```bash
+docker run -d --volumes-from <source-container> nginx
+```
+
+#### Using Volumes
+- **With Containers**:  
+  Example:  
+  ```bash
+  docker run -d --name my-container --mount source=myvol,target=/app nginx:latest
+  ```
+- **With Docker Compose**:  
+  ```yaml
+  services:
+    app:
+      image: myapp:latest
+      volumes:
+        - myvol:/app
+  volumes:
+    myvol:
+  ```
+
+### Key Options:
+- **Read-Only Mount**:  
+  Use `readonly` or `ro` to limit write access.
+- **Subdirectory Mounting**:  
+  Use `volume-subpath` to mount specific subdirectories.
+
+### Syntax Differences:
+- **`-v` vs. `--mount`**:  
+  - `-v` is concise but less explicit.  
+  - `--mount` is more verbose and flexible, especially for advanced configurations.
+
+---
+
+### 2. Bind Mounts
+
+Bind mounts allow you to mount a file or directory from the host into the container. They are useful for scenarios where you need direct access to host files.
+
+
+#### What Are Bind Mounts?
+
+- Bind mounts **map files or directories** from the host system to a container.
+- Unlike volumes, bind mounts use the **host's absolute file paths** and are more **limited in functionality**.
+- Files/directories do **not need to pre-exist** on the host; they are created on demand.
+  
+**Key Features:**
+  - Mounts a file or directory by its full path.
+  - `No Direct Management`: Bind mounts are not managed by Docker CLI commands.
+  - Allows changes to host files from the container.
+  - Created on-demand if the file or directory doesn’t exist.
+  - `High Performance`: Fast but depends on host filesystem structure.
+
+#### Using Bind Mounts:
+
+#### Syntax Differences:
+- **`-v` / `--volume`:**  
+  - Compact but less readable.
+  - Format: `host_path:container_path[:options]`.
+  
+- **`--mount`:**  
+  - More explicit, easier to understand.
+  - Key-value pairs format: `type=bind,source=host_path,target=container_path[,options]`.
+
+#### Example Commands:
+
+- **`--mount` syntax:**
+   ```bash
+   docker run -d -it --name devtest --mount type=bind,source="$(pwd)"/target,target=/app nginx:latest
+   ```
+
+- **`-v` syntax:**
+   ```bash
+   docker run -d -it --name devtest -v "$(pwd)"/target:/app nginx:latest
+   ```
+
+---
+
+#### Options:
+
+- **Read-Only Mount:**
+   - Use `readonly` or `ro`:
+     ```bash
+     --mount type=bind,source="$(pwd)"/target,target=/app,readonly
+     ```
+
+- **SELinux Labels (Linux-only):**
+   - `z`: Shared among containers.
+   - `Z`: Private to a container.
+   ```bash
+   -v "$(pwd)"/target:/app:z
+   ```
+
+---
+
+#### Advanced Configurations:
+
+- **Bind Propagation (Linux-only):**
+   - Controls submount visibility between host and container.
+   - Common values:
+     - `shared`, `slave`, `private` (default), `rshared`, `rslave`, `rprivate`.
+
+- **Recursive Read-Only Mounts:**  
+   - Supported only on Linux Kernel **v5.12+**.
+   - Option: `bind-recursive=readonly`.
+
+---
+
+#### Docker Compose Example:
+
+```yaml
+services:
+  frontend:
+    image: node:lts
+    volumes:
+      - type: bind
+        source: ./static
+        target: /opt/app/static
+```
+
+---
+
+#### Key Considerations:
+- **Mounting Non-Empty Directories:** Existing container contents may be hidden.
+- **Synchronized File Shares:** For performance improvements in complex setups.
+- **SELinux Caution:** Incorrect labeling can make the host system inoperable.
+---
+
+### 3. tmpfs Mounts
+
+A `tmpfs` mount is used to store non-persistent data. It exists only in the container's memory and is lost when the container stops.
+
+Here's a summarized version of **tmpfs mounts** in Docker:
+
+---
+
+### **What Are Tmpfs Mounts?**  
+- A **tmpfs mount** allows files to be created outside a container's writable layer but stored in **host memory only**.
+- Unlike **volumes** and **bind mounts**, **tmpfs** is **temporary** and gets removed when the container stops.
+  
+### **Use Cases**  
+- Useful for **temporary storage** of sensitive data that shouldn't persist on the host or in the container’s layer.
+
+---
+
+### **Key Features and Limitations**  
+- **Temporary Storage:** Files are stored in RAM and not persisted after the container stops.
+- **Linux-Only:** Tmpfs mounts work only on Linux hosts.
+- **Permissions:** Setting `uid`/`gid` can be tricky as permissions may reset after restart.
+- **Container Isolation:** Tmpfs mounts **cannot** be shared across multiple containers.
+  
+---
+
+### **Syntax Options**  
+1. **`--tmpfs` Flag:**  
+   - Simple and quick but **no configurable options**.
+   - Example:  
+   ```bash
+   docker run -d -it --name tmptest --tmpfs /app nginx:latest
+   ```
+
+2. **`--mount` Flag:**  
+   - More **flexible** and allows for configuration like size and permissions.  
+   - Syntax: `--mount type=tmpfs,destination=<path>,tmpfs-size=<size>,tmpfs-mode=<mode>`  
+   - Example:  
+   ```bash
+   docker run -d -it --name tmptest --mount type=tmpfs,destination=/app,tmpfs-mode=1770 nginx:latest
+   ```
+
+---
+
+### **Common Options for Tmpfs Mounts**  
+| **Option**     | **Description**                                   |
+|----------------|---------------------------------------------------|
+| **tmpfs-size** | Sets size limit in bytes (default is 50% of RAM). |
+| **tmpfs-mode** | Sets file permissions (e.g., `0770`, default `1777`). |
+
+---
+
+### **Checking Tmpfs Mounts**  
+- To verify a tmpfs mount, use:  
+  ```bash
+  docker inspect tmptest --format '{{ json .Mounts }}'
+  ```
+
+### **Clean Up**  
+- Stop and remove the container:  
+   ```bash
+   docker stop tmptest  
+   docker rm tmptest  
+   ```
+
+---
+
+
+### 4. Named Pipes
+
+
+#### **What Are Named Pipes?**
+
+A **named pipe** (also known as a FIFO) is a method of **inter-process communication (IPC)** that allows data to be passed between processes. Unlike regular pipes (`|` in shell commands), named pipes have a persistent name in the filesystem and can be accessed by unrelated processes.
+
+In Docker, named pipes enable communication between the host and containers or between containers. They are commonly used for tools that need to interact with the Docker Engine API.
+
+
+
+---
+
+#### **How Named Pipes Work**  
+
+1. **Creation**: A named pipe is created as a file using the `mkfifo` command.
+2. **Data Flow**: One process writes to the pipe, while another reads from it.
+3. **Blocking Behavior**: A process writing to a named pipe will pause until another process reads from it, and vice versa.
+
+---
+
+#### **Example Usage in Docker**  
+
+##### 1. **Creating a Named Pipe in the Host**  
+
+```bash
+mkfifo /tmp/mypipe
+```
+
+##### 2. **Running a Docker Container with a Named Pipe**  
+
+```bash
+docker run -it --rm -v /tmp/mypipe:/mypipe ubuntu bash
+```
+
+- **`-v /tmp/mypipe:/mypipe`**: Mounts the named pipe from the host into the container.
+
+##### 3. **Writing and Reading from the Pipe**  
+
+- **On Host**:
+
+    ```bash
+    echo "Hello from Host" > /tmp/mypipe
+    ```
+
+- **In Container**:
+
+    ```bash
+    cat /mypipe
+    ```
+
+**Output**: The container will display `Hello from Host`.
+
+---
+
+#### **Use Cases for Named Pipes in Docker**  
+
+1. **Logging and Monitoring**: Containers can write logs to a named pipe, which the host or another service reads for real-time monitoring.
+2. **Data Streaming**: Stream data between host processes and containers without using temporary files.
+3. **Command Passing**: Send commands from the host to a running container in real-time.
+
+---
+
+#### **Best Practices and Considerations**  
+
+- **Security**: Be cautious when using named pipes, as they can expose sensitive data if improperly secured.
+- **Performance**: Named pipes are efficient for small, continuous streams of data but not ideal for bulk data transfers.
+- **Blocking**: Ensure both reading and writing processes are properly synchronized to avoid deadlocks.
+
+---
+
+#### **Summary Table: Storage Options in Docker**
+
+| **Type**     | **Persistence** | **Use Case**                                           | **Command Example**                             |
+|--------------|-----------------|--------------------------------------------------------|-------------------------------------------------|
+| Volumes      | Persistent      | Share data between containers, remote storage.         | `docker run -v my_volume:/path`                 |
+| Bind Mounts  | Persistent      | Direct access to host files.                           | `docker run -v /host/path:/container/path`      |
+| tmpfs        | Non-persistent  | Temporary or sensitive data.                           | `docker run --tmpfs /path`                      |
+| Named Pipes  | Communication   | Communication between Docker host and container.       | `docker run -v //./pipe/docker_engine`          |
+
+
+---
+
+# **Deep Dive in Docker**
+
+## Docker User Permissions, Basic Commands, and Image Management
+
+
+### **1. User Permissions and Docker Group Setup**  
+By default, Docker requires `sudo` to run commands. Adding a user to the **docker** group allows them to run Docker commands without `sudo`, improving efficiency and automation.
+
+#### **Steps:**
+1. **Check Existing Groups:**
+   ```sh
+   sudo getent group
+   ```
+   - Lists all system groups, including **docker** if available.
+
+2. **Check User’s Groups:**
+   ```sh
+   groups
+   ```
+   - Shows groups associated with the current user.
+
+3. **Add User to Docker Group:**
+   ```sh
+   sudo usermod -a -G docker <username>
+   ```
+   - Adds the user to the **docker** group.
+
+4. **Verify Group Membership:**
+   ```sh
+   groups
+   ```
+   - Confirms the user is now in the **docker** group.
+
+---
+
+### **2. Managing Docker Images and Containers**
+
+#### **List Images:**
+```sh
+docker image ls
+```
+- Shows all downloaded images.
+
+#### **Pull an Image:**
+```sh
+docker image pull ubuntu:latest
+```
+- Downloads the latest version of the Ubuntu image.
+
+#### **Run a Container:**
+```sh
+docker container run -it ubuntu:latest /bin/bash
+```
+- Launches a container interactively with a bash shell.
+
+#### **Exit a Container Without Stopping:**
+- **Shortcut:** `Ctrl + P, Ctrl + Q`
+
+#### **Reattach to a Running Container:**
+```sh
+docker container exec -it <container_name> bash
+```
+
+#### **Stop a Running Container:**
+```sh
+docker container stop <container_name>
+```
+
+#### **Start a Stopped Container:**
+```sh
+docker container start <container_name>
+```
+
+#### **Remove a Stopped Container:**
+```sh
+docker container rm <container_name>
+```
+
+---
+
+### **3. Building and Running Custom Images**  
+Useful for DevOps teams creating custom applications.
+
+#### **Clone a Repository with a Dockerfile:**
+```sh
+git clone https://github.com/nigelpoulton/psweb.git
+```
+
+#### **Inspect the Dockerfile:**
+```sh
+cat Dockerfile
+```
+- Displays the contents of the Dockerfile, detailing the image build instructions.
+
+#### **Build a Custom Image:**
+```sh
+docker image build -t test:latest .
+```
+- Builds an image from the Dockerfile in the current directory (`.`) and tags it as `test:latest`.
+
+#### **List Built Images:**
+```sh
+docker image ls
+```
+- Confirms the creation of the new image alongside any base images used.
+
+#### **Run a Container from the Custom Image:**
+```sh
+docker container run -d \
+  --name web1 \
+  --publish 8080:8080 \
+  test:latest
+```
+- **Explanation:**
+   - **`-d`:** Runs the container in detached mode.
+   - **`--name web1`:** Names the container **web1**.
+   - **`--publish 8080:8080`:** Maps port 8080 on the host to port 8080 in the container.
+
+---
+
+### **4. DevOps Perspective**  
+- **Automation:** Automating Docker tasks in CI/CD pipelines boosts efficiency.  
+- **Customization:** Custom images allow teams to standardize environments.  
+- **Flexibility:** Docker supports dynamic deployments and simplifies testing in isolated environments.  
+
+
+## **The Docker Engine: Overview and Deep Dive**  
+
+
+## **1. Docker Engine - TLDR**  
+
+![Docker Client](./Img/5.png)
+The Docker Engine manages the lifecycle of containers. It consists of several components that work together to build, run, and manage containers efficiently.
+
+---
+
+## **2. Docker Engine - Deep Dive Components**  
+
+![Docker Engine](./Img/Docker_Architecture.png)
+
+### **CLI Wrapper (Docker CLI)**  
+- The command-line tool users interact with (`docker` command).  
+- Sends commands to the Docker daemon using the Docker API.
+
+---
+
+### **`runc` (OCI Runtime Layer)**  
+- **Purpose:**  
+  - A lightweight runtime that creates and runs containers according to the Open Container Initiative (OCI) standards.  
+  - Directly interfaces with the OS to create container processes.  
+- **Role:**  
+  - Only creates containers and exits after the container starts running.
+
+- **Key Point:**  
+  - Decoupling from the Docker daemon allows for “daemonless” containers, meaning containers keep running even if the daemon stops.  
+
+- **Latest Release:**  
+  [runc releases](https://github.com/opencontainers/runc/releases)
+
+---
+
+### **`containerd` (Container Lifecycle Manager)**  
+- **Background Process:**  
+  - Can be viewed with the command:  
+    ```sh
+    ps -elf | grep containerd
+    ```  
+- **Responsibilities:**  
+  - Manages the entire container lifecycle: starting, stopping, pausing, and removing containers.  
+  - Handles image pulls, volumes, and networking.  
+
+- **Origins:**  
+  - Originally developed by Docker, later donated to the Cloud Native Computing Foundation (CNCF).  
+
+- **Latest Release:**  
+  [containerd releases](https://github.com/containerd/containerd/releases)
+
+---
+
+### **Shim Process (`docker-containerd-shim`)**  
+- A lightweight process that stays running after `runc` exits.  
+- **Purpose:**  
+  - Keeps STDIN/STDOUT streams open.  
+  - Reports container status to the Docker daemon.  
+  - Allows containers to keep running even if the Docker daemon is restarted.  
+
+---
+
+### **Starting a Container: Example Flow**  
+```sh
+docker container run --name ctr1 -it alpine:latest sh
+```
+
+#### **Execution Steps:**
+1. **Docker CLI** sends the command to the Docker daemon through an API call (`/var/run/docker.sock` on Linux).  
+2. **Docker Daemon (`dockerd`)** communicates with `containerd`.  
+3. **`containerd`** prepares an OCI-compliant bundle and invokes `runc`.  
+4. **`runc`** creates the container by interfacing with the OS kernel.  
+5. **Shim (`containerd-shim`)** stays active after `runc` exits to manage the container.
+
+---
+
+### **Key Benefit: Decoupling of Daemon and Container Runtime**  
+- **“Daemonless Containers”**:  
+  - Containers can continue running even if the Docker daemon (`dockerd`) is restarted or upgraded.  
+  - Improves system maintenance and stability.
+
+---
+
+## **3. Securing Docker Client and Daemon Communication**  
+
+### **Local Communication:**  
+- **Linux Socket:** `/var/run/docker.sock`  
+- **Windows Pipe:** `//./pipe/docker_engine`  
+
+### **Network Communication:**  
+- **Unsecured HTTP Socket:** Port `2375/tcp` (not recommended).  
+
+### **TLS (Transport Layer Security):**  
+- TLS secures communication between the Docker client and daemon over the network.
+
+#### **Steps to Enable TLS:**
+1. **Set up a Certificate Authority (CA).**  
+2. **Create and sign keys for the Docker daemon.**  
+3. **Create and sign keys for the client.**  
+4. **Distribute the CA and keys to both client and daemon.**  
+5. **Configure Docker to use TLS:**  
+   - Modify both daemon and client configuration files.
+
+### **Further Security Guidance:**  
+- [Protect Docker Daemon Socket](https://docs.docker.com/engine/security/protect-access/)
+
+---
+
+### **Summary of Components:**
+- **CLI:** Sends commands to Docker.  
+- **Daemon (`dockerd`):** Manages containers.  
+- **`containerd`:** Oversees the container lifecycle.  
+- **`runc`:** Creates containers based on OCI standards.  
+- **Shim:** Keeps containers running after daemon restart
+
+---
+
 
 #### Example `docker run` Command
 
