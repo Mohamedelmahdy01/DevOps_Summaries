@@ -534,12 +534,361 @@ To install Docker on your system, follow the official Docker installation guides
 - **Purpose:**  
   Confirms that the user has been added to the **docker** group.
 
+
+
 ---
 
-### **Importance in DevOps:**
-- **Efficiency:** Running Docker commands without `sudo` speeds up workflows.
-- **Automation:** Avoids permission issues when running Docker commands in scripts or CI/CD pipelines.
-- **Security Considerations:** Be cautious when adding users to the Docker group, as it grants elevated privileges similar to root access.
+
+# **Docker Storage**
+
+By default all files created inside a container are stored on a writable container layer. This means that:
+
+- The data doesn't persist when that container no longer exists, and it can be difficult to get the data out of the container if another process needs it.
+- A container's writable layer is tightly coupled to the host machine where the container is running. You can't easily move the data somewhere else.
+- Writing into a container's writable layer requires a storage driver to manage the filesystem. The storage driver provides a union filesystem, using the Linux kernel. This extra abstraction reduces performance as compared to using data volumes, which write directly to the host filesystem.
+Docker has two options for containers to store files on the host machine, so that the files are persisted even after the container stops: volumes, and bind mounts.
+
+Docker also supports containers storing files in-memory on the host machine. Such files are not persisted. If you're running Docker on Linux, tmpfs mount is used to store files in the host's system memory. If you're running Docker on Windows, named pipe is used to store files in the host's system memory.
+
+## Choose the right type of mount
+No matter which type of mount you choose to use, the data looks the same from within the container. It is exposed as either a directory or an individual file in the container's filesystem.
+
+An easy way to visualize the difference among volumes, bind mounts, and tmpfs mounts is to think about where the data lives on the Docker host.
+
+
+![types-of-mounts](./Img/types-of-mounts.png)
+
+- **Volumes**: Volumes are stored in a part of the host filesystem which is managed by Docker (/var/lib/docker/volumes/ on Linux). Non-Docker processes should not modify this part of the filesystem. Volumes are the best way to persist data in Docker.
+
+- **Bind Mounts**: Bind mounts may be stored anywhere on the host system. They may even be important system files or directories. Non-Docker processes on the Docker host or a Docker container can modify them at any time.
+- **tmpfs Mounts**:  mounts are stored in the host system's memory only, and are never written to the host system's filesystem.
+
+- **Named Pipes**: Mechanism for communication between the Docker host and containers.
+
+Bind mounts and volumes can both be mounted into containers using the -v or --volume flag, but the syntax for each is slightly different. For tmpfs mounts, you can use the --tmpfs flag. We recommend using the --mount flag for both containers and services, for bind mounts, volumes, or tmpfs mounts, as the syntax is more clear.
+Each storage option provides unique benefits and trade-offs. Choosing the right one depends on your application's needs, whether you prioritize portability, performance, or security.
+
+---
+
+## Docker Storage: Volumes, Bind Mounts, tmpfs, and Named Pipes
+
+### 1. Volumes
+
+Volumes are the preferred mechanism for persisting data in Docker. They offer advantages such as easy sharing of data between containers and the ability to use volume drivers for storage on remote hosts or cloud providers.
+
+
+### Why Use Volumes:
+- **Independence**: Volumes are managed by Docker, unlike bind mounts, which depend on the host OS.
+- **Portability**: Easier to back up and migrate.
+- **Cross-Platform**: Work on both Linux and Windows.
+- **Sharing**: Safely share data among multiple containers.
+- **Customization**: Support remote storage, encryption, and more through drivers.
+
+### Managing Volumes:
+- **Create**: `docker volume create <name>`
+- **List**: `docker volume ls`
+- **Inspect**: `docker volume inspect <name>`
+- **Remove**: `docker volume rm <name>`
+
+### Using Volumes:
+
+#### Creating and Using Volumes
+- **Create a named volume:**
+  ```bash
+  docker volume create my_volume
+  ```
+
+- **Mount a named volume to a container:**
+  ```bash
+  docker run -d --name my_container -v my_volume:/data nginx
+  ```
+
+- **Anonymous volumes:**
+  Docker creates an anonymous volume with a random name when no specific name is provided.
+  ```bash
+  docker run -d -v /data nginx
+  ```
+
+- **Remove unused volumes:**
+  ```bash
+  docker volume prune
+  ```
+
+#### Sharing Anonymous Volumes
+To share an anonymous volume, use its volume ID:
+```bash
+docker run -d --volumes-from <source-container> nginx
+```
+
+#### Using Volumes
+- **With Containers**:  
+  Example:  
+  ```bash
+  docker run -d --name my-container --mount source=myvol,target=/app nginx:latest
+  ```
+- **With Docker Compose**:  
+  ```yaml
+  services:
+    app:
+      image: myapp:latest
+      volumes:
+        - myvol:/app
+  volumes:
+    myvol:
+  ```
+
+### Key Options:
+- **Read-Only Mount**:  
+  Use `readonly` or `ro` to limit write access.
+- **Subdirectory Mounting**:  
+  Use `volume-subpath` to mount specific subdirectories.
+
+### Syntax Differences:
+- **`-v` vs. `--mount`**:  
+  - `-v` is concise but less explicit.  
+  - `--mount` is more verbose and flexible, especially for advanced configurations.
+
+---
+
+### 2. Bind Mounts
+
+Bind mounts allow you to mount a file or directory from the host into the container. They are useful for scenarios where you need direct access to host files.
+
+
+#### What Are Bind Mounts?
+
+- Bind mounts **map files or directories** from the host system to a container.
+- Unlike volumes, bind mounts use the **host's absolute file paths** and are more **limited in functionality**.
+- Files/directories do **not need to pre-exist** on the host; they are created on demand.
+  
+**Key Features:**
+  - Mounts a file or directory by its full path.
+  - `No Direct Management`: Bind mounts are not managed by Docker CLI commands.
+  - Allows changes to host files from the container.
+  - Created on-demand if the file or directory doesn’t exist.
+  - `High Performance`: Fast but depends on host filesystem structure.
+
+#### Using Bind Mounts:
+
+#### Syntax Differences:
+- **`-v` / `--volume`:**  
+  - Compact but less readable.
+  - Format: `host_path:container_path[:options]`.
+  
+- **`--mount`:**  
+  - More explicit, easier to understand.
+  - Key-value pairs format: `type=bind,source=host_path,target=container_path[,options]`.
+
+#### Example Commands:
+
+- **`--mount` syntax:**
+   ```bash
+   docker run -d -it --name devtest --mount type=bind,source="$(pwd)"/target,target=/app nginx:latest
+   ```
+
+- **`-v` syntax:**
+   ```bash
+   docker run -d -it --name devtest -v "$(pwd)"/target:/app nginx:latest
+   ```
+
+---
+
+#### Options:
+
+- **Read-Only Mount:**
+   - Use `readonly` or `ro`:
+     ```bash
+     --mount type=bind,source="$(pwd)"/target,target=/app,readonly
+     ```
+
+- **SELinux Labels (Linux-only):**
+   - `z`: Shared among containers.
+   - `Z`: Private to a container.
+   ```bash
+   -v "$(pwd)"/target:/app:z
+   ```
+
+---
+
+#### Advanced Configurations:
+
+- **Bind Propagation (Linux-only):**
+   - Controls submount visibility between host and container.
+   - Common values:
+     - `shared`, `slave`, `private` (default), `rshared`, `rslave`, `rprivate`.
+
+- **Recursive Read-Only Mounts:**  
+   - Supported only on Linux Kernel **v5.12+**.
+   - Option: `bind-recursive=readonly`.
+
+---
+
+#### Docker Compose Example:
+
+```yaml
+services:
+  frontend:
+    image: node:lts
+    volumes:
+      - type: bind
+        source: ./static
+        target: /opt/app/static
+```
+
+---
+
+#### Key Considerations:
+- **Mounting Non-Empty Directories:** Existing container contents may be hidden.
+- **Synchronized File Shares:** For performance improvements in complex setups.
+- **SELinux Caution:** Incorrect labeling can make the host system inoperable.
+---
+
+### 3. tmpfs Mounts
+
+A `tmpfs` mount is used to store non-persistent data. It exists only in the container's memory and is lost when the container stops.
+
+Here's a summarized version of **tmpfs mounts** in Docker:
+
+---
+
+### **What Are Tmpfs Mounts?**  
+- A **tmpfs mount** allows files to be created outside a container's writable layer but stored in **host memory only**.
+- Unlike **volumes** and **bind mounts**, **tmpfs** is **temporary** and gets removed when the container stops.
+  
+### **Use Cases**  
+- Useful for **temporary storage** of sensitive data that shouldn't persist on the host or in the container’s layer.
+
+---
+
+### **Key Features and Limitations**  
+- **Temporary Storage:** Files are stored in RAM and not persisted after the container stops.
+- **Linux-Only:** Tmpfs mounts work only on Linux hosts.
+- **Permissions:** Setting `uid`/`gid` can be tricky as permissions may reset after restart.
+- **Container Isolation:** Tmpfs mounts **cannot** be shared across multiple containers.
+  
+---
+
+### **Syntax Options**  
+1. **`--tmpfs` Flag:**  
+   - Simple and quick but **no configurable options**.
+   - Example:  
+   ```bash
+   docker run -d -it --name tmptest --tmpfs /app nginx:latest
+   ```
+
+2. **`--mount` Flag:**  
+   - More **flexible** and allows for configuration like size and permissions.  
+   - Syntax: `--mount type=tmpfs,destination=<path>,tmpfs-size=<size>,tmpfs-mode=<mode>`  
+   - Example:  
+   ```bash
+   docker run -d -it --name tmptest --mount type=tmpfs,destination=/app,tmpfs-mode=1770 nginx:latest
+   ```
+
+---
+
+### **Common Options for Tmpfs Mounts**  
+| **Option**     | **Description**                                   |
+|----------------|---------------------------------------------------|
+| **tmpfs-size** | Sets size limit in bytes (default is 50% of RAM). |
+| **tmpfs-mode** | Sets file permissions (e.g., `0770`, default `1777`). |
+
+---
+
+### **Checking Tmpfs Mounts**  
+- To verify a tmpfs mount, use:  
+  ```bash
+  docker inspect tmptest --format '{{ json .Mounts }}'
+  ```
+
+### **Clean Up**  
+- Stop and remove the container:  
+   ```bash
+   docker stop tmptest  
+   docker rm tmptest  
+   ```
+
+---
+
+
+### 4. Named Pipes
+
+
+#### **What Are Named Pipes?**
+
+A **named pipe** (also known as a FIFO) is a method of **inter-process communication (IPC)** that allows data to be passed between processes. Unlike regular pipes (`|` in shell commands), named pipes have a persistent name in the filesystem and can be accessed by unrelated processes.
+
+In Docker, named pipes enable communication between the host and containers or between containers. They are commonly used for tools that need to interact with the Docker Engine API.
+
+
+
+---
+
+#### **How Named Pipes Work**  
+
+1. **Creation**: A named pipe is created as a file using the `mkfifo` command.
+2. **Data Flow**: One process writes to the pipe, while another reads from it.
+3. **Blocking Behavior**: A process writing to a named pipe will pause until another process reads from it, and vice versa.
+
+---
+
+#### **Example Usage in Docker**  
+
+##### 1. **Creating a Named Pipe in the Host**  
+
+```bash
+mkfifo /tmp/mypipe
+```
+
+##### 2. **Running a Docker Container with a Named Pipe**  
+
+```bash
+docker run -it --rm -v /tmp/mypipe:/mypipe ubuntu bash
+```
+
+- **`-v /tmp/mypipe:/mypipe`**: Mounts the named pipe from the host into the container.
+
+##### 3. **Writing and Reading from the Pipe**  
+
+- **On Host**:
+
+    ```bash
+    echo "Hello from Host" > /tmp/mypipe
+    ```
+
+- **In Container**:
+
+    ```bash
+    cat /mypipe
+    ```
+
+**Output**: The container will display `Hello from Host`.
+
+---
+
+#### **Use Cases for Named Pipes in Docker**  
+
+1. **Logging and Monitoring**: Containers can write logs to a named pipe, which the host or another service reads for real-time monitoring.
+2. **Data Streaming**: Stream data between host processes and containers without using temporary files.
+3. **Command Passing**: Send commands from the host to a running container in real-time.
+
+---
+
+#### **Best Practices and Considerations**  
+
+- **Security**: Be cautious when using named pipes, as they can expose sensitive data if improperly secured.
+- **Performance**: Named pipes are efficient for small, continuous streams of data but not ideal for bulk data transfers.
+- **Blocking**: Ensure both reading and writing processes are properly synchronized to avoid deadlocks.
+
+---
+
+#### **Summary Table: Storage Options in Docker**
+
+| **Type**     | **Persistence** | **Use Case**                                           | **Command Example**                             |
+|--------------|-----------------|--------------------------------------------------------|-------------------------------------------------|
+| Volumes      | Persistent      | Share data between containers, remote storage.         | `docker run -v my_volume:/path`                 |
+| Bind Mounts  | Persistent      | Direct access to host files.                           | `docker run -v /host/path:/container/path`      |
+| tmpfs        | Non-persistent  | Temporary or sensitive data.                           | `docker run --tmpfs /path`                      |
+| Named Pipes  | Communication   | Communication between Docker host and container.       | `docker run -v //./pipe/docker_engine`          |
 
 
 ---
