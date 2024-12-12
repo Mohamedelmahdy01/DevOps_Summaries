@@ -1,4 +1,4 @@
-# CH1 - Improving Command-Line Productivity
+# CH01: Improving Command-Line Productivity
 
 ### **What, Why, and When to Use Shell Scripts?**
 
@@ -461,7 +461,7 @@ In this chapter, we covered:
 
 ---
 
-# Chapter 2: Scheduling Future Tasks
+# CH02: Scheduling Future Tasks
 
 ## Scheduling One-Time Tasks with the "at" Command
 
@@ -866,7 +866,7 @@ ps axo --sort=nice
 
 ---
 
-# CH4: Controlling Access to Files with ACLs
+# CH04: Controlling Access to Files with ACLs
 
 ## Goal
 - Interpret and set Access Control Lists (ACLs) on files to handle situations requiring complex user and group access permissions.
@@ -1034,7 +1034,7 @@ setfacl -b file.txt               # Roll back to default ACL
 - The `setfacl` command sets, modifies, and removes ACLs on files and directories.
 
 
-# CH 5: Managing SELinux Security
+# CH05: Managing SELinux Security
 
 ## Goal
 Protect and manage the security of a server by using SELinux.
@@ -1153,8 +1153,223 @@ ls -lZ index.html
 ls -ldZ /var/www/html
 
 # Move/Copy files (note context behavior)
-mv file1 /var/www/html/ #maintain original content label
+mv file1 /var/www/html/ # maintain original content label
 cp file2 /var/www/html/
-cp -a file3 /var/www/html/ #maintain original content label
+cp -a file3 /var/www/html/ # maintain original content label
+
+
+chcon -t httpd_sys_content_1file1
+
+restorecon -v file3
+
+ls -lz
+
+#dir example
+
+mkdir /virtual
+
+ls -ldz /virtual
+chcon -t httpd_sys_content_t:s0
+
+restorecon -v /virtual # resture default context form data base
 ```
 
+
+## SELinux: Managing Default File Context Rules, Ports, and Booleans
+
+### Defining SELinux Default File Context Rules
+
+#### Useful Commands for Managing File Contexts
+| Command | Description |
+|---------|-------------|
+| `-a, --add` | Add a record of the specified object type |
+| `-l, --list` | List records of the specified object type |
+| `-d, --delete` | Delete a record of the specified object type |
+
+#### Example: Ensuring Correct File Contexts for a Directory
+```bash
+semanage fcontext -l
+restorecon -Rv /var/www/
+```
+
+#### Practical Example: Configuring SELinux for `/virtual`
+```bash
+semanage fcontext -a -t httpd_sys_content_t '/virtual(/.*)?'
+semanage fcontext -l | grep -w /virtual
+restorecon -Rv /virtual
+```
+
+#### Example: Configuring Apache to Use `/virtual`
+```bash
+mkdir /virtual
+cd /virtual
+
+semanage fcontext -a -t httpd_sys_content_t '/virtual(/.*)?'
+semanage fcontext -l | grep -w /virtual
+restorecon -Rv /virtual
+
+vi /etc/httpd/conf/httpd.conf
+# Modify:
+# DocumentRoot "/var/www/html" --> DocumentRoot "/virtual"
+# <Directory "/var/www/html"> --> <Directory "/virtual">
+
+systemctl restart httpd
+
+vi index.html  # Add content for the webpage
+```
+
+#### Deleting Context and Rolling Back Apache Configuration
+```bash
+semanage fcontext -d -t httpd_sys_content_t '/virtual(/.*)?'
+semanage fcontext -l | grep -w /virtual
+restorecon -Rv /virtual
+
+vi /etc/httpd/conf/httpd.conf
+# Rollback:
+# DocumentRoot "/virtual" --> DocumentRoot "/var/www/html"
+# <Directory "/virtual"> --> <Directory "/var/www/html">
+```
+
+---
+
+### Changing the Default Port for `sshd`
+
+#### Configuring SELinux for SSH Port Changes
+1. Modify `/etc/ssh/sshd_config`:
+    ```bash
+    vi /etc/ssh/sshd_config
+    # Change port:
+    # Port 22 --> Port 9999
+    ```
+
+2. Restart `sshd`:
+    ```bash
+    systemctl restart sshd
+    ```
+   If it fails, check logs:
+   ```bash
+   journalctl -xeu sshd.service
+   less -f /var/log/audit/audit.log
+   ```
+
+3. Update SELinux for the new port:
+    ```bash
+    semanage port -a -t ssh_port_t -p tcp 9999
+    ```
+
+4. Verify and troubleshoot:
+    ```bash
+    semanage port -l | grep ssh
+    ```
+
+5. Delete unused ports:
+    ```bash
+    semanage port -d -t ssh_port_t -p tcp 9999
+    ```
+
+---
+
+### SELinux Booleans
+
+#### Overview
+- SELinux Booleans are switches that modify policy behavior.
+- Use `getsebool` and `setsebool` commands to manage booleans.
+- `setsebool -P` makes changes persistent across reboots.
+
+#### Example: Managing Web Server Boolean
+```bash
+getsebool httpd_can_network_connect_db  # Check the state
+setsebool httpd_can_network_connect_db on  # Enable the boolean
+semanage boolean -l | grep httpd_can_network_connect_db  # Verify status
+```
+
+---
+
+### Troubleshooting SELinux Issues
+
+#### Installing `setroubleshoot-server` for Logs
+```bash
+rpm -qa | grep setroubleshoot-server  # Verify installation
+yum install setroubleshoot-server    # Install if not present
+```
+
+#### Generating Reports
+- Use `sealert` for detailed incident reports:
+    ```bash
+    sealert -a /var/log/audit/audit.log  # Analyze all incidents
+    sealert -l <UUID>                   # Report for a specific UUID
+    ```
+
+#### Practical Example: Resolving Access Issues
+```bash
+touch myweb
+ls -lZ myweb
+
+mv myweb /var/www/html/
+ls -lZ /var/www/html/
+
+curl http://localhost/myweb  # If it fails:
+tail /var/log/audit/audit.log
+tail /var/log/messages
+
+restorecon -v /var/www/html/myweb  # Fix the file context
+```
+
+---
+
+### Additional Tools
+
+#### Cockpit: Managing SELinux and System Resources
+
+**Cockpit** is a web-based interface that allows administrators to manage Linux systems. It simplifies SELinux troubleshooting, file context management, and system monitoring.  
+
+#### Features of Cockpit:
+1. **System Monitoring**: Provides real-time stats for CPU, memory, disk, and network usage.
+2. **Service Management**: Start, stop, enable, or disable system services.
+3. **SELinux Management**: Helps troubleshoot SELinux issues and manage booleans, file contexts, and ports.
+4. **Log Viewer**: Displays and filters system logs.
+5. **User-Friendly Interface**: Accessible via a web browser, reducing the need for CLI expertise.
+
+---
+
+#### Installing Cockpit
+```bash
+sudo yum install cockpit
+sudo systemctl start cockpit
+sudo systemctl enable cockpit
+```
+
+#### Accessing Cockpit
+1. Open a browser and navigate to:
+   ```
+   https://<your-server-ip>:9090
+   ```
+2. Log in using your server credentials.
+
+---
+
+#### Using Cockpit for SELinux Management
+1. Navigate to the **SELinux Troubleshooter** module.
+2. Review any reported SELinux violations and recommended fixes.
+3. Manage file contexts:
+   - View and modify file context rules.
+   - Apply changes with `restorecon`.
+4. Manage ports:
+   - View active port configurations.
+   - Add or delete SELinux port rules.
+5. Adjust SELinux booleans:
+   - Toggle booleans on/off for services like Apache, NFS, or SSH.
+   - Make changes persistent with one click.
+
+---
+
+#### Troubleshooting with Cockpit
+1. Use the **Logs** section to view SELinux AVC denials.
+2. Identify UUIDs for specific errors.
+3. Apply recommendations directly from the interface.
+
+---
+
+Cockpit simplifies SELinux administration by offering an intuitive, GUI-based approach, making it a valuable tool for system administrators managing SELinux-enabled servers.
+
+---
