@@ -1032,3 +1032,129 @@ setfacl -b file.txt               # Roll back to default ACL
 - ACLs provide fine-grained access control to files and directories beyond traditional UNIX permissions.
 - The `getfacl` command displays ACL settings.
 - The `setfacl` command sets, modifies, and removes ACLs on files and directories.
+
+
+# CH 5: Managing SELinux Security
+
+## Goal
+Protect and manage the security of a server by using SELinux.
+
+## Objectives
+- Describe how SELinux protects resources and how to select the enforcement mode
+- Configure a file's SELinux context to control how processes interact with that file
+- Configure SELinux booleans to allow runtime policy changes for varying access needs
+- Investigate SELinux log messages and troubleshoot SELinux AVC denials
+
+![Managing_SELinux_security](./Image2/Managing_SELinux_security.png)
+
+## Why Use Security Enhanced Linux?
+
+### Background
+Security Enhanced Linux (SELinux) is an additional layer of system security with the primary goal of protecting user data from compromised system services.
+
+### Key Differences from Traditional Security Model
+- Traditional Model: Discretionary Access Control (user/group/other permissions)
+- SELinux Model: Mandatory Access Control (object-based, more sophisticated rules)
+
+### Security Risks Without SELinux
+- Opening firewall ports for web servers can create exploitation opportunities
+- Compromised web server processes gain full permissions of the web server user/group
+- Potential unauthorized access to:
+  - Document root (/var/www/html)
+  - Temporary directories (/tmp, /var/tmp)
+  - World-writable files and directories
+
+## SELinux Contexts
+
+### What is a Context?
+- A special security label determining process access to files, directories, and ports
+- Default policy: No interaction allowed without explicit rule
+- Contexts include: user, role, type, and sensitivity
+- Targeted policy (default in Red Hat Enterprise Linux) uses type context
+
+### Context Naming Conventions
+- Type context names usually end with `_t`
+- Example context: `unconfined_u:object_r:httpd_sys_content_t:s0`
+  - SELinux User
+  - Role
+  - Type
+  - Level
+
+### Example Contexts
+- Web Server Process: `httpd_t`
+- Web Server Files: `httpd_sys_content_t`
+- Temporary Files: `tmp_t`
+- Web Server Ports: `http_port_t`
+- MariaDB Server: `mysqld_t`
+- MariaDB Files: `mysqld_db_t`
+
+### Useful Commands for Context Management
+- Commands with `-Z` option for context display/setting:
+  - `ps axZ`
+  - `ps -ZC httpd`
+  - `ls -Z /home`
+  - `ls -Z /var/www`
+
+## SELinux Modes
+
+### 1. Enforcing Mode
+- SELinux enforces policies
+- Denies access to actions violating policies
+
+### 2. Permissive Mode
+- Logs policy violations
+- Does not enforce policies
+- Useful for testing and troubleshooting
+
+### 3. Disabled Mode
+- SELinux completely turned off
+- No system security impact
+
+### Mode Management Commands
+- Check current mode: `getenforce`
+- Check status: `sestatus`
+- Change mode: `setenforce [enforcing | permissive]`
+- Configuration file: `/etc/selinux/config`
+
+## Initial SELinux Context
+
+### Context Inheritance
+- New files typically inherit context from parent directory
+- Inheritance can be disrupted by:
+  1. Creating file in one location, moving to another
+  2. Copying files with preserved context
+
+## Changing SELinux Context
+
+### Recommended Methods
+1. **semanage fcontext**: Declare default file labeling
+2. **restorecon**: Apply context from parent
+3. **chcon**: Temporary context changes (not recommended for permanent modifications)
+
+### Context Change Commands
+- `ls -lZ`: List files with contexts
+- `chcon -t <context_type> <filename>`: Change context type
+- `restorecon -v <filename>`: Restore default context
+
+## Example Workflow
+```bash
+# Install Apache
+dnf install httpd
+
+# Enable web server
+systemctl enable --now httpd
+
+# Create file in web root
+cd /var/www/html
+touch index.html
+
+# View contexts
+ls -lZ index.html
+ls -ldZ /var/www/html
+
+# Move/Copy files (note context behavior)
+mv file1 /var/www/html/ #maintain original content label
+cp file2 /var/www/html/
+cp -a file3 /var/www/html/ #maintain original content label
+```
+

@@ -1889,7 +1889,7 @@ You can also compress and extract individual files using gzip, bzip2, and xz.
 
 ### **Transferring Files Using Secure Copy (SCP)**
 
-`scp` is used to transfer files between local and remote systems over SSH.
+`scp` is used to transfer files between local and remote sys tems over SSH.
 
 #### Examples:
 - **Transfer file from local to remote**:
