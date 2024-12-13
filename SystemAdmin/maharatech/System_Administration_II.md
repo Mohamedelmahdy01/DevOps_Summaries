@@ -1271,10 +1271,13 @@ vi /etc/httpd/conf/httpd.conf
 
 ### SELinux Booleans
 
+
 #### Overview
 - SELinux Booleans are switches that modify policy behavior.
 - Use `getsebool` and `setsebool` commands to manage booleans.
 - `setsebool -P` makes changes persistent across reboots.
+
+![SELinux_Booleans](Image2/SELinux_Booleans.png)
 
 #### Example: Managing Web Server Boolean
 ```bash
@@ -1317,59 +1320,120 @@ restorecon -v /var/www/html/myweb  # Fix the file context
 
 ---
 
-### Additional Tools
+## **Cockpit: A Web Interface for Linux Administration and SELinux Management**
 
-#### Cockpit: Managing SELinux and System Resources
-
-**Cockpit** is a web-based interface that allows administrators to manage Linux systems. It simplifies SELinux troubleshooting, file context management, and system monitoring.  
-
-#### Features of Cockpit:
-1. **System Monitoring**: Provides real-time stats for CPU, memory, disk, and network usage.
-2. **Service Management**: Start, stop, enable, or disable system services.
-3. **SELinux Management**: Helps troubleshoot SELinux issues and manage booleans, file contexts, and ports.
-4. **Log Viewer**: Displays and filters system logs.
-5. **User-Friendly Interface**: Accessible via a web browser, reducing the need for CLI expertise.
+**Cockpit** is a powerful web-based interface for managing Linux systems. It enables administrators to monitor resources, manage services, and troubleshoot SELinux and other system-related issues efficiently through a user-friendly interface.
 
 ---
 
-#### Installing Cockpit
-```bash
-sudo yum install cockpit
-sudo systemctl start cockpit
-sudo systemctl enable cockpit
-```
+### **Key Features of Cockpit**
+1. **Real-Time System Monitoring**:
+   - CPU, memory, disk, and network usage are displayed in real-time.
+   - Interactive graphs for performance tracking.
+2. **Service and Process Management**:
+   - Start, stop, restart, enable, or disable services directly from the interface.
+   - Manage running processes with tools to inspect or terminate them.
+3. **SELinux Troubleshooting**:
+   - View and analyze SELinux violations.
+   - Modify file contexts, ports, and booleans with guided suggestions.
+4. **Log Viewer**:
+   - Access system logs for audit and error tracking.
+   - Filter logs for SELinux-related errors or other specific events.
+5. **User Management**:
+   - Add, remove, or modify system users and permissions.
+6. **Terminal Access**:
+   - Integrated terminal for command-line operations within the browser.
 
-#### Accessing Cockpit
+---
+
+### **Installation and Setup**
+
+#### Install Cockpit:
+1. Use the package manager to install:
+   ```bash
+   sudo yum install cockpit
+   ```
+2. Start and enable the Cockpit service:
+   ```bash
+   sudo systemctl start cockpit
+   sudo systemctl enable cockpit
+   ```
+3. Open the firewall for Cockpit's web interface:
+   ```bash
+   sudo firewall-cmd --add-service=cockpit --permanent
+   sudo firewall-cmd --reload
+   ```
+
+#### Access the Cockpit Web Interface:
 1. Open a browser and navigate to:
    ```
    https://<your-server-ip>:9090
    ```
-2. Log in using your server credentials.
+2. Log in with your system administrator credentials.
 
 ---
 
-#### Using Cockpit for SELinux Management
-1. Navigate to the **SELinux Troubleshooter** module.
-2. Review any reported SELinux violations and recommended fixes.
-3. Manage file contexts:
-   - View and modify file context rules.
-   - Apply changes with `restorecon`.
-4. Manage ports:
-   - View active port configurations.
-   - Add or delete SELinux port rules.
-5. Adjust SELinux booleans:
-   - Toggle booleans on/off for services like Apache, NFS, or SSH.
-   - Make changes persistent with one click.
+### **Using Cockpit for SELinux Management**
+
+#### 1. **SELinux Troubleshooter**
+   - Navigate to the **SELinux** module to review any reported policy violations.
+   - The interface lists:
+     - Denied actions.
+     - Violated SELinux rules.
+     - Suggested fixes with explanations.
+   - Apply recommended fixes directly from Cockpit or copy the commands for CLI use.
+
+#### 2. **File Context Management**
+   - View and modify SELinux file contexts.
+   - Add new context rules for files and directories, ensuring compatibility with SELinux policies.
+   - Apply the changes using:
+     ```bash
+     restorecon -Rv <directory>
+     ```
+
+#### 3. **Port Management**
+   - Display SELinux rules for active ports.
+   - Add or delete allowed ports for services like HTTP (`http_port_t`) or SSH (`ssh_port_t`).
+   - Example:
+     ```bash
+     semanage port -a -t http_port_t -p tcp 8080
+     ```
+
+#### 4. **Boolean Management**
+   - View and toggle SELinux booleans to adjust service permissions dynamically.
+   - Make changes persistent with the click of a button or the following command:
+     ```bash
+     setsebool -P <boolean_name> <on|off>
+     ```
 
 ---
 
-#### Troubleshooting with Cockpit
-1. Use the **Logs** section to view SELinux AVC denials.
-2. Identify UUIDs for specific errors.
-3. Apply recommendations directly from the interface.
+### **Example: Troubleshooting SELinux Issues with Cockpit**
+
+1. **Analyzing SELinux Denials**:
+   - Access the **Logs** section in Cockpit.
+   - Look for AVC denial messages or use the search feature to filter SELinux-related events.
+   - Copy the UUID of a specific denial.
+
+2. **Viewing Recommendations**:
+   - Open the **SELinux Troubleshooter**.
+   - Enter the UUID to analyze the issue and see recommended fixes.
+   - Example fixes might include modifying file contexts or adjusting SELinux booleans.
+
+3. **Applying Fixes**:
+   - Apply fixes directly through Cockpit or execute the commands manually:
+     ```bash
+     restorecon -v <file_or_directory>
+     setsebool -P <boolean_name> <on|off>
+     ```
 
 ---
 
-Cockpit simplifies SELinux administration by offering an intuitive, GUI-based approach, making it a valuable tool for system administrators managing SELinux-enabled servers.
+### **Benefits of Using Cockpit for SELinux Management**
 
----
+- **Ease of Use**: A graphical interface reduces the complexity of CLI commands.
+- **Centralized Management**: Manage multiple aspects of the system from a single dashboard.
+- **Time Efficiency**: Built-in recommendations and troubleshooting tips save time during debugging.
+- **Accessibility**: Available via web browser without requiring additional software on the client side.
+
+Cockpit is particularly useful for administrators managing SELinux policies and troubleshooting issues, offering an intuitive alternative to traditional command-line methods.
