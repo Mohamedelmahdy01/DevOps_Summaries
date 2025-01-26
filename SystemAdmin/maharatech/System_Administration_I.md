@@ -2415,4 +2415,137 @@ A system administrator needs tools to search for files matching certain criteria
 - **The `find` command** performs real-time searches in local file systems based on various criteria like name, permissions, ownership, size, and modification time.
 
 ---
+# Understanding DNS (Domain Name System)
 
+## What is DNS?
+DNS (Domain Name System) is a hierarchical and decentralized naming system used to resolve human-readable domain names (e.g., `www.example.com`) into machine-readable IP addresses (e.g., `192.0.2.1`). This system enables users to access websites and other online resources without needing to remember numeric IP addresses.
+
+### Key Concepts in DNS:
+1. **Domain Name**:
+   - A domain name is a human-readable address like `www.google.com`.
+   - It is broken into hierarchical parts: `subdomain.domain.tld` (e.g., `www.example.com`).
+
+2. **DNS Server**:
+   - A DNS server is a system that holds records for domain-to-IP mappings and resolves queries.
+   - Common types of DNS servers:
+     - **Recursive Resolver**: Receives queries from clients and resolves them by querying other DNS servers if necessary.
+     - **Authoritative Server**: Contains the original source of the domain information (zone files).
+
+3. **DNS Record Types**:
+   - **A Record**: Maps a domain to an IPv4 address.
+   - **AAAA Record**: Maps a domain to an IPv6 address.
+   - **CNAME**: Alias of one domain to another.
+   - **MX Record**: Mail exchange record, used for email routing.
+   - **TXT Record**: Miscellaneous text information.
+
+4. **DNS Hierarchy**:
+   - **Root Servers**: The top level of the DNS hierarchy.
+   - **TLD Servers**: Handle Top-Level Domains like `.com`, `.org`, `.net`.
+   - **Authoritative Servers**: Store specific domain records.
+
+5. **DNS Query Types**:
+   - **Recursive Query**: The resolver queries multiple DNS servers to find the answer.
+   - **Iterative Query**: The resolver provides the client with a referral to another DNS server if it doesn't know the answer.
+
+---
+
+## How DNS Works:
+1. A user enters `www.example.com` in a web browser.
+2. The request goes to a DNS resolver (ISP or system-configured).
+3. The resolver queries the root DNS server to find the TLD server for `.com`.
+4. The resolver queries the `.com` TLD server to find the authoritative server for `example.com`.
+5. The authoritative server responds with the IP address for `www.example.com`.
+6. The user’s device uses the IP address to connect to the desired web server.
+
+---
+
+## Practical Application: Configuring DNS Resolution Order on Linux
+
+On Linux, the **resolution order** determines whether the system checks the `hosts` file or DNS first when resolving names. You can configure this using the `nsswitch.conf` file.
+
+### Steps:
+
+1. **Check the Current Resolution Order**:
+   Open the file `/etc/nsswitch.conf` to see the current order:
+   ```bash
+   cat /etc/nsswitch.conf
+   ```
+   Look for a line like this:
+   ```plaintext
+   hosts: files dns
+   ```
+   By default, the system checks the local `hosts` file first, then DNS.
+
+2. **Change the Resolution Order**:
+   Edit the `/etc/nsswitch.conf` file:
+   ```bash
+   sudo nano /etc/nsswitch.conf
+   ```
+   Modify the `hosts` line to:
+   ```plaintext
+   hosts: dns files
+   ```
+   This makes the system check DNS first before falling back to the local `hosts` file.
+
+3. **Understand `/etc/resolv.conf`**:
+   The `/etc/resolv.conf` file contains the DNS server configuration used by the system. To specify or check the DNS servers:
+   ```bash
+   cat /etc/resolv.conf
+   ```
+   Example content:
+   ```plaintext
+   nameserver 8.8.8.8
+   nameserver 8.8.4.4
+   ```
+   - Each `nameserver` entry specifies the IP address of a DNS server.
+   - You can edit this file to add or modify DNS servers:
+     ```bash
+     sudo nano /etc/resolv.conf
+     ```
+     Add DNS server entries as needed.
+
+4. **Understand `/etc/hosts`**:
+   The `/etc/hosts` file is a local database for mapping hostnames to IP addresses. It is used before DNS queries (depending on the resolution order in `nsswitch.conf`).
+   ```bash
+   cat /etc/hosts
+   ```
+   Example content:
+   ```plaintext
+   127.0.0.1   localhost
+   192.168.1.10   example.local
+   ```
+   - Add entries to manually resolve hostnames to specific IPs.
+   - Edit the file:
+     ```bash
+     sudo nano /etc/hosts
+     ```
+
+5. **Verify Changes**:
+   Save the file and test the resolution order by running:
+   ```bash
+   getent hosts example.com
+   ```
+   This command will resolve the domain using the configured order.
+
+6. **Flush Cache (if necessary)**:
+   If using a caching service like `systemd-resolved`, restart the service:
+   ```bash
+   sudo systemctl restart systemd-resolved
+   ```
+
+### Testing DNS:
+You can use tools like `nslookup` or `dig` to test DNS resolution:
+
+- **Using `nslookup`**:
+  ```bash
+  nslookup www.google.com
+  ```
+  This will query the DNS server for `www.google.com`.
+
+- **Using `dig`**:
+  ```bash
+  dig www.google.com
+  ```
+  This provides detailed information about the DNS query and response.
+
+---
