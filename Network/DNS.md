@@ -6,6 +6,7 @@
    - [Understanding Key Concepts](#understanding-key-concepts)
    - [Essential Linux Commands](#essential-linux-commands)
    - [Configuration Files](#configuration-files)
+   - [Managing DNS with `nmcli`](#managing-dns-with-nmcli)
 3. [DNS from a DevOps Perspective](#dns-from-a-devops-perspective)
    - [DNS in Modern Infrastructure](#dns-in-modern-infrastructure)
    - [Key DevOps Practices](#key-devops-practices)
@@ -99,6 +100,32 @@ This process happens in milliseconds, making it almost invisible to the user.
      hosts: files dns  # Check `/etc/hosts` first, then DNS
      ```
 
+### Managing DNS with `nmcli`
+
+The `nmcli` command is a powerful tool for managing network connections, including DNS configurations. Here's how to use it:
+
+1. **Add a new connection with a specific DNS server**:
+   ```bash
+   nmcli connection add type ethernet con-name home ifname eth0 ipv4.dns 8.8.8.8
+   ```
+
+2. **Modify an existing connection to add another DNS server**:
+   ```bash
+   nmcli connection modify home +ipv4.dns 8.8.4.4
+   ```
+
+3. **Activate the connection to apply changes**:
+   ```bash
+   nmcli connection up home
+   ```
+
+4. **Verify the DNS settings**:
+   ```bash
+   nmcli connection show home | grep ipv4.dns
+   ```
+
+These commands allow you to quickly configure and update DNS servers for your network connections without directly editing configuration files.
+
 ---
 
 ## 3. DNS from a DevOps Perspective
@@ -110,7 +137,7 @@ This process happens in milliseconds, making it almost invisible to the user.
 
 ### Key DevOps Practices
 
-- **Automate DNS with Terraform/Ansible**:
+- **DNS Automation (IaC)**:
   ```hcl
   # Terraform + AWS Route 53 Example
   resource "aws_route53_record" "web" {
@@ -121,18 +148,15 @@ This process happens in milliseconds, making it almost invisible to the user.
     records = ["10.0.0.1"]
   }
   ```
-- **Implement DNS-based traffic management**: Use weighted routing, latency-based policies, or failover configurations to optimize global traffic.
 - **Service Discovery**:
   - Tools: **Kubernetes CoreDNS**, **Consul**, **AWS Cloud Map**.
   - Automatically registers services in dynamic environments.
-- **Monitor latency/errors with Prometheus**: Set up DNS health metrics and alerts to catch resolution failures and performance degradation.
 
 ### Essential DevOps Tools
 
 | Tool               | Use Case                              |
 |--------------------|---------------------------------------|
 | **Terraform**      | Provision DNS records via IaC.        |
-| **Ansible**        | Automate DNS configuration tasks.     |
 | **ExternalDNS**    | Sync Kubernetes services with DNS.    |
 | **CoreDNS**        | Flexible DNS server for Kubernetes.   |
 | **AWS Route 53**   | Managed DNS + traffic policies.       |
@@ -163,9 +187,8 @@ This process happens in milliseconds, making it almost invisible to the user.
    - Use `dig`/`nslookup` for debugging.  
    - Prioritize resolution order via `/etc/nsswitch.conf`.  
 2. **DevOps**:  
-   - Automate DNS with Terraform/Ansible.  
-   - Implement DNS-based traffic management.  
-   - Monitor latency/errors with Prometheus.  
+   - Treat DNS as code (version control, CI/CD).  
+   - Use DNS for traffic management (failover, load balancing).  
 3. **Universal**:  
    - Monitor DNS health (latency, errors).  
    - Secure DNS with DNSSEC and private zones.
