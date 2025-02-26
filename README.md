@@ -1,99 +1,67 @@
 # بسم الله الرحمن الرحيم
-## DevOps Tools Summaries
 
-This section of my repository is dedicated to summarizing key DevOps tools that I have studied. Each tool is described in detail, covering its purpose, features, and practical usage in DevOps workflows. 
+# DevOps Tools Summaries
+
+This repository is dedicated to summarizing key DevOps tools and related topics that I have studied. Each section provides detailed explanations, practical usage instructions, and relevant examples to help you understand and implement DevOps practices.
 
 ## Table of Contents
 1. [Fundamentals](./Fundamentals/IT_Fundamentals.md)
-2. [Red Hat System Administration I](./RHEL/maharatech/System_Administration_I.md)
-3. [Red Hat System Administration II](./RHEL/maharatech/System_Administration_II.md)
+2. [System Administration I](./SystemAdmin/maharatech/System_Administration_I.md)
+3. [System Administration II](./SystemAdmin/maharatech/System_Administration_II.md)
 4. [Git & GitHub](./Version_Control/GitAndGitHub.md)
 5. [Data Version Control (DVC)](./Version_Control/DVC.md)
 6. [Network](./Network/Network.md)
-7. [Docker](./DOCKER/Docker.md)
+7. [Docker & Kubernetes](./DockerandK8s/DockerAndK8s.md)
+8. [Jenkins (CI/CD)](./CI_CD/Jenkins.md)
+9. [Ansible](./SystemAdmin/Ansible/Ansible.md)
+10. [Bash Scripting](./scripting/bash/Bash.md)
 
+## DevOps Topics Covered
 
-## 🖥️ System Administration I & II Topics
+### Fundamentals
+- **Overview:** Explore IT fundamentals, web servers, SSH/sshd, cryptographic hash functions, and YAML essentials.  
+- **Contents:** Detailed summaries and practical examples to build a strong foundation in IT.
 
-### **System Administration I**
-   - **Overview**: Basic system administration tasks, focusing on fundamental concepts of managing Linux/Unix-based systems.
-   - **Key Topics**:
-     - User and group management.
-     - File permissions and access control.
-     - Basic networking and firewall configuration.
-     - Package management and software installation.
-     - System monitoring and logging.
+### System Administration
+- **System Administration I:**  
+  - **Focus:** Basic administrative tasks such as user and group management, file permissions, basic networking, package management, and system monitoring.
+  - **Link:** [System Administration I](./SystemAdmin/maharatech/System_Administration_I.md)
+- **System Administration II:**  
+  - **Focus:** Advanced operations including managing services/daemons, complex networking (DNS, DHCP, VPN), performance tuning, backup strategies, and automation.
+  - **Link:** [System Administration II](./SystemAdmin/maharatech/System_Administration_II.md)
 
-### **System Administration II**
-   - **Overview**: Advanced system administration tasks, building on System Administration I to cover more complex operations.
-   - **Key Topics**:
-     - Managing services and daemons.
-     - Advanced networking (DNS, DHCP, VPN, etc.).
-     - Performance tuning and resource management.
-     - Backup strategies and disaster recovery.
-     - Automation with shell scripting and tools like Ansible.
+### Version Control & Collaboration
+- **Git & GitHub:**  
+  - **Overview:** Learn the essentials of distributed version control, collaboration, branching strategies, and code integrity.
+  - **Link:** [Git & GitHub](./Version_Control/GitAndGitHub.md)
+- **Data Version Control (DVC):**  
+  - **Overview:** Manage datasets and machine learning models in a version-controlled environment.
+  - **Link:** [DVC](./Version_Control/DVC.md)
 
-## ⚙️ DevOps Tools Covered
+### Containerization & Orchestration
+- **Docker & Kubernetes:**  
+  - **Overview:** Understand containerization with Docker, including its architecture, commands, and how it integrates with Kubernetes for orchestration.
+  - **Link:** [Docker & Kubernetes](./DockerandK8s/DockerAndK8s.md)
 
-### 1. **Docker**
-   - **Purpose**: Containerization platform that allows developers to package applications and their dependencies into a container.
-   - **Features**:
-     - Simplifies application deployment.
-     - Supports microservices architecture.
-     - Compatible with CI/CD pipelines.
-   
-### 2. **Kubernetes**
-   - **Purpose**: Container orchestration system for automating deployment, scaling, and management of containerized applications.
-   - **Features**:
-     - Ensures high availability and scalability.
-     - Manages multiple containers across various environments.
-     - Load balancing, self-healing, and service discovery.
-   
-### 3. **Jenkins**
-   - **Purpose**: Automation server used for building, testing, and deploying code in CI/CD pipelines.
-   - **Features**:
-     - Highly customizable through plugins.
-     - Supports continuous integration and continuous delivery.
-     - Can be integrated with various version control systems like Git.
+### Continuous Integration / Continuous Delivery (CI/CD)
+- **Jenkins:**  
+  - **Overview:** Discover how Jenkins automates building, testing, and deploying code using CI/CD pipelines.
+  - **Link:** [Jenkins (CI/CD)](./CI_CD/Jenkins.md)
 
-### 4. **Ansible**
-   - **Purpose**: Configuration management and automation tool.
-   - **Features**:
-     - Agentless, uses SSH to communicate with nodes.
-     - Ideal for automating infrastructure provisioning and application deployment.
-     - Easy-to-write YAML playbooks for defining configurations.
+### Configuration Management & Automation
+- **Ansible:**  
+  - **Overview:** Get insights into this agentless configuration management tool that uses YAML playbooks for automating infrastructure provisioning and application deployment.
+  - **Link:** [Ansible](./SystemAdmin/Ansible/Ansible.md)
 
-### 5. **Terraform**
-   - **Purpose**: Infrastructure as Code (IaC) tool for provisioning and managing cloud infrastructure.
-   - **Features**:
-     - Platform-agnostic; supports multiple cloud providers.
-     - Declarative configuration language.
-     - Enables versioning and collaboration on infrastructure changes.
+### Scripting
+- **Bash Scripting:**  
+  - **Overview:** Find examples and summaries of Bash scripts, including basic "Hello World" programs, conditional logic, and variable usage.
+  - **Link:** [Bash Scripting](./scripting/bash/Bash.md)
 
-### 6. **Git**
-   - **Purpose**: Version control system for tracking changes in code during software development.
-   - **Features**:
-     - Distributed version control.
-     - Allows for collaboration and branching.
-     - Ensures code integrity and history tracking.
+## How to Navigate
 
-### 7. **Prometheus**
-   - **Purpose**: Monitoring and alerting toolkit.
-   - **Features**:
-     - Time-series database optimized for performance.
-     - Can scrape metrics from services and generate real-time alerts.
-     - Integrated with Grafana for data visualization.
-
-### 8. **Grafana**
-   - **Purpose**: Open-source platform for monitoring and observability.
-   - **Features**:
-     - Rich dashboards for data visualization.
-     - Can be integrated with Prometheus, InfluxDB, and more.
-     - Provides real-time insights into system metrics.
-
-## 📑 How to Navigate
-
-Each tool has its own dedicated Markdown file with detailed explanations, examples, and usage instructions. Feel free to explore and learn more about these essential DevOps tools.
+Each section is organized into its dedicated directory, containing Markdown files, images, and scripts that explain topics in depth. Use the links above to explore detailed explanations and practical examples tailored to each DevOps tool and concept.
 
 ---
 
+Feel free to contribute, suggest improvements, or use these summaries as a reference on your DevOps learning journey.
