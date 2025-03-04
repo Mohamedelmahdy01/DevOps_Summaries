@@ -308,7 +308,7 @@ CI/CD transforms the software development lifecycle by automating the integratio
    -p 8080:8080 \
    -p 50000:50000 \
    -v ~/jenkins_data:/var/jenkins_home \
-   jenkins/jenkins:lts-jdk11
+   jenkins/jenkins:lts-jdk17
    ```
 
 4. **Access Jenkins**
@@ -344,7 +344,7 @@ Create `docker-compose.yml`:
 services:
   jenkins:
     container_name: jenkins
-    image: jenkins/jenkins:lts-jdk11
+    image: jenkins/jenkins:lts-jdk17
     ports:
       - "8080:8080"
       - "50000:50000"
@@ -794,10 +794,9 @@ Use Docker Compose to run both the Jenkins and remote host containers on an isol
 ### docker-compose.yml
 
 ```yaml
-version: '3'
 services:
   jenkins:
-    image: jenkins/jenkins:lts
+    image: jenkins/jenkins:lts-jdk17
     networks:
       - net
     ports:

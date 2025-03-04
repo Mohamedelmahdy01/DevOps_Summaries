@@ -72,6 +72,19 @@ Images are templates used to create containers.
   docker tag myapp:latest myapp:v2
   ```
 
+- **`docker rmi -f $(docker images -q)`**  
+To remove **all Docker images** from your system, you can use the following command:
+
+```bash
+docker rmi -f $(docker images -q)
+```
+
+### Explanation:
+1. **`docker images -q`**:
+   - Lists all image IDs (`-q` flag returns only the image IDs).
+2. **`docker rmi -f`**:
+   - Removes images forcefully (`-f` flag ensures even running containers' images are removed).
+
 ---
 
 ## **3. Docker Container Commands**  
@@ -335,6 +348,41 @@ Manage interactions with Docker registries.
 ---
 
 
+1
 
 
+To remove **all Docker images** from your system, you can use the following command:
 
+```bash
+docker rmi -f $(docker images -q)
+```
+
+### Explanation:
+1. **`docker images -q`**:
+   - Lists all image IDs (`-q` flag returns only the image IDs).
+2. **`docker rmi -f`**:
+   - Removes images forcefully (`-f` flag ensures even running containers' images are removed).
+
+---
+
+### Additional Commands:
+1. **Remove All Containers** (if you also want to clean up containers):
+   ```bash
+   docker rm -f $(docker ps -aq)
+   ```
+   - `docker ps -aq`: Lists all container IDs (including stopped ones).
+   - `docker rm -f`: Forcefully removes containers.
+
+2. **Remove All Unused Objects** (images, containers, volumes, networks):
+   ```bash
+   docker system prune -a --volumes
+   ```
+   - `prune`: Removes unused objects.
+   - `-a`: Removes all unused images (not just dangling ones).
+   - `--volumes`: Also removes unused volumes.
+
+---
+
+### WARNING:
+- These commands will **delete all Docker images and containers** on your system. Use them carefully!
+- If you have important data in containers or volumes, back it up before running these commands.
