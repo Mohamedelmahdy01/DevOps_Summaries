@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 # **Installing RHEL 9 Step by Step**
 
 ## **1. Introduction**

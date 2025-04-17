@@ -130,5 +130,4 @@ Each section is organized into its dedicated directory, containing Markdown file
 
 ---
 
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 Feel free to contribute, suggest improvements, or use these summaries as a reference on your DevOps learning journey.

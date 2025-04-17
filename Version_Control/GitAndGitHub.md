@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 ### Git Configuration
 1. **Set username globally:**
    ```bash

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 https://www.youtube.com/watch?v=ooT5fCi37yM&list=PLLlr6jKKdyK1f8p8ajyYtXP9GxdFH7WIU&index=11
 
 nautilus [path] : open folder 

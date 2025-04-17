@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # **Docker Command with Examples**
 
 ## **1. Docker System and Version Commands**  

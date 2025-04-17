@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Linux Commands and Concepts
 
 ## File Operations

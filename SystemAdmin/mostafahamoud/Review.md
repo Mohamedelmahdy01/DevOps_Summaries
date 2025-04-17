@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-Here's a brief explanation and overview of some key Linux commands and concepts listed in your summary:
+
 
 ### Nautilus
 
