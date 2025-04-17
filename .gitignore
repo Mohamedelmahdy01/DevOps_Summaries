@@ -1,3 +1,7 @@
 #ignore txt files
+<<<<<<< HEAD
 *.txt
 Jenkins2.md
+=======
+*.txt
+>>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b

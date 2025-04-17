@@ -211,7 +211,11 @@ Docker is an open platform designed to develop, ship, and run applications. It e
    Containers run independently from each other and the host system, preventing interference between applications.
 
 3. **Resource Efficiency**:  
+<<<<<<< HEAD
   t Unlike virtual machines, Docker containers share the host OS’s kernel, making them lightweight and efficien.
+=======
+   Unlike virtual machines, Docker containers share the host OS’s kernel, making them lightweight and efficient.
+>>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 
 4. **Portability**:  
    Docker containers are highly portable, allowing easy migration across different environments.

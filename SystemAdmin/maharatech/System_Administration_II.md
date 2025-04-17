@@ -866,7 +866,11 @@ ps axo --sort=nice
 
 ---
 
+<<<<<<< HEAD
  # CH04: Controlling Access to Files with ACLs
+=======
+# CH04: Controlling Access to Files with ACLs
+>>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 
 ## Goal
 - Interpret and set Access Control Lists (ACLs) on files to handle situations requiring complex user and group access permissions.
