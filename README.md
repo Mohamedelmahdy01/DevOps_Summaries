@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-# بسم الله الرحمن الرحيم
 
 # DevOps Tools Summaries
 
