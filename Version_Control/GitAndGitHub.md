@@ -1,5 +1,5 @@
 
-# Git Cheatsheet & Workflow Guide
+# Git Cheat Sheet and Workflow Guide
 
 This guide covers essential Git commands, concepts, workflows, and tools, organized for clarity and ease of reference.
 
@@ -809,4 +809,5 @@ Visual Studio Code offers excellent built-in Git support and powerful extensions
 4.  [Gitflow Workflow by Atlassian](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) - Detailed explanation of the Gitflow model.
 5.  [A successful Git branching model by Vincent Driessen](https://nvie.com/posts/a-successful-git-branching-model/) - The original blog post introducing Gitflow.
 
-***
+---
+
