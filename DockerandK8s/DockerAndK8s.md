@@ -1276,6 +1276,553 @@ Splitting the `COPY` command into two parts is a common optimization strategy. B
 By using Docker, you can streamline development, eliminate inconsistencies, and easily scale your applications, all while improving resource efficiency.
 
 
+---
+
+# Dockerfile
+## 1. Introduction: What is a Dockerfile?
+
+A **Dockerfile** is a text document that contains a series of instructions on how to build a Docker image. Think of it as a blueprint, a recipe, or an automation script for creating a standardized and reproducible environment for your application.
+
+Docker reads these instructions sequentially, executing each one to assemble the final image. This image contains everything needed to run your application: code, runtime, libraries, environment variables, and configuration files.
+
+**Key Purpose:**
+
+*   **Automation:** Automates the process of creating container images.
+*   **Reproducibility:** Ensures that the same image is built every time, regardless of where or when the build process runs (given the same base image and source code).
+*   **Standardization:** Provides a standard way to define application environments.
+*   **Versioning & Distribution:** Dockerfiles can be version controlled (like code), and the resulting images can be easily shared via registries (like Docker Hub).
+
+## 2. What is a Docker Image?
+
+Before diving deeper into the Dockerfile, it's crucial to understand what it produces: a **Docker Image**.
+
+*   An image is a **read-only template** used to create Docker containers.
+*   It's built in **layers**. Each instruction in the Dockerfile typically creates a new layer on top of the previous ones.
+*   These layers are **cached**, which speeds up subsequent builds if the instructions haven't changed.
+*   Images are **immutable**; once built, they don't change. If you need to make changes, you rebuild the image (potentially creating a new one or overwriting a tag).
+
+When you run an image using `docker run`, Docker creates a writable container layer on top of the read-only image layers. This is where your application runs and where any changes are made during the container's lifetime.
+
+## 3. Dockerfile Structure
+
+A Dockerfile follows a simple format:
+
+```dockerfile
+# This is a comment
+INSTRUCTION argument1 argument2...
+```
+
+*   **Comments:** Lines starting with `#` are treated as comments (except for parser directives like `# syntax=...`).
+*   **Instructions:** These are commands Docker executes during the build process. By convention, they are written in `UPPERCASE` (e.g., `FROM`, `RUN`, `COPY`).
+*   **Arguments:** These follow the instruction and provide the necessary details for its execution.
+*   **Execution Order:** Instructions are executed sequentially from top to bottom.
+*   **Layers:** Many instructions (especially `RUN`, `COPY`, `ADD`) create a new image layer. Docker caches these layers. If a layer's instruction and its inputs haven't changed since the last build, Docker reuses the cached layer, significantly speeding up the build process.
+
+## 4. Core Dockerfile Instructions
+
+These are some of the most fundamental instructions used in almost every Dockerfile:
+
+### `FROM <image>[:<tag>] [AS <name>]`
+
+*   **Purpose:** Specifies the **base image** for your build. Every Dockerfile *must* start with a `FROM` instruction (unless it's using a `scratch` base image, which is an empty starting point).
+*   **Details:** You can pull images from registries like Docker Hub (e.g., `ubuntu:22.04`, `python:3.9-slim`, `node:18-alpine`). Using specific tags (like `3.9-slim` instead of just `python`) is recommended for reproducibility.
+*   **`AS <name>`:** This optional part assigns a name to this build stage, which is useful in multi-stage builds.
+
+### `RUN <command>` (shell form) or `RUN ["executable", "param1", "param2"]` (exec form)
+
+*   **Purpose:** Executes commands in a new layer on top of the current image. Used for installing packages, creating directories, compiling code, etc. – essentially any command you'd run on the command line to set up your application environment.
+*   **Details:**
+    *   **Shell Form:** Runs the command using the default shell ( `/bin/sh -c` on Linux, `cmd /S /C` on Windows). Environment variable substitution works. Example: `RUN apt-get update && apt-get install -y --no-install-recommends package1 package2`
+    *   **Exec Form:** Runs the executable directly without a shell. Preferred if you don't need shell processing. Parses as a JSON array. Example: `RUN ["apt-get", "update"]`
+*   **Best Practice:** Chain related commands using `&&` within a single `RUN` instruction to reduce the number of layers and image size (e.g., update package list, install packages, and clean up cache files all in one `RUN`).
+
+### `COPY [--chown=<user>:<group>] <src>... <dest>`
+
+*   **Purpose:** Copies files or directories from your **build context** (the directory where you run `docker build`) into the image's filesystem at the specified `<dest>`.
+*   **Details:**
+    *   `<src>` must be relative to the build context.
+    *   `<dest>` is an absolute path inside the image or a path relative to the `WORKDIR`.
+    *   If `<dest>` doesn't exist, it will be created (along with parent directories).
+    *   `--chown`: Optionally sets the user and group ownership of the copied files. Useful for running as a non-root user.
+*   **Example:** `COPY . /app` (copies everything from the build context to `/app` in the image). `COPY --chown=appuser:appgroup ./config.json /etc/myapp/config.json`
+
+### `ADD [--chown=<user>:<group>] <src>... <dest>`
+
+*   **Purpose:** Similar to `COPY`, but with additional features:
+    *   Can copy from URLs.
+    *   Can automatically extract compressed archives (tar, gzip, bzip2, xz) if `<src>` is a recognized archive format.
+*   **Details:** Due to the "magic" of auto-extraction and potential unpredictability with URLs, `COPY` is generally preferred for simply copying local files. Use `ADD` specifically when you need its URL or extraction capabilities.
+*   **Example:** `ADD https://example.com/file.tar.gz /tmp/` (downloads and extracts). `ADD myapp.tar.gz /usr/src/`
+
+### `CMD ["executable","param1","param2"]` (exec form, preferred) or `CMD command param1 param2` (shell form) or `CMD ["param1","param2"]` (as default parameters for ENTRYPOINT)
+
+*   **Purpose:** Provides the **default command and/or parameters** for an executing container.
+*   **Details:**
+    *   There can only be **one** `CMD` instruction in a Dockerfile. If you list more than one, only the last `CMD` will take effect.
+    *   The primary purpose of `CMD` is to define the default executable that runs when a container starts *if the user doesn't specify a command when running `docker run`*.
+    *   If used with `ENTRYPOINT` (in exec form), `CMD` provides default arguments *to* the `ENTRYPOINT`.
+*   **Example (Exec Form):** `CMD ["python", "app.py"]` (runs `python app.py` by default)
+*   **Example (Shell Form):** `CMD python app.py` (runs `/bin/sh -c 'python app.py'`)
+*   **Example (with ENTRYPOINT):**
+    ```dockerfile
+    ENTRYPOINT ["python", "app.py"]
+    CMD ["--port", "8080"]
+    # Default run: python app.py --port 8080
+    # docker run image --port 9000 -> runs: python app.py --port 9000 (CMD overridden)
+    ```
+
+### `ENTRYPOINT ["executable", "param1", "param2"]` (exec form, preferred) or `ENTRYPOINT command param1 param2` (shell form)
+
+*   **Purpose:** Configures a container to run as an **executable**. Makes the container behave like a specific command.
+*   **Details:**
+    *   Also, only the last `ENTRYPOINT` takes effect.
+    *   Unlike `CMD`, the command specified with `docker run <image> [command]` is appended as arguments to the `ENTRYPOINT` (in exec form), rather than overriding it.
+    *   Often used in combination with `CMD` to set default parameters that can be easily overridden.
+*   **Example (Exec Form):**
+    ```dockerfile
+    ENTRYPOINT ["ping"]
+    CMD ["localhost"]
+    # docker run image -> runs: ping localhost
+    # docker run image google.com -> runs: ping google.com
+    ```
+*   **Example (Shell Form):** `ENTRYPOINT /entrypoint.sh` (Runs the script, but makes it harder to pass arguments or override gracefully. Exec form is generally better).
+
+**`CMD` vs. `ENTRYPOINT` Summary:**
+
+*   Use `CMD` if you want to provide a default executable/arguments that can be easily overridden from the `docker run` command line.
+*   Use `ENTRYPOINT` if you want the container to primarily run as a specific executable, where `docker run` arguments are treated as flags/parameters *to* that executable.
+*   Use `ENTRYPOINT` with `CMD` to set default parameters for the main executable defined by `ENTRYPOINT`.
+
+## 5. Metadata and Configuration Instructions
+
+These instructions don't typically execute commands during the build but define metadata or configure the build/runtime environment. They usually don't create new layers (or create zero-size layers).
+
+### `LABEL <key>=<value> [<key>=<value> ...]`
+
+*   **Purpose:** Adds metadata to an image in key-value pairs. Useful for organization, automation, versioning info, licensing, etc.
+*   **Example:** `LABEL maintainer="Your Name <your.email@example.com>" version="1.0" description="My awesome web application"`
+
+### `EXPOSE <port> [<port>/<protocol>...]`
+
+*   **Purpose:** Informs Docker that the container **listens on the specified network ports** at runtime. It acts as documentation between the image builder and the person running the container.
+*   **Details:**
+    *   Does **NOT** actually publish the port. It's documentation.
+    *   To make the port accessible from the host, you still need to use the `-p` or `-P` flag with `docker run`.
+    *   Protocol can be `tcp` (default) or `udp`.
+*   **Example:** `EXPOSE 8080/tcp` or simply `EXPOSE 80`
+
+### `ENV <key>=<value> [<key>=<value> ...]`
+
+*   **Purpose:** Sets **environment variables** within the image.
+*   **Details:**
+    *   These variables are available during the **build process** (for subsequent `RUN`, `COPY`, `CMD`, `ENTRYPOINT` instructions) and **when the container runs**.
+    *   Values can be overridden when running the container using the `-e` flag with `docker run`.
+*   **Example:** `ENV APP_HOME=/app DATABASE_URL=postgresql://user:pass@host:port/db`
+
+### `ARG <name>[=<default value>]`
+
+*   **Purpose:** Defines variables that users can pass **at build-time** using the `--build-arg <varname>=<value>` flag with the `docker build` command.
+*   **Details:**
+    *   `ARG` variables are **not** persisted in the image or available in the running container by default, *unless* they are also defined with `ENV`.
+    *   An `ARG` declared *before* the first `FROM` can be used in any `FROM` line within the Dockerfile.
+    *   Scope: An `ARG` defined after a `FROM` is only available until the end of that build stage.
+*   **Example:**
+    ```dockerfile
+    ARG USER=guest
+    ARG RAILS_ENV=development
+    ENV RAILS_ENV=${RAILS_ENV} # Persist the ARG value into an ENV var
+
+    RUN echo "Building for user ${USER}" # USER is available here
+    # USER will not be available in the running container unless also set via ENV
+    # RAILS_ENV will be available in the running container because of the ENV instruction
+    ```
+
+### `USER <user>[:<group>]` or `USER <UID>[:<GID>]`
+
+*   **Purpose:** Sets the **user name** (or UID) and optionally the **group name** (or GID) to use for subsequent `RUN`, `CMD`, and `ENTRYPOINT` instructions. Also sets the default user for the running container.
+*   **Details:** Running containers as a non-root user is a crucial security best practice. You typically need to create the user and group first (e.g., using `RUN groupadd ... && useradd ...`).
+*   **Example:**
+    ```dockerfile
+    RUN groupadd -r myapp && useradd --no-log-init -r -g myapp myapp
+    USER myapp
+    WORKDIR /home/myapp
+    ```
+
+### `WORKDIR /path/to/workdir`
+
+*   **Purpose:** Sets the **working directory** for subsequent `RUN`, `CMD`, `ENTRYPOINT`, `COPY`, and `ADD` instructions.
+*   **Details:** If the directory doesn't exist, it will be created. It's better than using `RUN cd ...` because it persists across multiple instructions.
+*   **Example:**
+    ```dockerfile
+    WORKDIR /app
+    COPY . . # Copies to /app inside the image
+    RUN bundle install # Runs in /app
+    CMD ["rails", "server"] # Runs relative to /app
+    ```
+
+### `VOLUME ["/path/to/volume"]`
+
+*   **Purpose:** Creates a **mount point** with the specified name and marks it as holding externally mounted volumes from the host or other containers.
+*   **Details:**
+    *   Often used to designate directories for databases, logs, or user-uploaded content that should persist beyond the container's lifecycle or be shared.
+    *   The contents of the directory specified in the `VOLUME` instruction are typically managed outside the container's lifecycle (e.g., using named volumes or host mounts).
+    *   Data written to a volume bypasses the Union File System.
+*   **Example:** `VOLUME /var/log` `VOLUME /data`
+
+### `STOPSIGNAL <signal>`
+
+*   **Purpose:** Sets the system call signal that will be sent to the container to exit. This signal can be a valid signal number (e.g., 9) or a signal name in the `SIGNAME` format (e.g., `SIGKILL`). Defaults to `SIGTERM`.
+*   **Example:** `STOPSIGNAL SIGQUIT`
+
+### `HEALTHCHECK [OPTIONS] CMD <command>` or `HEALTHCHECK NONE`
+
+*   **Purpose:** Defines how Docker should test a container to check that it is still working (e.g., by checking if a web server is responding).
+*   **Details:**
+    *   `OPTIONS`: Can include `--interval=DURATION` (default: 30s), `--timeout=DURATION` (default: 30s), `--start-period=DURATION` (default: 0s), `--retries=N` (default: 3).
+    *   `<command>`: The command to run inside the container. If it exits with status 0, the container is healthy; status 1 is unhealthy.
+    *   `HEALTHCHECK NONE`: Disables any healthcheck inherited from the base image.
+*   **Example:** `HEALTHCHECK --interval=5m --timeout=3s CMD curl -f http://localhost:8080 || exit 1`
+
+### `SHELL ["executable", "parameters"]`
+
+*   **Purpose:** Overrides the default shell used for the *shell form* of `RUN`, `CMD`, and `ENTRYPOINT`. The default is `/bin/sh -c` on Linux and `cmd /S /C` on Windows.
+*   **Example:** `SHELL ["/bin/bash", "-c"]` (Use bash instead of sh)
+
+## 6. Example Dockerfile (Simple Node.js App)
+
+```dockerfile
+# === Stage 1: Build ===
+# Use an official Node.js runtime as a parent image (specify version)
+FROM node:18-alpine AS builder
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Install app dependencies
+# Copy package.json and package-lock.json (if available)
+COPY package*.json ./
+
+# Install dependencies using npm ci for faster, reproducible builds
+RUN npm ci --only=production
+
+# Copy the rest of the application source code
+COPY . .
+
+# (Optional) Add any build steps here if needed, e.g., TypeScript compilation
+# RUN npm run build
+
+
+# === Stage 2: Production ===
+# Use a minimal base image for production
+FROM node:18-alpine
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Create a non-root user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Copy built artifacts and dependencies from the builder stage
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/package.json ./package.json
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/dist ./dist # Assuming a build step outputted to 'dist'
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/server.js ./server.js # Or your main entry file
+
+# Switch to the non-root user
+USER appuser
+
+# Make port 8080 available to the world outside this container (documentation)
+EXPOSE 8080
+
+# Add metadata
+LABEL maintainer="Your Name <you@example.com>"
+LABEL version="1.0"
+
+# Define environment variable
+ENV NODE_ENV=production
+
+# Run the app when the container launches
+CMD ["node", "server.js"] # Or "node", "dist/server.js" if you have a build step
+```
+
+**Explanation of the Example:**
+
+1.  **Multi-Stage Build:** Uses two `FROM` instructions (`AS builder` names the first stage).
+2.  **Builder Stage:**
+    *   Starts with a full Node.js image (`node:18-alpine`).
+    *   Sets `WORKDIR`.
+    *   Copies *only* `package.json`/`lock` first to leverage Docker caching. If these files don't change, the `npm ci` layer is reused.
+    *   Installs *only* production dependencies (`npm ci --only=production`).
+    *   Copies the rest of the source code.
+    *   (Commented out) Could include a build step like `npm run build`.
+3.  **Production Stage:**
+    *   Starts fresh from a minimal base image (`node:18-alpine`) for a smaller final image.
+    *   Sets `WORKDIR`.
+    *   Creates a non-root user (`appuser`) for security.
+    *   Uses `COPY --from=builder` to copy *only* the necessary built artifacts (e.g., `node_modules`, compiled code, `package.json`) from the previous stage. Sets ownership with `--chown`.
+    *   Switches to the `appuser` using `USER`.
+    *   Documents the port using `EXPOSE`.
+    *   Adds `LABEL` metadata.
+    *   Sets `NODE_ENV` using `ENV`.
+    *   Defines the default command to run the app using `CMD`.
+
+## 7. Building an Image
+
+To build an image from a Dockerfile located in the current directory:
+
+```bash
+# Syntax: docker build [OPTIONS] PATH | URL | -
+# Example: Build image tagged 'my-app:1.0' from current directory '.'
+docker build -t my-app:1.0 .
+
+# Example: Build with a build argument
+docker build --build-arg USER=admin -t my-app:latest .
+```
+
+## 8. Conclusion
+
+Dockerfiles are the cornerstone of reproducible containerized environments. By understanding their structure and the purpose of each instruction, you can create efficient, secure, and maintainable Docker images for your applications. Remember to follow best practices like using specific base image tags, minimizing layers, leveraging build cache, running as non-root users, and using multi-stage builds for smaller, more secure production images.
+
+---
+
+# Docker Compose
+
+**Docker Compose** is a tool for defining and managing multi-container Docker applications. It uses a YAML file (`docker-compose.yml`) to configure services, networks, volumes, and dependencies, allowing you to orchestrate complex environments with a single command.
+
+---
+
+## Table of Contents
+1. [Why Use Docker Compose?](#1-why-use-docker-compose)
+2. [Key Concepts](#2-key-concepts)
+3. [Docker Compose File Structure](#3-docker-compose-file-structure)
+4. [Service Configuration](#4-service-configuration)
+5. [Networks & Volumes](#5-networks--volumes)
+6. [Environment Variables](#6-environment-variables)
+7. [Common Commands](#7-common-commands)
+8. [Example](#8-example)
+9. [Best Practices](#9-best-practices)
+
+---
+
+## 1. Why Use Docker Compose?
+- **Simplify Multi-Container Workflows**: Run interconnected services (e.g., app + database + cache) with one command.
+- **Reproducibility**: Ensure consistency across environments (dev, staging, prod).
+- **Single-Source Configuration**: Define all services and dependencies in a declarative YAML file.
+- **Efficiency**: Avoid repetitive `docker run` commands.
+
+---
+
+## 2. Key Concepts
+- **Service**: A containerized application (e.g., `web`, `database`).
+- **Project**: A group of services managed together (named after the parent directory by default).
+- **Networks**: Isolated communication channels between services.
+- **Volumes**: Persistent storage for data (e.g., databases, logs).
+
+---
+
+## 3. Docker Compose File Structure
+
+### Basic Structure
+```yaml
+version: "3.9"  # Compose file version
+services:       # Define your containers
+  web:          # Service name
+    build: .    # Build from Dockerfile
+    ports:
+      - "8000:8000"
+  db:
+    image: postgres:15
+
+volumes:        # Persistent storage
+  db-data:
+
+networks:       # Custom networks
+  app-network:
+    driver: bridge
+```
+
+---
+
+## 4. Service Configuration
+
+### Key Service Directives
+
+| **Directive**      | **Purpose**                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `build`             | Build from a Dockerfile (e.g., `build: ./path`).                            |
+| `image`             | Use a pre-built image (e.g., `image: nginx:alpine`).                        |
+| `ports`             | Map host:container ports (e.g., `"80:8080"`).                               |
+| `environment`       | Set environment variables (e.g., `ENV_VAR=value`).                          |
+| `volumes`           | Mount host paths or named volumes (e.g., `./data:/app/data`).               |
+| `networks`          | Attach to custom networks.                                                  |
+| `depends_on`        | Define service dependencies (e.g., `depends_on: [db]`).                     |
+| `command`           | Override the default command (e.g., `command: ["npm", "start"]`).           |
+| `restart`           | Define restart policies (`no`, `always`, `on-failure`).                     |
+| `healthcheck`       | Configure service health monitoring.                                        |
+
+### Example Service
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+```
+
+---
+
+## 5. Networks & Volumes
+
+### Networks
+- **Default Network**: Services in the same Compose file can communicate via service names (e.g., `web` can ping `db`).
+- **Custom Networks**: Isolate traffic or connect to external networks.
+  ```yaml
+  networks:
+    app-network:
+      driver: bridge
+    external-network:
+      external: true
+      name: my-existing-network
+  ```
+
+### Volumes
+- **Named Volumes**: Managed by Docker (e.g., `db-data`).
+- **Host Volumes**: Bind host directories (e.g., `./data:/app/data`).
+  ```yaml
+  volumes:
+    db-data:          # Named volume
+    ./logs:/app/logs  # Host volume
+  ```
+
+---
+
+## 6. Environment Variables
+
+### Inline Variables
+```yaml
+environment:
+  DB_HOST: db
+  DB_PASSWORD: ${DB_PASSWORD}
+```
+
+### `.env` File
+- Create a `.env` file in the same directory:
+  ```env
+  DB_PASSWORD=secret
+  ```
+- Reference variables in `docker-compose.yml`:
+  ```yaml
+  environment:
+    DB_PASSWORD: ${DB_PASSWORD}
+  ```
+
+---
+
+## 7. Common Commands
+
+| **Command**                     | **Description**                                      |
+|---------------------------------|------------------------------------------------------|
+| `docker-compose up`             | Start services (add `-d` for detached mode).         |
+| `docker-compose down`           | Stop and remove containers, networks, and volumes.   |
+| `docker-compose build`          | Rebuild images.                                      |
+| `docker-compose logs`           | View logs (add `-f` to follow).                      |
+| `docker-compose ps`             | List running services.                               |
+| `docker-compose exec`           | Run a command in a running container (e.g., `exec web bash`). |
+| `docker-compose config`         | Validate the `docker-compose.yml` file.              |
+
+---
+
+## 8. Example
+
+### `docker-compose.yml` for a Web App + PostgreSQL
+```yaml
+version: "3.9"
+
+services:
+  web:
+    build: ./app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: myapp
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+---
+
+## 9. Best Practices
+
+### General
+- **Use `docker-compose.override.yml`**: For environment-specific configurations (e.g., dev vs prod).
+- **Version Control**: Keep `docker-compose.yml` and `.env.example` (without secrets) in Git.
+- **Multi-Stage Builds**: Use in `Dockerfile` to keep images small.
+
+### Security
+- **Avoid Secrets in Compose Files**: Use `.env` files or Docker secrets.
+- **Limit Privileges**:
+  ```yaml
+  services:
+    db:
+      user: "postgres"
+  ```
+
+### Efficiency
+- **Reuse Networks/Volumes**: Define them explicitly to avoid recreation.
+- **Profiles**: Group services for specific use cases (e.g., `debug`, `test`).
+  ```yaml
+  services:
+    debugger:
+      profiles: ["debug"]
+      image: busybox
+      command: tail -f /dev/null
+  ```
+
+---
+
 
 ### Sources
 
