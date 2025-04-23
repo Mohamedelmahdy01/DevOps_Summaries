@@ -211,11 +211,9 @@ Docker is an open platform designed to develop, ship, and run applications. It e
    Containers run independently from each other and the host system, preventing interference between applications.
 
 3. **Resource Efficiency**:  
-<<<<<<< HEAD
-  t Unlike virtual machines, Docker containers share the host OS’s kernel, making them lightweight and efficien.
+Unlike virtual machines, Docker containers share the host OS’s kernel, making them lightweight and efficien.
 =======
    Unlike virtual machines, Docker containers share the host OS’s kernel, making them lightweight and efficient.
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 
 4. **Portability**:  
    Docker containers are highly portable, allowing easy migration across different environments.
@@ -1585,83 +1583,174 @@ Dockerfiles are the cornerstone of reproducible containerized environments. By u
 
 ---
 
-# Docker Compose
+# **Docker Compose**  
 
-**Docker Compose** is a tool for defining and managing multi-container Docker applications. It uses a YAML file (`docker-compose.yml`) to configure services, networks, volumes, and dependencies, allowing you to orchestrate complex environments with a single command.
-
----
-
-## Table of Contents
-1. [Why Use Docker Compose?](#1-why-use-docker-compose)
-2. [Key Concepts](#2-key-concepts)
-3. [Docker Compose File Structure](#3-docker-compose-file-structure)
-4. [Service Configuration](#4-service-configuration)
-5. [Networks & Volumes](#5-networks--volumes)
-6. [Environment Variables](#6-environment-variables)
-7. [Common Commands](#7-common-commands)
-8. [Example](#8-example)
-9. [Best Practices](#9-best-practices)
-
----
-
-## 1. Why Use Docker Compose?
-- **Simplify Multi-Container Workflows**: Run interconnected services (e.g., app + database + cache) with one command.
-- **Reproducibility**: Ensure consistency across environments (dev, staging, prod).
-- **Single-Source Configuration**: Define all services and dependencies in a declarative YAML file.
-- **Efficiency**: Avoid repetitive `docker run` commands.
+## **Table of Contents**  
+1. [What is Docker Compose?](#1-what-is-docker-compose)  
+2. [Why Use Docker Compose?](#2-why-use-docker-compose)  
+3. [Docker Compose vs. Docker CLI](#3-docker-compose-vs-docker-cli)  
+4. [Installing Docker Compose](#4-installing-docker-compose)  
+5. [Docker Compose File Structure](#5-docker-compose-file-structure)  
+6. [Key Sections of `docker-compose.yml`](#6-key-sections-of-docker-composeyml)  
+   - [**`version`**](#1-version)  
+   - [**`services`**](#2-services)  
+   - [**`networks`**](#3-networks)  
+   - [**`volumes`**](#4-volumes)  
+7. [Common Docker Compose Commands](#7-common-docker-compose-commands)  
+8. [Example: Multi-Service Application](#8-example-multi-service-application)  
+9. [Best Practices](#9-best-practices)  
 
 ---
 
-## 2. Key Concepts
-- **Service**: A containerized application (e.g., `web`, `database`).
-- **Project**: A group of services managed together (named after the parent directory by default).
-- **Networks**: Isolated communication channels between services.
-- **Volumes**: Persistent storage for data (e.g., databases, logs).
+## **1. What is Docker Compose?**  
+**Docker Compose** is a tool for defining and running **multi-container Docker applications**. Instead of manually running `docker run` for each container, you define all services, networks, and volumes in a single YAML file (`docker-compose.yml`) and start them with one command (`docker-compose up`).  
 
 ---
 
-## 3. Docker Compose File Structure
+## **2. Why Use Docker Compose?**  
+  **Simplifies Multi-Container Apps** – Run multiple services (e.g., web app + database + Redis) with a single command.  
+  **Reproducible Environments** – Ensures consistency across development, testing, and production.  
+  **Declarative Configuration** – Define everything in YAML, avoiding long `docker run` commands.  
+  **Networking & Volumes** – Automatically sets up networks and storage between containers.  
+  **Service Dependencies** – Start services in the correct order (e.g., database before app).  
 
-### Basic Structure
+---
+
+## **3. Docker Compose vs. Docker CLI**  
+| Feature | `docker run` (CLI) | `docker-compose` |
+|---------|-------------------|------------------|
+| **Single Container** |  Yes |  No (but possible) |
+| **Multi-Container** |  Manual setup |  Single YAML file |
+| **Networking** | Manual `--network` | Auto-created networks |
+| **Volume Management** | Manual `-v` flag | Declarative in YAML |
+| **Environment Variables** | `-e` flag | Defined in YAML |
+| **Scaling** | Manual | Easy with `docker-compose scale` |
+
+---
+
+## **4. Installing Docker Compose**  
+Docker Compose is included in **Docker Desktop** (Windows/Mac). For Linux:  
+```bash
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version  # Verify
+```
+
+---
+
+## **5. Docker Compose File Structure**  
+The `docker-compose.yml` file has 4 main sections:  
+
+1. **`version`** → Specifies the Compose file format.  
+2. **`services`** → Defines the containers to run.  
+3. **`networks`** → Configures container networking.  
+4. **`volumes`** → Manages persistent storage.  
+
+Example:  
 ```yaml
 version: "3.9"  # Compose file version
-services:       # Define your containers
-  web:          # Service name
-    build: .    # Build from Dockerfile
+services:       # Define containers
+  web:
+    build: .
     ports:
-      - "8000:8000"
+      - "5000:5000"
   db:
     image: postgres:15
+    volumes:
+      - db-data:/var/lib/postgresql/data
 
 volumes:        # Persistent storage
   db-data:
 
-networks:       # Custom networks
-  app-network:
+networks:       # Networking (optional)
+  default:
     driver: bridge
 ```
 
 ---
 
-## 4. Service Configuration
+## **6. Key Sections of `docker-compose.yml`**  
 
-### Key Service Directives
-
-| **Directive**      | **Purpose**                                                                 |
-|---------------------|-----------------------------------------------------------------------------|
-| `build`             | Build from a Dockerfile (e.g., `build: ./path`).                            |
-| `image`             | Use a pre-built image (e.g., `image: nginx:alpine`).                        |
-| `ports`             | Map host:container ports (e.g., `"80:8080"`).                               |
-| `environment`       | Set environment variables (e.g., `ENV_VAR=value`).                          |
-| `volumes`           | Mount host paths or named volumes (e.g., `./data:/app/data`).               |
-| `networks`          | Attach to custom networks.                                                  |
-| `depends_on`        | Define service dependencies (e.g., `depends_on: [db]`).                     |
-| `command`           | Override the default command (e.g., `command: ["npm", "start"]`).           |
-| `restart`           | Define restart policies (`no`, `always`, `on-failure`).                     |
-| `healthcheck`       | Configure service health monitoring.                                        |
-
-### Example Service
+### **1. `version`**  
+Specifies the **Compose file syntax version** (not Docker Engine version).  
 ```yaml
+version: "3.9"  # Latest stable (Docker Compose v2+ supports "3.x")
+```
+
+### **2. `services`**  
+Defines each container (service) in your app.  
+
+#### **Key Service Directives**  
+| Directive | Description | Example |
+|-----------|-------------|---------|
+| `build` | Build from a `Dockerfile` | `build: ./app` |
+| `image` | Use a pre-built image | `image: nginx:alpine` |
+| `ports` | Map `host:container` ports | `"80:8080"` |
+| `volumes` | Mount host/container storage | `./data:/app/data` |
+| `environment` | Set env variables | `DB_HOST: db` |
+| `depends_on` | Start order dependencies | `depends_on: [db]` |
+| `restart` | Auto-restart policy (`no`, `always`, `on-failure`) | `restart: unless-stopped` |
+
+Example:  
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_URL: "postgres://user:pass@db:5432/mydb"
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+```
+
+### **3. `networks`**  
+Custom networks improve isolation and security.  
+
+```yaml
+networks:
+  app-net:
+    driver: bridge  # Default (others: overlay, host)
+```
+
+### **4. `volumes`**  
+Persistent storage for databases, logs, etc.  
+
+```yaml
+volumes:
+  pg-data:  # Named volume (managed by Docker)
+  ./app/logs:/var/logs  # Host-mounted volume
+```
+
+---
+
+## **7. Common Docker Compose Commands**  
+
+| Command | Description |
+|---------|-------------|
+| `docker-compose up` | Start all services |
+| `docker-compose up -d` | Run in detached mode |
+| `docker-compose down` | Stop & remove containers |
+| `docker-compose ps` | List running services |
+| `docker-compose logs` | View logs (`-f` to follow) |
+| `docker-compose exec` | Run a command in a container |
+| `docker-compose build` | Rebuild images |
+
+---
+
+## **8. Example: Multi-Service Application**  
+
+### **`docker-compose.yml` (Flask + PostgreSQL + Redis)**  
+```yaml
+version: "3.9"
+
 services:
   web:
     build: .
@@ -1669,173 +1758,33 @@ services:
       - "5000:5000"
     environment:
       - DB_HOST=db
+      - REDIS_HOST=redis
     depends_on:
       - db
-    volumes:
-      - ./app:/app
-    networks:
-      - app-network
+      - redis
 
   db:
     image: postgres:15
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: mypassword
     volumes:
-      - db-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-```
+      - pg-data:/var/lib/postgresql/data
 
----
-
-## 5. Networks & Volumes
-
-### Networks
-- **Default Network**: Services in the same Compose file can communicate via service names (e.g., `web` can ping `db`).
-- **Custom Networks**: Isolate traffic or connect to external networks.
-  ```yaml
-  networks:
-    app-network:
-      driver: bridge
-    external-network:
-      external: true
-      name: my-existing-network
-  ```
-
-### Volumes
-- **Named Volumes**: Managed by Docker (e.g., `db-data`).
-- **Host Volumes**: Bind host directories (e.g., `./data:/app/data`).
-  ```yaml
-  volumes:
-    db-data:          # Named volume
-    ./logs:/app/logs  # Host volume
-  ```
-
----
-
-## 6. Environment Variables
-
-### Inline Variables
-```yaml
-environment:
-  DB_HOST: db
-  DB_PASSWORD: ${DB_PASSWORD}
-```
-
-### `.env` File
-- Create a `.env` file in the same directory:
-  ```env
-  DB_PASSWORD=secret
-  ```
-- Reference variables in `docker-compose.yml`:
-  ```yaml
-  environment:
-    DB_PASSWORD: ${DB_PASSWORD}
-  ```
-
----
-
-## 7. Common Commands
-
-| **Command**                     | **Description**                                      |
-|---------------------------------|------------------------------------------------------|
-| `docker-compose up`             | Start services (add `-d` for detached mode).         |
-| `docker-compose down`           | Stop and remove containers, networks, and volumes.   |
-| `docker-compose build`          | Rebuild images.                                      |
-| `docker-compose logs`           | View logs (add `-f` to follow).                      |
-| `docker-compose ps`             | List running services.                               |
-| `docker-compose exec`           | Run a command in a running container (e.g., `exec web bash`). |
-| `docker-compose config`         | Validate the `docker-compose.yml` file.              |
-
----
-
-## 8. Example
-
-### `docker-compose.yml` for a Web App + PostgreSQL
-```yaml
-version: "3.9"
-
-services:
-  web:
-    build: ./app
+  redis:
+    image: redis:alpine
     ports:
-      - "8000:8000"
-    environment:
-      - DB_HOST=db
-      - DB_PASSWORD=${DB_PASSWORD}
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: myapp
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
+      - "6379:6379"
 
 volumes:
-  db-data:
+  pg-data:
+```
 
-networks:
-  app-network:
-    driver: bridge
+### **How to Run**  
+```bash
+docker-compose up -d  # Start all services
+docker-compose ps    # Check running containers
+docker-compose down  # Stop and clean up
 ```
 
 ---
-
-## 9. Best Practices
-
-### General
-- **Use `docker-compose.override.yml`**: For environment-specific configurations (e.g., dev vs prod).
-- **Version Control**: Keep `docker-compose.yml` and `.env.example` (without secrets) in Git.
-- **Multi-Stage Builds**: Use in `Dockerfile` to keep images small.
-
-### Security
-- **Avoid Secrets in Compose Files**: Use `.env` files or Docker secrets.
-- **Limit Privileges**:
-  ```yaml
-  services:
-    db:
-      user: "postgres"
-  ```
-
-### Efficiency
-- **Reuse Networks/Volumes**: Define them explicitly to avoid recreation.
-- **Profiles**: Group services for specific use cases (e.g., `debug`, `test`).
-  ```yaml
-  services:
-    debugger:
-      profiles: ["debug"]
-      image: busybox
-      command: tail -f /dev/null
-  ```
-
----
-
-
-### Sources
-
-1. [Docker and Kubernetes `ahmed samy`](https://www.youtube.com/watch?v=PrusdhS2lmo&t=1449s)
-2. [Containers vs. virtual machines](https://www.atlassian.com/microservices/cloud-computing/containers-vs-vms)
-3. [Docker Docurmentation](https://docs.docker.com/)
-4. [Docker Practical Course](https://www.youtube.com/playlist?list=PLzNfs-3kBUJnY7Cy1XovLaAkgfjim05RR)
-
-
-
-
-
-
-
-
 
