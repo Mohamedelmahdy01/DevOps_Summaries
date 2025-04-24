@@ -165,11 +165,7 @@ CI/CD transforms the software development lifecycle by automating the integratio
 
 ### Step 1: Install VirtualBox
 - Download VirtualBox for Windows from [virtualbox.org](https://www.virtualbox.org/).
-<<<<<<< HEAD
 - Follow the installation wizard (default settings recommended). 
-=======
-- Follow the installation wizard (default settings recommended).
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 
 ### Step 2: Create a CentOS Virtual Machine (VM)
 1. **Download CentOS Minimal ISO**
@@ -297,7 +293,7 @@ CI/CD transforms the software development lifecycle by automating the integratio
 ### Step 7: Deploy Jenkins Container
 1. **Pull Jenkins Image**
    ```bash
-   docker pull jenkins/jenkins:lts-jdk11
+   docker pull jenkins/jenkins:lts-jdk11 # or docker pull jenkins:jdk17
    ```
 
 2. **Create Persistent Storage**
@@ -348,7 +344,7 @@ Create `docker-compose.yml`:
 services:
   jenkins:
     container_name: jenkins
-    image: jenkins/jenkins:lts-jdk17
+    image: jenkins/jenkins:jdk17
     ports:
       - "8080:8080"
       - "50000:50000"
@@ -758,24 +754,10 @@ Secure, passwordless SSH connections are established using SSH key authenticatio
 Create a `Dockerfile` for your SSH server container. This container uses CentOS 7 (for compatibility) and sets up an SSH service:
 
 ```dockerfile
-<<<<<<< HEAD
-
-FROM centos:7
-
-# Disable the mirrorlist and set the baseurl to use vault.centos.org
-RUN sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-Base.repo && \
-    sed -i 's|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Base.repo && \
-    yum clean all
-
-RUN yum install -y openssh-server openssh-clients && \
-    yum clean all
-
-=======
-FROM centos:7
+FROM centos:latest
 
 # Install OpenSSH Server and Clients
 RUN yum install -y openssh-server openssh-clients
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 
 # Create a new user and set a password
 RUN useradd remote_user && \
@@ -784,18 +766,6 @@ RUN useradd remote_user && \
     chmod 700 /home/remote_user/.ssh
 
 # Copy the public SSH key into authorized_keys for passwordless authentication
-<<<<<<< HEAD
-COPY jenkins-remote-key.pub /home/remote_user/.ssh/authorized_keys
-RUN chown remote_user:remote_user /home/remote_user/.ssh -R && \
-    chmod 600 /home/remote_user/.ssh/authorized_keys
-
-
-# Generate SSH host keys and start the SSH daemon
-RUN ssh-keygen -A
-CMD ["/usr/sbin/sshd", "-D"]
-
-
-=======
 COPY remote-key.pub /home/remote_user/.ssh/authorized_keys
 RUN chown remote_user:remote_user /home/remote_user/.ssh -R && \
     chmod 600 /home/remote_user/.ssh/authorized_keys
@@ -803,7 +773,6 @@ RUN chown remote_user:remote_user /home/remote_user/.ssh -R && \
 # Generate SSH host keys and start the SSH daemon
 RUN ssh-keygen -A
 CMD ["/usr/sbin/sshd", "-D"]
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 ```
 
 ### Key Steps Explained:
@@ -837,13 +806,8 @@ services:
 
   remote-host:
     build:
-<<<<<<< HEAD
       context: ./   # Ensure the Dockerfile and remote-key.pub are in this directory
       dockerfile: Dockerfile.remote-host
-=======
-      context: ./centos7   # Ensure the Dockerfile and remote-key.pub are in this directory
-      dockerfile: Dockerfile
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
     container_name: remote-host
     networks:
       - net
@@ -868,19 +832,11 @@ volumes:
 
 Generate an RSA key pair on your host machine:
 ```bash
-<<<<<<< HEAD
 ssh-keygen -t rsa -f jenkins-remote-key
 ```
 This command creates:
 - `jenkins-remote-key` (private key)
 - `jenkins-remote-key.pub` (public key)
-=======
-ssh-keygen -t rsa -f remote-key
-```
-This command creates:
-- `remote-key` (private key)
-- `remote-key.pub` (public key)
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
 
 ### 3.2 Configure the Remote Host Container
 
@@ -1103,7 +1059,6 @@ By following the steps above, you have now enhanced your Jenkins & Docker Integr
 This setup is especially useful in environments where you need Jenkins to manage deployments or maintenance tasks on remote servers or containers through secure SSH connections.
 
 --- 
-<<<<<<< HEAD
 # MySQL Backup to AWS S3 with Jenkins
 
 ## 1. Introduction MySQL + AWS + Shell Scripting + Jenkins
@@ -1495,6 +1450,3 @@ Steps include:
 *   After successful job execution (blue icon), verifying in the console output that the job is now backing up `pass_db` and uploading to the new bucket (`your-unique-bucket-name-for-mysql-backups2` or `Jenkins-MySQL-backup2`).
 *   Navigating to the new S3 bucket in the AWS console and confirming that a new backup file (e.g., `backup_pass_db_YYYYMMDD_HHMMSS.sql`) is present in the new bucket.
 *   Confirming that the original bucket (`your-unique-bucket-name-for-mysql-backups` or `Jenkins-MySQL-backup`) still contains the backups of `test_db` and remains unchanged, demonstrating that the job can be easily reused for different databases and buckets by simply changing the parameters.
-=======
-
->>>>>>> 0cc62acef8126efc964bc44b2282d7b8e2b0f07b
