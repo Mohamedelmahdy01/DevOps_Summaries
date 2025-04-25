@@ -775,6 +775,35 @@ RUN ssh-keygen -A
 CMD ["/usr/sbin/sshd", "-D"]
 ```
 
+or 
+```dockerfile
+FROM almalinux:9
+
+USER root
+
+RUN dnf install -y openssh-server openssh-clients && \
+    dnf clean all
+
+RUN useradd -m -s /bin/bash remote_user && \
+    mkdir /home/remote_user/.ssh && \
+    chmod 700 /home/remote_user/.ssh
+
+COPY jenkins-remote-key.pub /home/remote_user/.ssh/authorized_keys
+
+RUN chown -R remote_user:remote_user /home/remote_user/.ssh && \
+    chmod 600 /home/remote_user/.ssh/authorized_keys
+
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    echo "AllowUsers remote_user" >> /etc/ssh/sshd_config
+
+RUN ssh-keygen -A && \
+    chmod 600 /etc/ssh/sshd_config
+
+CMD ["/usr/sbin/sshd", "-D", "-e"]
+
+```
+
 ### Key Steps Explained:
 - **SSH Installation**: Installs OpenSSH server/client packages.
 - **User Creation**: A new user `remote_user` is created with password `1234`.
@@ -793,32 +822,42 @@ Use Docker Compose to run both the Jenkins and remote host containers on an isol
 
 ### docker-compose.yml
 
-```yaml
+  ```yaml
+  version: '3.8'
+
 services:
   jenkins:
-    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    image: jenkins-ansible
+    build:
+      context: jenkins-ansible
+      dockerfile: Dockerfile.jenkins-ansible
     networks:
-      - net
+      - net  # Ensure this network is defined below or use "host" mode
     ports:
       - "8080:8080"
+      - "50000:50000"
     volumes:
-      - jenkins-data:/var/jenkins_home
+      - /home/jenkins/jenkins-docker/jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      #- /usr/bin/docker:/usr/bin/docker  # Optional: Mount Docker CLI binary if not in the image
 
   remote-host:
-    build:
-      context: ./   # Ensure the Dockerfile and remote-key.pub are in this directory
-      dockerfile: Dockerfile.remote-host
     container_name: remote-host
+    image: remote-host
+    build:
+      context: centos
+      dockerfile: Dockerfile.remote-host
+
     networks:
       - net
 
 networks:
-  net:
+  net:  # Networks section (no trailing colon here)
 
 volumes:
   jenkins-data:
-```
-
+   ```
 ### Key Features:
 - **Network Isolation**: Both containers are on the same Docker network (`net`), enabling communication.
 - **Custom Build**: The remote host container is built from your custom Dockerfile.
@@ -873,7 +912,7 @@ In your Jenkins job:
 2. **Configure the Build Step**:
    In the job’s shell build step, use a command like:
    ```bash
-   ssh -i /var/jenkins_home/remote-key remote_user@remote-host "echo Hello World"
+   ssh -o StrictHostKeyChecking=no -i /var/jenkins_home/.ssh/id_rsa remote_user@remote-host "echo Hello World"
    ```
    Adjust the path to your private key if you stored it elsewhere.
 
@@ -900,43 +939,6 @@ docker exec -it jenkins bash
 # Test network connectivity from Jenkins container
 ping remote-host
 ```
-
----
-
-## 6. Best Practices
-
-- **Key Security**:  
-  - Never commit private keys to version control.
-  - Store keys securely and restrict permissions.
-  
-- **Network Isolation**:  
-  - Use dedicated Docker networks to isolate service communication.
-  
-- **User Permissions**:  
-  - Avoid using the root user for SSH connections; create specific users for automation.
-  
-- **Image Maintenance**:  
-  - Regularly update base images and packages to include security patches.
-  
-- **Credential Management**:  
-  - Use Jenkins’ credential management system to securely store and manage SSH keys.
-
----
-
-## 7. Next Steps and Advanced Topics
-
-- **SSH Agent Forwarding**:  
-  Explore SSH agent forwarding to manage keys more securely.
-  
-- **Jenkins SSH Plugin**:  
-  Consider installing and configuring the Jenkins SSH plugin for enhanced job management and easier command execution on remote hosts.
-  
-- **Multi-Container Environments**:  
-  Scale your setup to include additional remote hosts or services.
-  
-- **Orchestration Integration**:  
-  Integrate with configuration management tools (e.g., Ansible) for advanced orchestration and deployment scenarios.
-
 
 ---
 
@@ -1117,23 +1119,67 @@ Steps include:
 **Steps**:
 
 1. **Modify Docker Compose File**:
-   ```yaml
-   services:
-     db:
-       container_name: mysql_db
-       image: mysql:5.7
-       environment:
-         MYSQL_ROOT_PASSWORD: "1234"
-       volumes:
-         - ./mysql_data:/var/lib/mysql
-       networks:
-         - jenkins_network
+   
+  ```yaml
+  version: '3.8'
+
+services:
+  jenkins:
+    container_name: jenkins
+    image: jenkins-ansible
+    build:
+      context: jenkins-ansible
+      dockerfile: Dockerfile.jenkins-ansible
+    networks:
+      - net  # Ensure this network is defined below or use "host" mode
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - /home/jenkins/jenkins-docker/jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      #- /usr/bin/docker:/usr/bin/docker  # Optional: Mount Docker CLI binary if not in the image
+
+  remote-host:
+    container_name: remote-host
+    image: remote-host
+    build:
+      context: centos
+      dockerfile: Dockerfile.remote-host
+
+    networks:
+      - net
+
+
+  db:
+    container_name: mysql_db
+    image: mysql:5.7
+    secrets:
+      - mysql_root_password
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    networks:
+      - net
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+networks:
+  net:  # Networks section (no trailing colon here)
+
+volumes:
+  jenkins-data:
+  mysql_data:
+secrets:
+  mysql_root_password:
+    file: /home/jenkins/jenkins-data/db/mysql_root_password.txt  # Store password in an external file
    ```
 *   Using the command `docker-compose up -d` to create and start the MySQL container.
 *   Verifying the MySQL container is running using `docker ps`.
 *   Checking the logs of the `dbhost` container using `docker logs -f dbhost` to confirm that MySQL is ready for connections, looking for the line "MySQL is ready for connections".
 *   Accessing the MySQL container using `docker exec -it dbhost bash`.
-*   Logging into the MySQL server from within the container using `mysql -u root -p` and the password `password`.
+*   Logging into the MySQL server from within the container using 
+`mysql -u root -p` and the password **`mysql -u root -p$(cat /run/secrets/mysql_root_password)`** .
 *   Running `SHOW DATABASES;` in the MySQL client to verify the connection.
 
 ## 3. Install MySQL Client and AWS CLI
