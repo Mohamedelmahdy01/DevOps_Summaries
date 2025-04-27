@@ -1196,15 +1196,41 @@ Steps include:
 
     or
 ```yaml
-FROM centos:7
+FROM almalinux:9
 
-# Install MySQL Client
-RUN yum install -y mysql
+USER root
 
-# Install AWS CLI
-RUN curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-RUN unzip awscli-bundle.zip
-RUN ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+
+# Install all required packages (OpenSSH, MySQL Client, Python, AWS CLI dependencies)
+RUN dnf install -y openssh-server openssh-clients mysql unzip python3 && \
+    dnf clean all
+
+# Install AWS CLI v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws
+
+# Setting up SSH users and keys
+RUN useradd -m -s /bin/bash remote_user && \
+    mkdir /home/remote_user/.ssh && \
+    chmod 700 /home/remote_user/.ssh
+
+COPY jenkins-remote-key.pub /home/remote_user/.ssh/authorized_keys
+
+RUN chown -R remote_user:remote_user /home/remote_user/.ssh && \
+    chmod 600 /home/remote_user/.ssh/authorized_keys
+
+# Configure SSH settings
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    echo "AllowUsers remote_user" >> /etc/ssh/sshd_config
+
+RUN ssh-keygen -A && \
+    chmod 600 /etc/ssh/sshd_config
+
+CMD ["/usr/sbin/sshd", "-D", "-e"]
+
 ```
 *   Building the Docker image using `docker-compose build`.
 *   Recreating the `remote-host` container to apply the changes from the updated image using `docker-compose up -d`. This will restart the `remote-host` service and use the newly built image.
@@ -1285,11 +1311,11 @@ Steps include:
 *   Ensuring Docker containers are running using `docker ps`.
 *   Accessing the `remote-host` container using `docker exec -it remote-host bash`.
 *   Taking a MySQL backup using `mysqldump`:
-    `mysqldump -u root -p -h dbhost test_db > /tmp/test_db.sql`
+    `mysqldump -u root -p -h mysql_db test_db > /tmp/test_db.sql`
     Providing the password `password` when prompted. This command dumps the `test_db` database to a file named `test_db.sql` in the `/tmp` directory.
 
     ```bash
-    mysqldump -h db_host -u root -p1234 test_db > /tmp/db_backup.sql
+    mysqldump -h mysql_db -u root -p1234 test_db > /tmp/db_backup.sql
     ```
 *   Verifying the backup file by viewing its contents: `cat /tmp/test_db.sql`.
 *   Configuring AWS CLI authentication using environment variables. Setting the Access Key ID and Secret Access Key obtained from the IAM user creation:
@@ -1305,7 +1331,7 @@ Steps include:
     ```bash
     export AWS_ACCESS_KEY_ID="AKIAEXAMPLEKEY"
     export AWS_SECRET_ACCESS_KEY="s3cr3tAcc3ssK3y"
-    aws s3 cp /tmp/db_backup.sql s3://jenkins-mysql-backups/db_backup.sql
+    aws s3 cp /tmp/db_backup.sql s3://mysql-backup26-4-2025 /db_backup.sql
     ```
 *   Verifying the upload by checking the S3 bucket in the AWS console. Refresh the bucket content, and the `test_db.sql` file should be present.
 
@@ -1377,8 +1403,10 @@ Steps include:
     ```
     **Important**: Replace `"YOUR_ACCESS_KEY_ID"` with your actual AWS Access Key ID in the script. In a production environment, do not hardcode sensitive information directly in scripts. Use secure methods for credential management, especially in Jenkins.
 *   Testing the updated script manually, providing the bucket name, database host, password, database name, and AWS Secret Access Key as parameters:
-    `/tmp/backup_script.sh your-unique-bucket-name-for-mysql-backups dbhost password test_db YOUR_SECRET_ACCESS_KEY`
-    **Replace** `your-unique-bucket-name-for-mysql-backups` and `YOUR_SECRET_ACCESS_KEY` with your actual bucket name and secret key.
+    `/tmp/backup_script.sh <your-unique-bucket-name-for-mysql-backups> <dbhost-name> <password> <DB_NAME> <YOUR_SECRET_ACCESS_KEY>`
+    
+    **ex** 
+    `/tmp/backup_script.sh mysql-backup26-4-2025 mysql_db 1234 test_db qEWkbifZ2Nf7ynItJMJ5qFb3C+V7k6wretsdfdfb1`
 *   Verifying that the backup is created locally in `/tmp` and uploaded to the specified S3 bucket. Check the S3 bucket in the AWS console to confirm the uploaded backup file.
 
 ## 10. Learn how to manage sensitive information in Jenkins (Keys, Passwords)
@@ -1420,7 +1448,7 @@ Steps include:
 *   In the job configuration page, navigating to the "General" section.
 *   Checking the "This project is parameterized" option.
 *   Adding the following String parameters by clicking "Add Parameter" and selecting "String Parameter" for each:
-    *   Name: `MySQL_Host`, Default value: `dbhost`, Description: `MySQL Hostname`
+    *   Name: `MySQL_Host`, Default value: `mysql_db`, Description: `MySQL Hostname`
     *   Name: `Database_Name`, Default value: `test_db`, Description: `Database Name to Backup`
     *   Name: `S3_Bucket_Name`, Default value: `your-unique-bucket-name-for-mysql-backups`, Description: `AWS S3 Bucket Name` (Remember to replace `your-unique-bucket-name-for-mysql-backups` with your actual bucket name)
 *   Adding Secret text parameters under "This project is parameterized" section by clicking "Add Parameter" and selecting "Secret text" for each:
