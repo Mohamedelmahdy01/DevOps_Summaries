@@ -1188,9 +1188,10 @@ chage -M 90 mohamed    # Set maximum password days
 ```bash
 groupadd -g 2001 developers       # Create with custom GID
 groupmod -n devs developers       # Rename group
-groupdel devs                     # Delete empty group
 gpasswd -a john devs              # Add user to group
 gpasswd -d john devs              # Remove user from group
+groupdel devs                     # Delete empty group
+
 ```
 
 ### Important Files
@@ -1273,7 +1274,7 @@ getent passwd user01  # Verify user information
 getent group developers  # Check group details
 ```
 
----
+
 
 
 ---
