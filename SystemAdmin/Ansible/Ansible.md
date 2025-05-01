@@ -3,7 +3,6 @@
 
 Ansible is a powerful, open-source automation tool that streamlines IT operations, making it easier to manage configuration, deploy applications, and orchestrate complex infrastructures. Its design emphasizes simplicity, scalability, and security, which makes it ideal for both beginners and experienced IT professionals.
 
----
 
 ## What is Ansible?
 
@@ -393,42 +392,43 @@ The INI format is simple and works well for smaller environments.
 **Example – Basic INI Inventory:**
 
 ```ini
-# Default inventory file: inventory.ini
+[all]
+slave1 ansible_host=192.168.64.131 ansible_user=osboxes ansible_ssh_pass=osboxes.org ansible_python_interpreter=/usr/bin/python3.9
+slave2 ansible_host=192.168.64.132 ansible_user=osboxes
+slave3 ansible_host=192.168.64.133 ansible_user=osboxes
 
-# List hosts without groups:
-192.168.1.10
+[web]
+slave1
+slave2
 
-# Grouping hosts by function:
-[webservers]
-192.168.1.10
-192.168.1.11
+[db]
+slave3
 
-[databases]
-db1.example.com ansible_host=192.168.1.20 ansible_user=admin ansible_connection=ssh 
-db2.example.com ansible_host=192.168.1.21 ansible_user=admin
+[db:vars]
+db_user=dbadmin
+db_name=myappdb
 ```
 
 **Explanation:**
-- The `[webservers]` group lists two hosts by IP.
-- The `[databases]` group uses aliases (hostnames) with extra variables, ensuring that Ansible connects to the correct IP and with the proper user.
+- The `[web]` group lists two hosts by IP.
+- The `[db]` group uses aliases (hostnames) with extra variables, ensuring that Ansible connects to the correct IP and with the proper user.
 
 You can also create metagroups. For example:
 
 ```ini
-[webservers]
+[web]
 web1.example.com
 web2.example.com
 
-[databases]
-db1.example.com
-db2.example.com
+[db]
+db.example.com
 
 [production:children]
-webservers
-databases
+web
+db
 ```
 
-Here, the `production` group includes all hosts in both `webservers` and `databases`.
+Here, the `production` group includes all hosts in both `web` and `db`.
 
 ### B. YAML Format
 
@@ -441,19 +441,25 @@ YAML provides better readability and is particularly useful for complex inventor
 
 all:
   hosts:
-    server1:
-      ansible_host: 192.168.1.30
-      ansible_user: ubuntu
-    server2:
-      ansible_host: 192.168.1.31
-      ansible_user: ubuntu
+    slave1:
+      ansible_host: 192.168.64.131
+      ansible_user: osboxes
+      ansible_ssh_pass: osboxes.org
+      ansible_python_interpreter: /usr/bin/python3.9
+    slave2:
+      ansible_host: 192.168.64.132
+      ansible_user: osboxes
+    slave3:
+      ansible_host: 192.168.64.133
+      ansible_user: osboxes
   children:
-    webservers:
+    web:
       hosts:
-        server1:
-    databases:
+        slave1:
+        slave2:
+    db:
       hosts:
-        server2:
+        slave3:
 ```
 
 **Explanation:**
@@ -464,26 +470,34 @@ You can add variables at the group level too:
 
 ```yaml
 # inventory.yml with group variables
-
+---
 all:
   hosts:
-    server1:
-      ansible_host: 192.168.1.30
-      ansible_user: ubuntu
-    server2:
-      ansible_host: 192.168.1.31
-      ansible_user: ubuntu
+    slave1:
+      ansible_host: 192.168.64.131
+      ansible_user: osboxes
+      ansible_ssh_pass: osboxes.org
+      ansible_python_interpreter: /usr/bin/python3.9
+    slave2:
+      ansible_host: 192.168.64.132
+      ansible_user: osboxes
+    slave3:
+      ansible_host: 192.168.64.133
+      ansible_user: osboxes
   children:
-    webservers:
+    web:
       hosts:
-        server1:
-      vars:
-        http_port: 80
-    databases:
+        slave1:
+        slave2:
+    db:
       hosts:
-        server2:
+        slave3:
       vars:
-        ansible_user: dbadmin
+        db_user: dbadmin
+        db_name: myappdb
+      vars_files:
+        - db_vars.yml
+
 ```
 
 ---
