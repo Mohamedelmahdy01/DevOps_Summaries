@@ -580,6 +580,7 @@ For more comprehensive information, please refer to the [Ansible Inventory Guide
 
 ---
 
+---
 # Running Ansible: Two Approaches
 
 Ansible provides two ways to execute tasks on your target servers: ad-hoc commands and playbooks. Each method is suited for different scenarios.
@@ -594,7 +595,7 @@ Ansible provides two ways to execute tasks on your target servers: ad-hoc comman
 
 **Example Command:**  
 ```bash
-ansible all -m ping -i inventory.txt
+ansible all -m ping -i inventory.yml # or inventory.ini
 ```
 
 **Explanation:**
@@ -983,147 +984,558 @@ ansible-playbook playbook-copyfile.yaml -i inventory.txt
 
 ---
 
-# Ansible Modules Overview
-
-This document provides an overview of various Ansible modules, their purposes, and examples of how to use them. It covers module categories, detailed usage of specific modules, and important concepts like idempotency.
-
-## 1. Categories of Ansible Modules
-
-Ansible modules are organized based on their functionality:
-
-### 1.1. System Modules
-- **Purpose:** Manage system-level tasks.
-- **Examples:**  
-  - Modifying users and groups  
-  - Configuring IP tables and firewall rules  
-  - Managing logical volume groups  
-  - Handling mounting operations  
-  - Managing services (starting, stopping, restarting)
-
-### 1.2. Command Modules
-- **Purpose:** Execute commands or scripts on remote hosts.
-- **Modules:**
-  - **Command Module:**  
-    - Executes a command on a remote node using free-form input.
-    - **Key Features:**  
-      - Can change directory before execution (using a parameter like `chdir`)
-      - Uses the `creates` parameter to run the command only if a file or directory doesn’t exist.
-    - **Example Use Case:** Running `date` or viewing `/etc/resolv.conf` with a change directory setting.
-  - **Script Module:**  
-    - Transfers a script from the Ansible controller to remote nodes and then executes it.
-    - **Benefit:** No need to manually copy the script to each target host.
-
-### 1.3. File Modules
-- **Purpose:** Work with files and file attributes.
-- **Modules:**
-  - **ACL Module:** Set or retrieve file ACL (Access Control List) information.
-  - **Archive/Unarchive Modules:** Compress and extract files.
-  - **Find, Lineinfile, and Replace Modules:**  
-    - **Lineinfile Module:** Ensures a specific line is present in a file.  
-      - **Idempotent:** Prevents duplicate entries when the playbook is run multiple times.
-
-### 1.4. Database Modules
-- **Purpose:** Manage databases.
-- **Examples:**  
-  - Interact with MongoDB, MySQL, MSSQL, PostgreSQL to add/remove databases or modify configurations.
-
-### 1.5. Cloud Modules
-- **Purpose:** Interact with cloud services.
-- **Examples:**  
-  - Modules for Amazon, Azure, Docker, Google Cloud, Openstack, VMware, etc.
-  - **Capabilities:** Creating/destroying instances, configuring networking/security, managing containers and clusters.
-
-### 1.6. Windows Modules
-- **Purpose:** Manage tasks in Windows environments.
-- **Modules:**  
-  - **wincopy:** Copy files in Windows.
-  - **wincommand:** Execute commands on Windows machines.
-  - **Additional Modules:**  
-    - Create IIS websites, install software using MSI, modify registry entries, and manage Windows services and users.
-
-## 2. Detailed Module Explanations
-
-### 2.1. Command Module
-- **Usage:**  
-  - Execute free-form commands on remote nodes.
-- **Key Points:**  
-  - Accepts free-form input (e.g., simply passing the command without key-value pairs).
-  - Parameters such as `chdir` (change directory) and `creates` (execute only if a file/directory does not exist) enhance its functionality.
-- **Example Playbook:**
-  ```yaml
-  - name: Run a command on remote hosts
-    hosts: all
-    tasks:
-      - name: Display the current date
-        command: date
-
-      - name: Show /etc/resolv.conf contents
-        command: cat resolv.conf
-        args:
-          chdir: /etc
-          creates: /etc/resolv.conf
-  ```
-
-### 2.2. Script Module
-- **Usage:**  
-  - Automatically copies a local script from the controller and executes it on remote nodes.
-- **Benefit:**  
-  - Eliminates the need for manual file distribution when running scripts across multiple hosts.
-
-### 2.3. Service Module
-- **Usage:**  
-  - Manage system services such as starting, stopping, or restarting.
-- **Key Concept – Idempotency:**  
-  - Instead of simply instructing a service to "start," you specify a state (e.g., `started`).  
-  - **Idempotency:**  
-    - If the service is already in the desired state, no change is made.
-- **Example:**
-  ```yaml
-  - name: Ensure postgresql service is running
-    hosts: all
-    tasks:
-      - name: Start postgresql service
-        service:
-          name: postgresql
-          state: started
-  ```
-
-### 2.4. Lineinfile Module
-- **Usage:**  
-  - Add or update a specific line in a file.
-- **Key Points:**  
-  - **Idempotent Operation:**  
-    - Ensures that the specified line appears only once, regardless of how many times the playbook is executed.
-- **Example:**
-  ```yaml
-  - name: Add a DNS server entry
-    hosts: all
-    tasks:
-      - name: Ensure nameserver entry exists in resolv.conf
-        lineinfile:
-          path: /etc/resolv.conf
-          line: "nameserver 8.8.8.8"
-  ```
-
-## 3. Key Concepts
-
-### Idempotency
-- **Definition:**  
-  - An operation is idempotent if running it multiple times results in the same state as running it once.
-- **Importance in Ansible:**  
-  - Most Ansible modules are designed to be idempotent, ensuring that repeated executions do not produce unintended side effects.
-
-### Free-form vs. Parameterized Input
-- **Free-form Input:**  
-  - Used by modules like the command module where the command is passed directly.
-- **Parameterized Input:**  
-  - Used by modules like the copy or service module where you must specify options in key-value pairs.
-
-### Documentation and Further Reading
-- A comprehensive list of modules and their detailed usage instructions can be found at [docs.ansible.com](https://docs.ansible.com).
-
-## 4. Conclusion
-
-This guide has provided a high-level overview of various Ansible modules grouped by functionality. It also highlighted detailed examples of key modules such as command, script, service, and lineinfile, along with important concepts like idempotency and input formats. Understanding these modules and concepts is essential for building robust, idempotent automation playbooks with Ansible.
+Here's a **revamped, more practical explanation** of Ansible modules with clearer organization and actionable examples:
 
 ---
+
+# Ansible Modules 
+*Automate Everything, Repeatably*
+
+Ansible modules are the building blocks of Ansible playbooks, encapsulating idempotent operations—like installing packages, managing users, or configuring cloud resources—so you can declare desired system states without scripting imperative steps  ([Ansible Modules Types Explained - CloudMyLab Blog](https://blog.cloudmylab.com/ansible-modules-types-explained)). They are grouped by functionality into categories such as System, Command, File, Database, Cloud, and Windows, each with dozens or hundreds of specialized modules maintained by the Ansible community and Red Hat  ([Module Index - Ansible Documentation](https://docs.ansible.com/ansible/2.9/modules/modules_by_category.html)).  
+
+---
+
+## **Module Categories & Use Cases**  
+| Category    | Key Modules          | What They Do                          | Real-World Example                  |  
+|-------------|----------------------|---------------------------------------|-------------------------------------|  
+| **System**  | `user`, `service`, `iptables`, `mount` | Manage users, services, firewalls, disks | Create a restricted admin account |  
+| **Files**   | `copy`, `lineinfile`, `archive`       | Deploy configs, modify files, compress data | Update `/etc/hosts` across servers |  
+| **Cloud**   | `ec2`, `azure_rm_virtualmachine`      | Spin up cloud instances, manage resources | Deploy AWS EC2 web cluster         |  
+| **Database**| `mysql_db`, `postgresql_user`         | Create DBs, manage users/privileges   | Setup MySQL replica                 |  
+| **Windows** | `win_command`, `win_service`          | Run PowerShell, manage Windows services | Install IIS website                |  
+
+---
+
+## **Core Modules Demystified**  
+
+### 1. **Command & Script Modules**  
+
+The `command` and `script` modules are among the simplest ways to execute tasks on remote hosts. These modules allow you to run shell commands or scripts without requiring additional dependencies.
+
+#### When to Use:  
+- **Quick tasks**: Check disk space, restart processes  
+- **Custom scripts**: Run legacy deployment scripts  
+
+```yaml  
+- name: "Check server uptime"  
+  command: uptime  
+
+- name: "Run DB backup script"  
+  script: /scripts/backup_db.sh  # Copies & executes remotely  
+```  
+
+
+**Explanation**:  
+- The `command` module runs commands directly on the remote host. It does not support shell-specific syntax like pipes (`|`) or redirects (`>`), but it is safe for simple operations.
+- The `script` module copies a local script to the remote host and executes it. This is useful for running custom scripts that may not be present on the target machine.
+
+
+---
+
+### 2. **Service Module (Idempotent!)**  
+
+The `service` module manages system services such as starting, stopping, enabling, or disabling them. It is idempotent, meaning it ensures the desired state without making unnecessary changes.
+
+**Why It Matters**: Safe to rerun - only changes state if needed.  
+
+```yaml  
+- name: "Ensure Nginx is running"  
+  service:  
+    name: nginx  
+    state: started  # ← Key parameter  
+    enabled: yes    # Start on boot  
+```  
+**Explanation**:  
+- The `state` parameter defines whether the service should be `started`, `stopped`, or `restarted`.
+- The `enabled` parameter determines whether the service should start automatically at boot time.
+- If the service is already running, Ansible will not attempt to restart it unless explicitly instructed.
+
+
+---
+
+### 3. **Lineinfile Module**  
+
+The `lineinfile` module allows you to add, modify, or replace a single line in a file. This is particularly useful for managing configuration files without overwriting the entire file.
+
+
+**Fix Configs Without Overwriting**:  
+```yaml  
+- name: "Set DNS server in resolv.conf"  
+  lineinfile:  
+    path: /etc/resolv.conf  
+    line: "nameserver 1.1.1.1"  
+    regexp: "^nameserver"  # Replace existing entries  
+```  
+**Explanation**:  
+- The `path` parameter specifies the file to modify.
+- The `line` parameter defines the exact content to insert or replace.
+- The `regexp` parameter identifies the line to replace (e.g., all lines starting with `nameserver`).
+
+---
+
+### 4. **Copy Module**  
+
+The `copy` module is used to copy files from the control node to the managed nodes. It can also set file permissions and ownership.
+
+```yaml  
+- name: "Deploy application configuration"  
+  copy:  
+    src: /local/path/to/app.conf  
+    dest: /remote/path/to/app.conf  
+    owner: root  
+    group: root  
+    mode: '0644'  
+```  
+
+**Explanation**:  
+- The `src` parameter specifies the source file on the control node.
+- The `dest` parameter specifies the destination path on the managed node.
+- The `owner`, `group`, and `mode` parameters control file ownership and permissions.
+
+---
+
+### 5. **User Module**  
+
+The `user` module manages user accounts on the managed nodes. It can create, modify, or delete users and set attributes such as groups and passwords.
+
+```yaml  
+- name: "Create a new admin user"  
+  user:  
+    name: admin  
+    groups: sudo  
+    append: yes  
+    password: "{{ 'securepassword' | password_hash('sha512') }}"  
+```  
+
+**Explanation**:  
+- The `name` parameter specifies the username.
+- The `groups` parameter adds the user to specific groups.
+- The `append` parameter ensures the user is added to the specified groups without removing them from other groups.
+- The `password` parameter sets the user's password using a hashed value.
+
+---
+
+### 6. **File Module**  
+
+The `file` module manages files, directories, and symbolic links. It can create, delete, or modify their attributes.
+
+```yaml  
+- name: "Create a directory for logs"  
+  file:  
+    path: /var/log/myapp  
+    state: directory  
+    mode: '0755'  
+    owner: myapp  
+    group: myapp  
+```  
+
+**Explanation**:  
+- The `path` parameter specifies the file or directory path.
+- The `state` parameter defines whether the target should be a `file`, `directory`, or `link`.
+- The `mode`, `owner`, and `group` parameters control permissions and ownership.
+
+---
+
+## **Key Concepts Made Simple**  
+
+### **Idempotency**  
+
+- **What**: Running the same playbook multiple times produces the same result as running it once.  
+- **Why**: Ensures safety and reliability, especially in automated workflows.  
+- **Test It**: Run playbook twice → Second run shows "OK" (no changes).  
+
+### **Input Styles**  
+
+| Type             | Example                   | Best For                  |  
+|------------------|---------------------------|---------------------------|  
+| **Free-form**    | `command: rm /tmp/*.log`  | Simple one-off commands   |  
+| **Parameterized**| `copy: src=app.conf dest=/etc/` | Controlled, repeatable tasks |  
+
+---
+
+## **Real-World Scenarios**  
+
+### **Scenario 1: Secure Server Setup**  
+
+1. **Create limited user**:  
+   ```yaml  
+   - name: "Add deploy user"  
+     user:  
+       name: deploy  
+       groups: sudo  
+       append: yes  
+   ```  
+
+2. **Harden SSH**:  
+   ```yaml  
+   - name: "Disable root login"  
+     lineinfile:  
+       path: /etc/ssh/sshd_config  
+       regexp: "^PermitRootLogin"  
+       line: "PermitRootLogin no"  
+   ```  
+
+3. **Restart SSH service**:  
+   ```yaml  
+   - name: "Restart SSH service"  
+     service:  
+       name: ssh  
+       state: restarted  
+   ```  
+
+---
+
+### **Scenario 2: Cloud Deployment**  
+
+1. **Launch EC2 instance**:  
+   ```yaml  
+   - name: "Spin up web server"  
+     ec2_instance:  
+       key_name: my-key  
+       instance_type: t3.micro  
+       image_id: ami-123456  
+   ```  
+
+2. **Deploy application**:  
+   ```yaml  
+   - name: "Copy WAR file"  
+     copy:  
+       src: app.war  
+       dest: /opt/tomcat/webapps/  
+   ```  
+
+3. **Start Tomcat service**:  
+   ```yaml  
+   - name: "Start Tomcat service"  
+     service:  
+       name: tomcat  
+       state: started  
+   ```  
+
+---
+
+### **Scenario 3: Database Setup**  
+
+1. **Create MySQL database**:  
+   ```yaml  
+   - name: "Create application database"  
+     mysql_db:  
+       name: myappdb  
+       state: present  
+   ```  
+
+2. **Create database user**:  
+   ```yaml  
+   - name: "Create database user"  
+     mysql_user:  
+       name: dbuser  
+       password: securepassword  
+       priv: "myappdb.*:ALL"  
+       state: present  
+   ```  
+
+---
+
+
+1. **Explore modules**:  
+   ```bash  
+   ansible-doc -l | grep cloud  # Find cloud-related modules  
+   ```  
+
+2. **Practice safely**:  
+   ```bash  
+   ansible-playbook playbook.yml --check --diff  # Dry-run first!  
+   ```  
+
+3. **Combine modules**:  
+   - Use `git` + `copy` + `service` for zero-downtime deployments  
+
+**Official Module Index**: [docs.ansible.com](https://docs.ansible.com)  
+
+---
+# Ansible Inventory
+
+The **inventory** is a fundamental part of Ansible. It defines the **hosts** (remote machines) and how they are grouped and accessed.
+
+
+## 1. Inventory File Formats
+
+Ansible supports multiple formats:
+
+### INI Format (Most Common for Static Inventory)
+```ini
+# Group of web servers
+[web]
+web1 ansible_host=192.168.1.10 ansible_user=ubuntu
+web2 ansible_host=192.168.1.11
+
+# Group of database servers
+[db]
+db1 ansible_host=192.168.1.20 ansible_user=root
+
+# Variables for the whole group
+[web:vars]
+ansible_port=22
+ansible_python_interpreter=/usr/bin/python3
+
+[production:children]
+web
+db
+```
+
+
+
+**Syntax Notes:**
+- `[groupname]` defines a group.
+- Each line under the group is a host.
+- `ansible_host` overrides the hostname.
+- `[groupname:children]` contains groups.
+- `[groupname:vars]` allows setting variables for a group.
+---
+
+### YAML Format (Used in `inventory.yml` or dynamic plugins)
+```yaml
+all:
+  children:
+    web:
+      hosts:
+        web1:
+          ansible_host: 192.168.1.10
+          ansible_user: ubuntu
+    db:
+      hosts:
+        db1:
+          ansible_host: 192.168.1.20
+          ansible_user: root
+```
+
+**Syntax Notes:**
+- `all` is the top-level group (required).
+- `children` contains groups.
+- Each group contains `hosts`.
+- Each host can have key-value variables.
+
+---
+
+## 2. Host and Group Variables (Host/Group Specific Configs)
+
+You can define variables per host or group using file structure:
+
+```
+inventory/
+├── hosts               # Your inventory INI or YAML file
+├── group_vars/
+│   └── web.yml         # Variables for web group
+└── host_vars/
+    └── web1.yml        # Variables for web1 host
+```
+
+### group_vars/web.yml
+```yaml
+ansible_user: ubuntu
+ansible_port: 22
+```
+
+### host_vars/web1.yml
+```yaml
+ansible_host: 192.168.1.10
+ansible_user: ubuntu
+```
+
+---
+
+## 3. Nested Groups & Grouping Groups
+
+You can create groups of groups for better organization.
+
+### Example:
+```ini
+[web]
+web1
+web2
+
+[db]
+db1
+
+[prod:children]
+web
+db
+```
+
+Now, `prod` includes both `web` and `db`.
+
+---
+
+## 4. Common Ansible Inventory Variables
+
+| Variable                        | Description                                           |
+|---------------------------------|-------------------------------------------------------|
+| `ansible_host`                  | IP or DNS of the host                                |
+| `ansible_user`                  | SSH username                                         |
+| `ansible_port`                  | SSH port (default 22)                                |
+| `ansible_ssh_private_key_file` | Path to SSH key                                      |
+| `ansible_connection`           | Type of connection (`ssh`, `local`, `docker`, etc.)  |
+| `ansible_python_interpreter`   | Path to Python interpreter                           |
+
+---
+
+## 5. Inventory Commands
+
+### Check inventory
+```bash
+ansible-inventory -i inventory/hosts --list
+```
+
+### Ping all hosts
+```bash
+ansible all -i inventory/hosts -m ping
+```
+
+### Target a group
+```bash
+ansible web -i inventory/hosts -m ping
+```
+
+---
+
+## 6. Advanced INI Syntax
+
+### Host alias
+```ini
+web1 ansible_host=192.168.1.10
+```
+
+### Group variables
+```ini
+[web:vars]
+ansible_user=ubuntu
+ansible_port=22
+```
+
+---
+
+## References
+
+- Ansible Inventory Guide: https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+- Dynamic Inventory Plugins: https://docs.ansible.com/ansible/latest/plugins/inventory.html
+- Inventory Best Practices: https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html
+
+
+---
+# ansbile vault
+
+Ansible Vault lets you encrypt and manage sensitive data—passwords, keys, credentials—alongside your playbooks and roles, without exposing them in plaintext. Vault files can hold entire files, individual variables, or arbitrary YAML/JSON data structures; you interact with them via the `ansible-vault` CLI or within playbooks. Vault supports multiple passwords (per-file or per-group), password‐lookup scripts, rekeying, and encrypted strings, all while preserving idempotency and seamless integration with Ansible’s normal workflows.  
+
+---
+
+## What Is Ansible Vault?  
+Ansible Vault is a feature-built mechanism to encrypt any Ansible data file—variable files, playbooks, or templates—so that secrets (passwords, tokens, keys) can safely live in version control without revealing their contents  ([Ansible Vault](https://docs.ansible.com/ansible/2.9/user_guide/vault.html)).
+Vault operates at rest: files remain encrypted until Ansible is invoked with the correct password or password‐lookup script  ([Protecting sensitive data with Ansible vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html)).  
+
+---
+
+## Core Commands (`ansible-vault`)  
+The `ansible-vault` command-line utility provides these primary subcommands:  
+
+| Action             | Description                                          |
+|--------------------|------------------------------------------------------|
+| `create`           | Create a new encrypted file interactively            |
+| `encrypt`          | Encrypt an existing plaintext file                   |
+| `decrypt`          | Decrypt an encrypted file back to plaintext          |
+| `edit`             | Open an encrypted file in your editor and re-encrypt |
+| `view`             | View decrypted content temporarily                   |
+| `encrypt_string`   | Encrypt a single string on the command line          |
+| `rekey`            | Change the password used to encrypt a file           |
+
+---
+
+## Vault File Formats  
+Vault files use a simple YAML-like header identifying the payload format, cipher, and version, followed by Base64‐encoded ciphertext. Common formats:  
+- **1.1 (default):** AES256 CBC with HMAC-SHA256  
+- **1.2:** AES256 GCM (authenticated encryption)  ([Ansible Vault — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/vault_guide/vault.html)).  
+
+Encrypted data can be entire files (`.yml`, `.json`), or inline variables within playbooks using the `!vault` tag and `encrypt_string`  ([Using Vault in playbooks - Ansible Documentation](https://docs.ansible.com/ansible/2.8/user_guide/playbooks_vault.html)).
+
+---
+
+## Using Vault in Playbooks  
+1. **Encrypt variable files:**  
+   ```bash
+   ansible-vault create group_vars/production/secrets.yml
+   ```  
+2. **Reference in playbook:**  
+   ```yaml
+   - hosts: production
+     vars_files:
+       - group_vars/production/secrets.yml
+     tasks:
+       - debug: var=secret_password
+   ```  
+3. **Run with password or script:**  
+   ```bash
+   ansible-playbook site.yml --ask-vault-pass
+   # or with look-up script:
+   ansible-playbook site.yml --vault-password-file ~/.vault_pass.sh
+   ```
+     ([Using Vault in playbooks - Ansible Documentation](https://docs.ansible.com/ansible/2.8/user_guide/playbooks_vault.html)).  
+
+---
+
+## Multiple Vault Passwords & ID Separation  
+You can encrypt different files with separate passwords or password‐files:  
+```ini
+# ansible.cfg
+[defaults]
+vault_identity_list = dev@~/.vault_dev_pass prod@~/.vault_prod_pass
+```  
+Invoke by identity:  
+```bash
+ansible-playbook site.yml --vault-id dev@prompt --vault-id prod@~/.vault_prod_pass
+```  
+This allows per-environment isolation and key rotation without decrypting all vaults at once  ([Protecting sensitive data with Ansible vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html), [Using Vault in playbooks - Ansible Documentation](https://docs.ansible.com/ansible/2.8/user_guide/playbooks_vault.html)).
+
+---
+
+## Vault Password Lookup Scripts  
+Rather than typing passwords, use scripts to fetch secrets from external stores (HashiCorp Vault, AWS KMS, etc.). The script must print the vault password to stdout. Configure via `--vault-password-file` or `--vault-id`  ([Protecting sensitive data with Ansible vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html)).
+
+---
+
+## Rekeying & Rolling Keys  
+To change encryption passwords without re-encrypting plaintext manually:  
+```bash
+ansible-vault rekey group_vars/all/vault.yml --new-vault-password-file ~/.new_pass.sh
+```  
+This updates the ciphertext under the new key but preserves the original data  ([ansible-vault — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html)).
+
+---
+
+## Encrypting Single Values  
+For small secrets (e.g., tokens), use `encrypt_string`:  
+```bash
+ansible-vault encrypt_string 'my-secret-token' --name 'api_token'
+```  
+This emits YAML you can paste into any playbook or vars file:  
+```yaml
+api_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          616263...
+```  
+([ansible-vault — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html)).
+
+---
+
+## Best Practices  
+- **Separate secrets by environment or team**, using identities for per-vault passwords  ([Chapter 3. Ansible vault | Red Hat Product Documentation](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10-beta/html/automating_system_administration_by_using_rhel_system_roles/ansible-vault)).  
+- **Version control only encrypted files.** Never commit plaintext  ([Chapter 3. Ansible vault | Red Hat Product Documentation](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10-beta/html/automating_system_administration_by_using_rhel_system_roles/ansible-vault)).  
+- **Use password lookup scripts** to centralize key management and integrate with enterprise secret stores  ([Protecting sensitive data with Ansible vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html)).  
+- **Rotate keys regularly** using `rekey` and multiple identities to limit exposure  ([A brief introduction to Ansible Vault - Red Hat](https://www.redhat.com/en/blog/introduction-ansible-vault)).  
+- **Encrypt entire directories** by looping over files in CI pipelines to ensure uniform coverage  ([How To Use Ansible Vault to Protect Sensitive Playbook Data](https://www.digitalocean.com/community/tutorials/how-to-use-vault-to-protect-sensitive-ansible-data)).  
+
+---
+
+## Further Reading  
+- Protecting sensitive data with Ansible Vault  ([Protecting sensitive data with Ansible vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html))  
+- ansible-vault CLI reference  ([ansible-vault — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html))  
+- Using Vault in playbooks  ([Using Vault in playbooks - Ansible Documentation](https://docs.ansible.com/ansible/2.8/user_guide/playbooks_vault.html))  
+- Introduction to Ansible Vault (Red Hat)  ([A brief introduction to Ansible Vault - Red Hat](https://www.redhat.com/en/blog/introduction-ansible-vault))
