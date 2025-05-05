@@ -555,3 +555,13 @@ kubectl describe pod my-pod
 ```
 Look for events like `FailedScheduling` due to resource constraints.
 
+## References
+
+[Kubernetes Concepts](https://kubernetes.io/docs/concepts/)
+
+[Pod Overview](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/)
+
+---
+
+
+
