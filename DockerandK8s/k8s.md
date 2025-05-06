@@ -565,3 +565,1060 @@ Look for events like `FailedScheduling` due to resource constraints.
 
 
 
+# YAML for Kubernetes
+
+## What is YAML?
+
+YAML (YAML Ain't Markup Language) is a human-readable data serialization format widely used for configuration files, data exchange, and defining Kubernetes objects. Its simplicity and clarity make it ideal for specifying complex configurations in a structured, intuitive way. In Kubernetes, YAML files define the desired state of resources like Pods, Deployments, and Services.
+
+### Why YAML for Kubernetes?
+- **Human-Readable**: Clear syntax reduces errors and improves maintainability.
+- **Hierarchical Structure**: Supports nested configurations for complex objects.
+- **Version Control**: YAML files can be stored in Git for tracking changes.
+- **Interoperability**: Works across programming languages and tools.
+
+### Comparison with Other Formats
+| Format | Example | Pros | Cons |
+|--------|---------|------|------|
+| **XML** | `<server><name>east</name><ip>192.168.1.1</ip></server>` | Structured, widely supported | Verbose, complex |
+| **JSON** | `{"server": {"name": "east", "ip": "192.168.1.1"}}` | Compact, machine-friendly | Less readable for humans |
+| **YAML** | ```yaml<br>server:<br>  name: east<br>  ip: 192.168.1.1<br>``` | Readable, concise | Sensitive to indentation |
+
+**Why YAML Wins**: YAML’s clean syntax and support for comments make it more developer-friendly than XML or JSON for Kubernetes manifests.
+
+## Basic YAML Structures
+
+### Key-Value Pairs
+Represents simple properties with a key and value.
+```yaml
+fruit: apple
+vegetable: carrot
+drink: water
+```
+**Use Case**: Define basic metadata like a pod’s name or namespace.
+
+### Lists/Arrays
+Represents a collection of items, denoted by a hyphen (`-`).
+```yaml
+fruits:
+  - apple
+  - banana
+  - orange
+```
+**Use Case**: List containers in a pod or ports in a service.
+
+### Dictionaries (Maps)
+Groups related key-value pairs under a single key.
+```yaml
+apple:
+  calories: 95
+  fat: 0.3
+  carbs: 25
+```
+**Use Case**: Define container specifications (image, ports, resources).
+
+## Advanced Structures
+
+### List of Dictionaries
+Combines lists and dictionaries for multiple objects with properties.
+```yaml
+fruits:
+  - name: apple
+    calories: 95
+    fat: 0.3
+  - name: banana
+    calories: 105
+    fat: 0.4
+```
+**Use Case**: Define multiple containers or volume mounts in a pod.
+
+### Nested Structures
+Supports deep hierarchies for complex configurations.
+```yaml
+employee:
+  name: Jacob
+  sex: male
+  age: 30
+  title: Systems Engineer
+  projects:
+    - automation
+    - support
+  payslips:
+    - month: June
+      wage: 4000
+    - month: July
+       wage: 4500
+```
+**Use Case**: Define a pod with multiple containers, volumes, and probes.
+
+### Multi-line Strings
+Preserves line breaks for long text, using `|` or `>`.
+```yaml
+description: |
+  This is a multi-line
+  string that preserves
+  line breaks.
+code: >
+  Folded multi-line string
+  treated as a single line.
+```
+**Use Case**: Embed scripts or configuration files in a ConfigMap.
+
+## YAML Syntax Rules
+
+1. **Indentation**:
+   - Use **2 spaces** (never tabs) for indentation.
+   - Maintain consistent indentation for items at the same level.
+   ```yaml
+   # Correct
+   containers:
+     - name: nginx
+       image: nginx:latest
+   # Wrong
+   containers:
+     - name: nginx
+         image: nginx:latest  # Inconsistent indentation
+   ```
+
+2. **Key-Value Separation**:
+   - Include a space after the colon (`: `).
+   ```yaml
+   # Correct
+   fruit: apple
+   # Wrong
+   fruit:apple  # No space after colon
+   ```
+
+3. **Comments**:
+   - Use `#` for comments, ignored by parsers.
+   ```yaml
+   # This is a comment
+   fruit: apple  # Inline comment
+   ```
+
+4. **Lists**:
+   - Use hyphens (`-`) for list items, properly aligned.
+   ```yaml
+   # Correct
+   ports:
+     - containerPort: 80
+     - containerPort: 443
+   # Wrong
+   ports:
+   - containerPort: 80
+    - containerPort: 443  # Incorrect nesting
+   ```
+
+5. **Anchors and Aliases**:
+   - Reuse configurations with `&` (anchor) and `*` (alias).
+   ```yaml
+   defaults: &defaults
+     memory: 512Mi
+     cpu: 500m
+   container:
+     <<: *defaults
+     image: nginx
+   ```
+   **Use Case**: Apply common resource limits to multiple containers.
+
+6. **Booleans and Nulls**:
+   - Use `true`, `false`, or `null` (case-sensitive).
+   ```yaml
+   enabled: true
+   disabled: false
+   empty: null
+   ```
+
+## When to Use Different Structures
+
+| Scenario | Structure | Example |
+|----------|-----------|---------|
+| Single property | Key-value | `name: nginx-pod` |
+| Multiple options | List | `ports: [80, 443]` |
+| Object properties | Dictionary | `resources: {cpu: 500m, memory: 512Mi}` |
+| Multiple objects | List of dictionaries | `containers: [{name: nginx, image: nginx}, {name: sidecar, image: fluentd}]` |
+| Complex hierarchy | Nested structure | `spec: {template: {metadata: {labels: {app: web}}}}` |
+
+## Kubernetes YAML Essentials
+
+Kubernetes YAML files typically include four top-level fields:
+- **apiVersion**: The API version of the resource (e.g., `v1`, `apps/v1`).
+- **kind**: The type of resource (e.g., `Pod`, `Deployment`, `Service`).
+- **metadata**: Information like `name`, `namespace`, and `labels`.
+- **spec**: The desired state of the resource (e.g., containers, replicas).
+
+### Basic Pod Definition
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: default
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.25
+    ports:
+    - containerPort: 80
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+```
+**Purpose**: Defines a single pod running an Nginx container with resource limits.
+
+### Deployment with Replicas
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+```
+**Purpose**: Manages a set of 3 Nginx pods with health checks and automatic scaling.
+
+### Service Definition
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+spec:
+  selector:
+    app: web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+```
+**Purpose**: Exposes the `web` deployment as a stable internal endpoint.
+
+### ConfigMap for Application Configuration
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  database_url: mysql://user:pass@db:3306/app
+  log_level: debug
+```
+**Purpose**: Stores configuration data for an application, injectable via environment variables or volumes.
+
+## Advanced Kubernetes YAML Examples
+
+### Multi-Container Pod with Sidecar
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-app
+spec:
+  containers:
+  - name: web-server
+    image: nginx:1.25
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: logs
+      mountPath: /var/log/nginx
+  - name: log-processor
+    image: fluentd:1.16
+    volumeMounts:
+    - name: logs
+      mountPath: /logs
+  volumes:
+  - name: logs
+    emptyDir: {}
+```
+**Purpose**: Runs an Nginx server with a Fluentd sidecar for log processing, sharing a volume.
+
+### StatefulSet for Database
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+```
+**Purpose**: Manages a stateful MySQL cluster with persistent storage and stable network identities.
+
+## Common Mistakes to Avoid
+
+1. **Inconsistent Indentation**:
+   ```yaml
+   # Wrong
+   containers:
+   - name: nginx
+       image: nginx:latest  # Extra indentation
+     ports:
+       - containerPort: 80
+   ```
+   **Fix**: Use 2 spaces consistently.
+
+2. **Missing or Incorrect Colons**:
+   ```yaml
+   # Wrong
+   metadata
+     name nginx-pod  # Missing colon
+   ```
+   **Fix**: Ensure `key: value` format.
+
+3. **Using Tabs Instead of Spaces**:
+   - Tabs cause parsing errors. Use spaces only.
+
+4. **Incorrect List Syntax**:
+   ```yaml
+   # Wrong
+   ports: - containerPort: 80  # Missing newline
+   ```
+   **Fix**:
+   ```yaml
+   ports:
+     - containerPort: 80
+   ```
+
+5. **Invalid API Version or Kind**:
+   ```yaml
+   # Wrong
+   apiVersion: v2  # Invalid version
+   kind: Pods  # Incorrect kind
+   ```
+   **Fix**: Check valid `apiVersion` (e.g., `v1`, `apps/v1`) and `kind` (e.g., `Pod`, `Deployment`) in Kubernetes docs.
+
+6. **Missing Required Fields**:
+   ```yaml
+   # Wrong
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: web
+   # Missing spec
+   ```
+   **Fix**: Include all required fields (`metadata`, `spec`, etc.).
+
+## Validating YAML Files
+
+- **Online Validators**: Use tools like `yaml-lint` or online YAML validators to check syntax.
+- **Kubernetes Dry Run**:
+  ```bash
+  kubectl apply --dry-run=client -f file.yaml
+  ```
+  Validates the YAML and checks for Kubernetes-specific errors without applying changes.
+- **Kubeval**: A CLI tool to validate Kubernetes YAML against API schemas.
+  ```bash
+  kubeval file.yaml
+  ```
+
+## Practice Exercises
+
+### Exercise 1: Basic Key-Value
+Create a ConfigMap for application settings.
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-settings
+data:
+  environment: production
+  log_level: info
+  max_connections: "100"
+```
+
+### Exercise 2: List of Items
+Define a Service with multiple ports.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: multi-port-service
+spec:
+  selector:
+    app: my-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  - protocol: TCP
+    port: 443
+    targetPort: 8443
+  type: ClusterIP
+```
+
+### Exercise 3: Complex Structure
+Create a Deployment with multiple containers and environment variables.
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: complex-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: complex
+  template:
+    metadata:
+      labels:
+        app: complex
+    spec:
+      containers:
+      - name: main-app
+        image: my-app:1.0
+        env:
+        - name: DB_HOST
+          value: mysql-service
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: api-key
+        ports:
+        - containerPort: 8080
+      - name: sidecar
+        image: prometheus-exporter:1.0
+        ports:
+        - containerPort: 9100
+```
+
+### Exercise 4: Nested Structure with Volumes
+Define a Pod with a shared volume and init container.
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-pod
+spec:
+  initContainers:
+  - name: init-data
+    image: busybox
+    command: ["sh", "-c", "echo 'data' > /data/init.txt"]
+    volumeMounts:
+    - name: shared-data
+      mountPath: /data
+  containers:
+  - name: main
+    image: nginx:1.25
+    volumeMounts:
+    - name: shared-data
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: shared-data
+    emptyDir: {}
+```
+
+## Best Practices
+
+1. **Use Consistent Formatting**: Adopt a standard (e.g., 2-space indentation, lowercase keys).
+2. **Validate Before Applying**: Always run `kubectl apply --dry-run=client`.
+3. **Version Control YAML**: Store manifests in Git for tracking and collaboration.
+4. **Use Meaningful Names and Labels**: Include descriptive `metadata.name` and `labels` for clarity.
+5. **Modularize Configurations**: Split large YAML files into smaller ones (e.g., one per resource type).
+6. **Document with Comments**: Add comments to explain complex sections.
+7. **Leverage Tools**:
+   - **Helm**: Package and manage YAML templates.
+   - **Kustomize**: Customize YAML for different environments.
+   - **yq**: Query and modify YAML files programmatically.
+
+## Tools for Working with YAML
+
+- **Editors**: VS Code with YAML extension, IntelliJ, or Vim with YAML plugins.
+- **Validators**: `yaml-lint`, `kubeval`, or online tools like YAML Validator.
+- **Generators**: `kubectl create` or `helm create` to scaffold YAML.
+- **Parsers**: `yq` or `jq` for scripting YAML modifications.
+
+## References
+- [Kubernetes Documentation](https://kubernetes.io/docs/concepts/)
+- [YAML Specification](https://yaml.org/)
+
+---
+
+# Kubernetes Workload Objects: Pods, ReplicaSets & Deployments
+
+This document provides a comprehensive overview of fundamental Kubernetes workload objects: Pods, ReplicaSets, and Deployments. These objects are essential for deploying and managing applications in Kubernetes, enabling scalability, self-healing, and declarative lifecycle management. Insights from practical labs and best practices are integrated to ensure a production-ready understanding.
+
+## Pods - The Basic Building Block
+
+### Key Characteristics
+- **Smallest Deployable Unit**: A Pod is the smallest manageable unit in Kubernetes.
+- **Encapsulates Containers**: Hosts one or more tightly coupled containers sharing resources.
+- **Shared Resources**:
+  - **Network Namespace**: Containers share the same IP and port space, communicating via `localhost`.
+  - **Storage Volumes**: Containers share data through mounted volumes.
+  - **Lifecycle**: Containers are co-located on the same node, co-scheduled, and created/destroyed together.
+- **Unique IP Address**: Each Pod gets a cluster-unique IP for network communication.
+- **Ephemeral**: Pods are short-lived and lost if their node fails, requiring controllers for persistence.
+
+**Example Use Case**: A Pod running a web server (Nginx) and a sidecar (Fluentd) for log aggregation, sharing a volume for log data.
+
+### Pod Definition Example
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  namespace: default
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.25
+    ports:
+    - containerPort: 80
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+```
+**Purpose**: Defines a single-container Pod running Nginx with resource constraints.
+
+### Multi-Container Pod Patterns
+Multi-container Pods are used for tightly coupled tasks. Common patterns include:
+- **Sidecar**: Assists the main container (e.g., Fluentd for logging, Istio proxy for service mesh).
+- **Adapter**: Modifies the main container’s interface/output (e.g., protocol conversion).
+- **Ambassador**: Proxies external communication (e.g., database proxy).
+
+**Example YAML**:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp-with-sidecar
+  labels:
+    app: mywebapp
+spec:
+  containers:
+  - name: web-server
+    image: nginx:1.25
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: logs
+      mountPath: /var/log/nginx
+  - name: log-processor
+    image: fluentd:1.16
+    volumeMounts:
+    - name: logs
+      mountPath: /logs
+  volumes:
+  - name: logs
+    emptyDir: {}
+```
+**Purpose**: Runs Nginx with a Fluentd sidecar for log processing. The `READY` column in `kubectl get pods` shows `2/2` if both containers are ready, or `1/2` if one is not.
+
+### Managing Pods
+- **Direct Creation**: Avoid in production due to lack of self-healing or scaling.
+- **Controllers**: Use Deployments, StatefulSets, or Jobs for production.
+- **Imperative Creation (Testing)**:
+  ```bash
+  kubectl run nginx-pod --image=nginx:1.25 --restart=Never
+  ```
+  **Note**: Since Kubernetes 1.18, `kubectl run` creates a Pod by default (not a Deployment) when `--restart=Never` is used. To generate a Pod YAML:
+  ```bash
+  kubectl run my-pod --image=busybox:1.36 --dry-run=client -o yaml --command -- sleep 3600 > my-pod.yaml
+  kubectl apply -f my-pod.yaml
+  ```
+
+**Key Commands**:
+- `kubectl get pods`: List Pods.
+- `kubectl get pods -o wide`: Show node and IP details.
+- `kubectl describe pod <pod-name>`: View configuration, status, and events.
+- `kubectl logs <pod-name> [-c <container-name>]`: View logs (specify container for multi-container Pods).
+- `kubectl delete pod <pod-name>`: Delete a Pod (recreated if managed by a controller).
+- `kubectl edit pod <pod-name>`: Edit live Pod (avoid for controller-managed Pods).
+
+## ReplicaSets - Ensuring Pod Availability
+
+### Purpose
+- **Maintains Desired Replicas**: Ensures a specified number of Pod replicas are running.
+- **Self-Healing**: Replaces failed or deleted Pods.
+- **Scaling**: Adjusts Pod count via `replicas`.
+- **Modern Replacement**: Succeeds ReplicationController with set-based selectors.
+
+**Example Use Case**: A ReplicaSet ensures 3 frontend Pods are always running, recreating any that fail.
+
+### Key Features
+- **Pod Template**: `spec.template` defines the Pod blueprint.
+- **Label Selectors**: Manages Pods matching `spec.selector`.
+- **Selector Matching**: `spec.selector.matchLabels` must match `spec.template.metadata.labels`.
+- **Scaling**: Modify `replicas` to scale up/down.
+
+### ReplicaSet Definition
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend-rs
+  labels:
+    app: myapp-rs
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend-pod
+  template:
+    metadata:
+      labels:
+        tier: frontend-pod
+        app: myapp
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+```
+**Purpose**: Maintains 3 Nginx Pods, ensuring the count matches `replicas`.
+
+### How ReplicaSets Work
+- **Monitoring**: Tracks Pods matching the selector.
+- **Reconciliation**: Creates new Pods if count is low; terminates excess Pods if count is high.
+- **Behavior**: If a manual Pod matches the selector and exceeds `replicas`, it may be terminated.
+
+**Key Commands**:
+- `kubectl get rs`: List ReplicaSets.
+- `kubectl describe rs <replicaset-name>`: View details and events.
+- `kubectl scale rs <replicaset-name> --replicas=5`: Scale to 5 Pods.
+- `kubectl delete rs <replicaset-name>`: Delete ReplicaSet and its Pods.
+
+## Deployments - Managing ReplicaSets and Application Updates
+
+### Purpose
+- **Declarative Lifecycle Management**: Manages updates, rollbacks, and scaling.
+- **Manages ReplicaSets**: Creates/updates ReplicaSets to achieve desired state.
+- **Production Standard**: Ideal for stateless applications like web servers or APIs.
+
+### Key Features
+- **Rolling Updates**: Gradually replaces old Pods with new ones, minimizing downtime.
+- **Rollbacks**: Reverts to previous versions if updates fail.
+- **Revision History**: Tracks changes for auditing/rollbacks.
+- **Pause/Resume**: Batches changes before applying.
+- **Update Strategies**:
+  - **RollingUpdate**: Default, ensures availability during updates.
+  - **Recreate**: Terminates all Pods before creating new ones, causing downtime.
+
+**Example Use Case**: A Deployment updates a web app from Nginx 1.25 to 1.26 with zero downtime, rolling back if the new version fails.
+
+### Deployment Definition
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  labels:
+    app: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+```
+**Purpose**: Manages 3 Nginx Pods with rolling updates, ensuring minimal disruption.
+
+### How Deployments Orchestrate Updates
+- **New ReplicaSet**: Each `spec.template` change creates a new ReplicaSet.
+- **Rolling Update**:
+  1. Scales up new ReplicaSet per `maxSurge`.
+  2. Scales down old ReplicaSet per `maxUnavailable`.
+  3. Continues until old ReplicaSet has 0 Pods.
+- **Rollback**: Reverts to a previous ReplicaSet.
+- **Revision Tracking**: Retains old ReplicaSets (default `revisionHistoryLimit: 10`).
+
+**Key Commands**:
+- `kubectl set image deployment/web-deployment nginx-container=nginx:1.26`: Update image.
+- `kubectl rollout status deployment/web-deployment`: Monitor rollout.
+- `kubectl rollout history deployment/web-deployment`: View revisions.
+- `kubectl rollout undo deployment/web-deployment`: Roll back to previous revision.
+- `kubectl rollout pause/resume deployment/web-deployment`: Pause/resume rollout.
+
+## Understanding the Hierarchy & Evolution
+
+- **Pods**: Basic units, ephemeral without controllers.
+- **ReplicationController (Legacy)**: Ensured replicas with equality-based selectors; replaced by ReplicaSets.
+- **ReplicaSets**: Manage replicas with set-based selectors; limited for updates.
+- **Deployments**: Manage ReplicaSets for declarative updates and rollbacks.
+
+**Hierarchy**: Deployments → ReplicaSets → Pods. Deployments are the primary choice for stateless apps.
+
+## Key Commands Comparison
+
+| Operation              | Pods (`pod`, `po`)           | ReplicaSets (`rs`)             | Deployments (`deploy`)              |
+|------------------------|------------------------------|--------------------------------|-------------------------------------|
+| Create from file       | `kubectl create -f <file>`   | `kubectl create -f <file>`     | `kubectl create -f <file>`          |
+| Create (imperative)    | `kubectl run <name> --image --restart=Never` | (Use Deployment)   | `kubectl create deployment <name> --image` |
+| List                   | `kubectl get pods`           | `kubectl get rs`               | `kubectl get deploy`                |
+| List (all related)     | `kubectl get all`            | `kubectl get all`              | `kubectl get all --selector <label>` |
+| Describe (details)     | `kubectl describe pod <name>`| `kubectl describe rs <name>`   | `kubectl describe deploy <name>`    |
+| View Logs              | `kubectl logs <pod_name> [-c <container>]` | N/A (per-Pod)  | N/A (per-Pod)         |
+| Delete                 | `kubectl delete pod <name>`  | `kubectl delete rs <name>`     | `kubectl delete deploy <name>`      |
+| Edit live object       | `kubectl edit pod <name>`    | `kubectl edit rs <name>`       | `kubectl edit deploy <name>`        |
+| Apply from file        | `kubectl apply -f <file>`    | `kubectl apply -f <file>`      | `kubectl apply -f <file>` (preferred) |
+| Scale                  | N/A                          | `kubectl scale rs <name> --replicas=<#>` | `kubectl scale deploy <name> --replicas=<#>` |
+| Update Image           | Manual recreation            | Edit template (complex)        | `kubectl set image deploy/<name> <container>=<new_image>` |
+| View Rollout Status    | N/A                          | N/A                            | `kubectl rollout status deploy/<name>` |
+| View Rollout History   | N/A                          | N/A                            | `kubectl rollout history deploy/<name>` |
+| Rollback Update        | N/A                          | N/A                            | `kubectl rollout undo deploy/<name> [--to-revision=<#>]` |
+| Pause/Resume Rollout   | N/A                          | N/A                            | `kubectl rollout pause/resume deploy/<name>` |
+| Explain Fields         | `kubectl explain pod.spec`   | `kubectl explain replicaset.spec` | `kubectl explain deployment.spec` |
+
+**Note on `kubectl apply` vs `create`/`replace`**:
+- `kubectl create -f`: Creates resources; fails if they exist.
+- `kubectl replace -f`: Overwrites resources; may not remove omitted fields.
+- `kubectl apply -f`: Merges changes declaratively, ideal for GitOps.
+
+## When to Use Each
+
+### Pods
+- **Testing/Debugging**: Quick container tests.
+- **One-Off Tasks**: Short-lived tasks (prefer Jobs/CronJobs).
+- **Learning**: Understand Pod mechanics.
+- **Avoid in Production**: Lack self-healing and updates.
+
+### ReplicaSets
+- **Simple Replication**: Stable Pod counts without updates (rare).
+- **Learning**: Understand controller mechanics.
+- **Typically Managed by Deployments**: Rarely used directly.
+
+### Deployments
+- **Production Stateless Apps**: Web servers, APIs, microservices.
+- **Rolling Updates/Rollbacks**: Zero-downtime updates and reversions.
+- **Declarative Management**: Define desired state.
+
+## Best Practices
+
+1. **Use Deployments**: Prefer Deployments for stateless apps; avoid raw Pods/ReplicaSets.
+2. **Consistent Labels**: Ensure `spec.selector.matchLabels` matches `spec.template.metadata.labels`.
+3. **Resource Limits**:
+   ```yaml
+   resources:
+     requests:
+       cpu: "100m"
+       memory: "128Mi"
+     limits:
+       cpu: "500m"
+       memory: "256Mi"
+   ```
+4. **Health Probes**:
+   - **Liveness**: Restart unhealthy containers.
+   - **Readiness**: Prevent traffic to unready Pods.
+5. **Pod Disruption Budgets (PDB)**:
+   ```yaml
+   apiVersion: policy/v1
+   kind: PodDisruptionBudget
+   metadata:
+     name: web-pdb
+   spec:
+     minAvailable: 2
+     selector:
+       matchLabels:
+         app: web
+   ```
+6. **Anti-Affinity**:
+   ```yaml
+   spec:
+     affinity:
+       podAntiAffinity:
+         preferredDuringSchedulingIgnoredDuringExecution:
+         - weight: 100
+           podAffinityTerm:
+             labelSelector:
+               matchLabels:
+                 app: web
+             topologyKey: kubernetes.io/hostname
+   ```
+7. **Declarative Config**: Use YAML with `kubectl apply -f` and GitOps.
+8. **Specific Image Tags**: Use `nginx:1.25`, not `latest`.
+9. **Secrets/ConfigMaps**: Store sensitive/config data externally.
+10. **Revision History Limit**: Set `revisionHistoryLimit: 5` to save etcd space while retaining rollback capability.
+
+## Troubleshooting Common Issues
+
+1. **Pod Issues**:
+   - **Pending**: Check `kubectl describe pod` for scheduling issues (e.g., resource constraints, taints).
+   - **ImagePullBackOff**: Verify image name/tag, registry access, or `imagePullSecrets`.
+   - **CrashLoopBackOff**: Inspect `kubectl logs` (use `-p` for previous logs if restarted).
+   - **READY 0/1 or 1/2**: Check readiness probe failures in logs or `describe`.
+   - **Example**:
+     ```bash
+     kubectl describe pod myapp-pod
+     kubectl logs myapp-pod -c nginx-container
+     ```
+
+2. **ReplicaSet Issues**:
+   - **Selector Mismatch**: Ensure `spec.selector` matches Pod template labels.
+   - **Example**:
+     ```bash
+     kubectl describe rs frontend-rs
+     ```
+
+3. **Deployment Issues**:
+   - **Rollout Stuck**: Check `kubectl rollout status` and `describe deploy`.
+   - **Rollback Needed**: Use `kubectl rollout undo`.
+   - **Example**:
+     ```bash
+     kubectl rollout status deploy/web-deployment
+     kubectl rollout history deploy/web-deployment
+     ```
+
+4. **General Debugging**:
+   - **Events**: `kubectl get events --sort-by='.lastTimestamp'`
+   - **Nodes**: `kubectl describe node <node-name>` for taints or resource issues.
+   - **YAML Validation**: `kubectl apply --dry-run=client -f file.yaml`
+   - **Explain**: `kubectl explain deployment.spec.strategy`
+
+5. **Common Errors**:
+   - **API Version**: Use `apps/v1` for ReplicaSets/Deployments, not `v1`.
+   - **Case Sensitivity**: `kind: Deployment`, not `deployment`.
+   - **Resource Quotas**: Check namespace quotas in `describe pod` events.
+   - **Network Policies**: Ensure image pulls and Pod communication are not blocked.
+
+## Hands-on Lab Scenarios and Key Takeaways
+
+Lab exercises reinforce practical skills:
+
+1. **Pod Management**:
+   - Create Pods via YAML or `kubectl run --restart=Never`.
+   - Inspect with `kubectl get pods -o wide`, `describe pod`, and `logs`.
+   - Troubleshoot `ImagePullBackOff` (wrong image), `CrashLoopBackOff` (app errors), or `Pending` (scheduling issues).
+   - Generate YAML: `kubectl run --dry-run=client -o yaml`.
+   - Delete Pods and observe recreation by controllers.
+
+2. **ReplicaSet Management**:
+   - Create ReplicaSets with correct `apiVersion: apps/v1`.
+   - Verify selector/template label alignment.
+   - Test self-healing by deleting Pods.
+   - Scale with `kubectl scale rs`.
+   - Troubleshoot selector mismatches or `apiVersion` errors.
+
+3. **Deployment Lifecycle**:
+   - Create Deployments via YAML or `kubectl create deployment`.
+   - Observe hierarchy with `kubectl get all`.
+   - Update images via `kubectl set image` or `apply -f`.
+   - Monitor rollouts with `kubectl rollout status`.
+   - Roll back with `kubectl rollout undo`.
+   - Test `RollingUpdate` vs `Recreate` strategies using a script (e.g., `while true; do curl <service>; sleep 1; done`).
+
+**Takeaways**:
+- Pods are ephemeral; use controllers for production.
+- Deployments simplify updates/rollbacks.
+- Events in `kubectl describe` are critical for debugging.
+- Declarative YAML with `kubectl apply` is the standard.
+
+## Practical Example: Web Application Deployment (Enhanced)
+
+This Deployment incorporates best practices for a production-ready Nginx web server.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-deployment
+  namespace: default
+  labels:
+    app: web-app
+    environment: production
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: web-app
+      tier: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: web-app
+        tier: frontend
+        version: "1.25"
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: nginx-server
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: NGINX_HOST
+          value: "example.com"
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: web-config
+              key: environment
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: web-app
+              topologyKey: kubernetes.io/hostname
+```
+**Complementary ConfigMap**:
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: default
+data:
+  environment: production
+```
+
+**Complementary Service**:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+  namespace: default
+spec:
+  selector:
+    app: web-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: http
+  type: ClusterIP
+```
+
+**Apply and Verify**:
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f configmap.yaml
+kubectl apply -f service.yaml
+kubectl rollout status deployment/web-app-deployment
+kubectl get pods -l app=web-app -o wide
+kubectl describe svc web-app-service
+```
+
+**Test Update**:
+```bash
+kubectl set image deployment/web-app-deployment nginx-server=nginx:1.26
+kubectl rollout status deployment/web-app-deployment
+kubectl rollout history deployment/web-app-deployment
+```
+
+**Features**:
+- Specific image tag (`nginx:1.25`).
+- Resource limits/requests.
+- Liveness/readiness probes.
+- Anti-affinity for high availability.
+- ConfigMap for configuration.
+- Service for stable endpoint.
+- Controlled rollout with `revisionHistoryLimit: 5`.
+
