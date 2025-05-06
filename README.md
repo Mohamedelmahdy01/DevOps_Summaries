@@ -40,13 +40,27 @@ This repository is dedicated to summarizing key DevOps tools and related topics 
 
 ### Containerization & Orchestration
 - **Docker & Kubernetes:**  
-  - **Overview:** Understand containerization with Docker, including its architecture, commands, and how it integrates with Kubernetes for orchestration.
-  - **Link:** [Docker & Kubernetes](./DockerandK8s/DockerAndK8s.md)
+  - **Overview:** Comprehensive coverage of containerization and orchestration, including:
+    - Docker fundamentals and architecture
+    - Docker commands and best practices
+    - Kubernetes concepts and components
+    - Container orchestration and deployment strategies
+  - **Resources:**
+    - [Docker Introduction](./DockerandK8s/Docker%20Introduction.md)
+    - [Docker Commands](./DockerandK8s/DockerCommands.md)
+    - [Kubernetes Guide](./DockerandK8s/k8s.md)
+    - [Complete Docker & Kubernetes Guide](./DockerandK8s/DockerAndK8s.md)
 
 ### Continuous Integration / Continuous Delivery (CI/CD)
 - **Jenkins:**  
-  - **Overview:** Discover how Jenkins automates building, testing, and deploying code using CI/CD pipelines.
-  - **Link:** [Jenkins (CI/CD)](./CI_CD/Jenkins.md)
+  - **Overview:** Comprehensive guide to Jenkins automation, including:
+    - CI/CD pipeline creation and management
+    - Jenkins architecture and components
+    - Pipeline as Code
+    - Advanced Jenkins features and best practices
+  - **Resources:**
+    - [Jenkins Guide](./CI_CD/Jenkins.md)
+    - [Advanced Jenkins Topics](./CI_CD/Jenkins2.md)
 
 ### Configuration Management & Automation
 - **Ansible:**  
