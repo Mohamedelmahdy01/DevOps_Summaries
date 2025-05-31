@@ -2087,3 +2087,593 @@ kubectl exec -it test-pod -n frontend -- wget -qO- http://web-service.default.sv
 - [Calico Documentation](https://docs.tigera.io/calico/latest)
 - [Cilium Documentation](https://cilium.io/)
 
+# Kubernetes Services 
+
+## Introduction to Kubernetes Services
+
+Kubernetes Services provide a robust abstraction layer for enabling communication between application components (pods) within a cluster and with external clients. They ensure reliable connectivity by abstracting the dynamic nature of pods, which may be created, destroyed, or rescheduled, causing their IP addresses to change. Services are critical for service discovery, load balancing, and enabling microservices architectures.
+
+### Why Kubernetes Services?
+- **Stable Endpoints**: Services provide a consistent virtual IP (ClusterIP) or DNS name, regardless of pod lifecycle changes.
+- **Load Balancing**: Distributes traffic across multiple pod replicas for scalability and fault tolerance.
+- **Service Discovery**: Allows pods to locate and communicate with each other using DNS names or environment variables.
+- **Flexibility**: Supports various communication patterns, including internal (within the cluster) and external (outside the cluster) access.
+- **Decoupling**: Enables loose coupling between microservices, allowing independent scaling and updates.
+
+### Key Concepts
+- Services connect application components (e.g., frontend to backend, backend to databases) or external users to applications.
+- They use **label selectors** to dynamically identify target pods for routing traffic.
+- Kubernetes supports multiple service types: **ClusterIP** (default, internal), **NodePort** (external access via node ports), **LoadBalancer** (cloud-native external access), **Headless** (direct pod access), and **ExternalName** (DNS alias for external services).
+- Services are defined using YAML manifests, which specify properties like `apiVersion`, `kind`, `metadata`, and `spec`.
+
+## Anatomy of a Service Definition
+
+A Kubernetes Service is defined in a YAML file (`service-definition.yml`) with four root-level properties:
+- `apiVersion`: Specifies the API version (e.g., `v1` for core Kubernetes resources like Services).
+- **Example**: `apiVersion: v1`
+- `kind`: Defines the resource type (e.g., `Service`).
+- **Example**: `kind: Service`
+- `metadata`: Contains metadata like the service name and labels for identification.
+- **Example**:
+  ```yaml
+  metadata:
+    name: frontend
+    labels:
+      app: myapp
+  ```
+- `spec`: Defines the service's behavior, including its type, ports, and pod selectors.
+- **Example**:
+  ```yaml
+  spec:
+    type: NodePort
+    ports:
+      - port: 80
+        targetPort: 80
+    selector:
+      app: myapp
+  ```
+
+The lab exercises (Services 1–7) guide you through building a `service-definition.yml` file step-by-step for a frontend service, while Service 8 focuses on creating a backend service. Below, we explore each service type with detailed explanations and examples, incorporating insights from the lab.
+
+## ClusterIP Service
+
+### Overview
+ClusterIP is the default service type in Kubernetes, designed for internal communication within the cluster. It assigns a stable virtual IP (Cluster IP) to a group of pods, enabling reliable communication between application tiers (e.g., frontend to backend).
+
+### Use Case
+- Internal microservice communication (e.g., a web frontend calling a backend API).
+- Service discovery within the cluster using DNS or environment variables.
+
+### Key Benefits
+- **Stable Virtual IP**: Provides a consistent IP address, even if pods are rescheduled.
+- **Load Balancing**: Distributes traffic across pod replicas for high availability.
+- **DNS Integration**: Resolvable via `<service-name>.<namespace>.svc.cluster.local`.
+
+### Service Definition Example (Lab: Service 8)
+The lab exercise (Service 8) creates a ClusterIP service named `image-processing` for backend pods. Below is the complete definition:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-processing
+  labels:
+    app: myapp
+spec:
+  type: ClusterIP  # Optional, as ClusterIP is the default
+  ports:
+    - port: 80      # Service port for internal access
+      targetPort: 8080  # Pod's application port
+      protocol: TCP    # Default protocol
+  selector:
+    tier: backend   # Matches pods with label 'tier=backend'
+```
+
+### Explanation of Properties
+- **metadata.name**: `image-processing` ensures the service is uniquely identifiable.
+- **metadata.labels**: `app: myapp` helps identify the service for management or querying.
+- **spec.type**: `ClusterIP` (optional, as it’s the default) indicates internal-only access.
+- **spec.ports**: Defines the port mappings:
+  - `port: 80` is the service’s internal port.
+  - `targetPort: 8080` is the port exposed by the backend pods (e.g., an image-processing container).
+- **spec.selector**: `tier: backend` matches pods with the label `tier=backend` from the deployment.
+
+### Access Methods
+- **Cluster IP**: Use the service’s virtual IP (e.g., `10.96.0.1:80`) from within the cluster.
+- **DNS Name**: Use `<service-name>.<namespace>.svc.cluster.local` (e.g., `image-processing.default.svc.cluster.local:80`).
+- **Example**:
+  ```bash
+  curl http://image-processing.default.svc.cluster.local:80
+  ```
+  Or, within the same namespace:
+  ```bash
+  curl http://image-processing:80
+  ```
+
+### Notes from Lab
+- The lab specifies `port: 80` and `targetPort: 8080`, reflecting a common pattern where the service exposes a standard port (80) but maps to a different port on the pod (8080).
+- The `selector: tier: backend` matches the backend pods defined in the provided `deployment-definition.yml`, ensuring the service routes traffic to the correct pods.
+
+## NodePort Service
+
+### Overview
+NodePort exposes a service on a specific port of each node in the cluster, enabling external access. It maps a high-numbered port (30000–32767 by default) on each node to the service’s target port.
+
+### Use Case
+- Exposing applications to external clients (e.g., a web frontend accessible via a browser).
+- Temporary external access for testing or development.
+
+### Components
+1. **Target Port**: The port on the pod (e.g., 80 for a web server).
+2. **Port**: The service’s internal port for cluster access.
+3. **NodePort**: A high-numbered port (30000–32767) exposed on each node’s IP.
+
+### Service Definition Example (Lab: Services 1–7)
+The lab exercises (Services 1–7) build a NodePort service named `frontend` step-by-step. Below is the final definition from Service 7:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: myapp
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: myapp
+```
+
+### Step-by-Step Lab Breakdown
+1. **Service 1: Root-Level Properties**
+   - Define the four root-level properties: `apiVersion`, `kind`, `metadata`, `spec`.
+   - Example:
+     ```yaml
+     apiVersion:
+     kind:
+     metadata:
+     spec:
+     ```
+2. **Service 2: Add apiVersion and kind**
+   - Set `apiVersion: v1` (core Kubernetes API) and `kind: Service`.
+   - Example:
+     ```yaml
+     apiVersion: v1
+     kind: Service
+     metadata:
+     spec:
+     ```
+3. **Service 3: Add metadata**
+   - Add `name: frontend` and `labels: app: myapp` for identification.
+   - Example:
+     ```yaml
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: frontend
+       labels:
+         app: myapp
+     spec:
+     ```
+4. **Service 4: Add spec properties**
+   - Add `type`, `ports`, and `selector` under `spec` without values.
+   - Example:
+     ```yaml
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: frontend
+       labels:
+         app: myapp
+     spec:
+       type:
+       ports:
+       selector:
+     ```
+5. **Service 5: Add ports**
+   - Add a ports array with `port: 80` and `targetPort: 80`. No `nodePort` is specified, allowing Kubernetes to assign one automatically.
+   - Example:
+     ```yaml
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: frontend
+       labels:
+         app: myapp
+     spec:
+       type:
+       ports:
+         - port: 80
+           targetPort: 80
+       selector:
+     ```
+6. **Service 6: Set type**
+   - Set `type: NodePort` for external access.
+   - Example:
+     ```yaml
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: frontend
+       labels:
+         app: myapp
+     spec:
+       type: NodePort
+       ports:
+         - port: 80
+           targetPort: 80
+       selector:
+     ```
+7. **Service 7: Add selector**
+   - Copy the pod label `app: myapp` from the deployment’s `template.metadata.labels` to `spec.selector`.
+   - Deployment snippet for reference:
+     ```yaml
+     apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: frontend
+       labels:
+         app: mywebsite
+         tier: frontend
+     spec:
+       replicas: 4
+       template:
+         metadata:
+           name: myapp-pod
+           labels:
+             app: myapp
+       selector:
+         matchLabels:
+           app: myapp
+     ```
+   - Final service definition:
+     ```yaml
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: frontend
+       labels:
+         app: myapp
+     spec:
+       type: NodePort
+       ports:
+         - port: 80
+           targetPort: 80
+       selector:
+         app: myapp
+     ```
+
+### Key Features
+- **External Access**: Accessible via `<node-ip>:<nodePort>` (e.g., `192.168.1.10:30008`).
+- **Automatic NodePort Assignment**: If `nodePort` is omitted, Kubernetes assigns a port from the 30000–32767 range.
+- **Load Balancing**: Distributes traffic across all pods matching the selector.
+- **Cluster-Wide Access**: Works on any node, even if no pods are running on that node.
+
+### Example: Accessing the NodePort Service
+Assuming Kubernetes assigns `nodePort: 30008`:
+```bash
+curl http://192.168.1.10:30008
+```
+
+### Considerations
+- NodePort is suitable for development or testing but not ideal for production due to limited port range and manual IP management.
+- Use **Ingress** for production-grade external access with advanced routing.
+
+## LoadBalancer Service
+
+### Overview
+LoadBalancer exposes a service externally using a cloud provider’s load balancer (e.g., AWS ELB, GCP Cloud Load Balancer). It provides a single external IP address for accessing the application.
+
+### Use Case
+- Public-facing applications in cloud environments (e.g., a web frontend).
+- High-availability setups requiring managed load balancing.
+
+### Key Features
+- **Cloud Integration**: Automatically provisions a cloud load balancer.
+- **Single Endpoint**: Provides one external IP or DNS name.
+- **Fallback**: Behaves like a NodePort service in non-cloud environments.
+
+### Service Definition Example
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: frontend
+```
+
+### Example: Accessing a LoadBalancer Service
+Check the external IP:
+```bash
+kubectl get service frontend-service
+# Output: NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+#         frontend-service   LoadBalancer   10.96.0.10      203.0.113.1   80:31000/TCP   5m
+```
+Access via:
+```bash
+curl http://203.0.113.1:80
+```
+
+### Considerations
+- Requires a cloud provider with load balancer support.
+- May incur costs for cloud load balancer usage.
+- Supports advanced configurations via annotations (e.g., SSL termination).
+
+## Headless Service
+
+### Overview
+A Headless Service is a ClusterIP service without a virtual IP (`clusterIP: None`). It enables direct access to individual pod IPs via DNS, suitable for stateful applications.
+
+### Use Case
+- Stateful applications (e.g., MySQL, MongoDB) requiring individual pod identities.
+- Custom load balancing or direct pod-to-pod communication.
+
+### Service Definition Example
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+spec:
+  clusterIP: None
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    app: mysql
+```
+
+### Key Features
+- **DNS Resolution**: Returns A records for each pod’s IP (e.g., `database-service.default.svc.cluster.local` resolves to pod IPs).
+- **No Load Balancing**: Clients connect directly to specific pods.
+- **StatefulSet Integration**: Often used with StatefulSets for stable pod identities.
+
+### Example: Accessing a Headless Service
+```bash
+nslookup database-service.default.svc.cluster.local
+# Output: 10.244.0.5, 10.244.0.6
+```
+Connect to a pod:
+```bash
+mysql -h 10.244.0.5 -P 3306 -u user -p
+```
+
+## ExternalName Service
+
+### Overview
+ExternalName maps a Kubernetes Service to an external DNS name, allowing applications to reference external services as if they were internal.
+
+### Use Case
+- Accessing third-party APIs or external databases without hardcoding URLs.
+- Simplifying configuration for external service integration.
+
+### Service Definition Example
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-api
+spec:
+  type: ExternalName
+  externalName: api.example.com
+```
+
+### Key Features
+- **DNS Alias**: Resolves `external-api.default.svc.cluster.local` to `api.example.com`.
+- **No Proxying**: Purely a DNS mapping, with no traffic routing.
+- **Flexibility**: Simplifies switching between internal and external services.
+
+### Example
+```bash
+curl http://external-api.default.svc.cluster.local
+```
+
+## Endpoints Explained
+
+Endpoints are Kubernetes objects that list the pod IPs a service routes traffic to, based on the `selector`. They are automatically managed for most services.
+
+### Viewing Endpoints
+```bash
+kubectl get endpoints image-processing
+# Output: NAME              ENDPOINTS                           AGE
+#         image-processing   10.244.0.3:8080,10.244.0.4:8080   5m
+```
+
+### Manual Endpoints
+For services without selectors (e.g., external systems), define a custom Endpoints object:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-service
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external-service
+subsets:
+  - addresses:
+      - ip: 192.168.1.100
+    ports:
+      - port: 8080
+```
+
+## Practical Lab Solution
+
+### Common Service Commands
+```bash
+# List services
+kubectl get services
+
+# Describe service details
+kubectl describe service frontend
+
+# Create service
+kubectl create -f service-definition.yml
+
+# Expose a deployment
+kubectl expose deployment frontend --type=NodePort --port=80 --target-port=80
+```
+
+### Example: Deploying and Testing the Frontend Service
+1. Deploy the frontend application (from lab’s deployment):
+   ```yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: frontend
+     labels:
+       app: mywebsite
+       tier: frontend
+   spec:
+     replicas: 4
+     selector:
+       matchLabels:
+         app: myapp
+     template:
+       metadata:
+         name: myapp-pod
+         labels:
+           app: myapp
+       spec:
+         containers:
+         - name: nginx
+           image: nginx
+   ```
+2. Create the NodePort service (from Service 7):
+   ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: frontend
+     labels:
+       app: myapp
+   spec:
+     type: NodePort
+     ports:
+       - port: 80
+         targetPort: 80
+     selector:
+       app: myapp
+   ```
+3. Verify and access:
+   ```bash
+   kubectl get service frontend
+   # Output: NAME       TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+   #         frontend   NodePort   10.96.0.10     <none>        80:30008/TCP   5m
+   curl http://<node-ip>:30008
+   ```
+
+### Example: Deploying the Backend Service (Service 8)
+1. Assume a backend deployment with `tier: backend` labels:
+   ```yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: backend
+   spec:
+     replicas: 3
+     selector:
+       matchLabels:
+         tier: backend
+     template:
+       metadata:
+         labels:
+           tier: backend
+       spec:
+         containers:
+         - name: image-processing
+           image: custom-image-processor
+           ports:
+           - containerPort: 8080
+   ```
+2. Create the ClusterIP service:
+   ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: image-processing
+     labels:
+       app: myapp
+   spec:
+     type: ClusterIP
+     ports:
+       - port: 80
+         targetPort: 8080
+     selector:
+       tier: backend
+   ```
+3. Test internal access:
+   ```bash
+   kubectl exec -it <frontend-pod> -- curl http://image-processing:80
+   ```
+
+### Lab Findings
+- **Default Type**: ClusterIP is the default if `type` is omitted (Service 8 allows this).
+- **Selector Matching**: The `selector` must match pod labels exactly (e.g., `app: myapp` in Service 7, `tier: backend` in Service 8).
+- **Port Mapping**: `port` (service) and `targetPort` (pod) can differ, as seen in Service 8 (`port: 80`, `targetPort: 8080`).
+- **NodePort Assignment**: Omitting `nodePort` (Service 5) lets Kubernetes assign a port, reducing conflicts.
+
+## Troubleshooting Tips
+
+1. **No Endpoints**:
+   - Verify pod labels: `kubectl get pods -l app=myapp` or `kubectl get pods -l tier=backend`.
+   - Check readiness probes: `kubectl describe pod <pod-name>`.
+   - Ensure selector matches pod labels exactly.
+
+2. **Connectivity Issues**:
+   - Test internal access: `kubectl exec -it <pod-name> -- curl http://image-processing:80`.
+   - For NodePort, check node firewall rules for the 30000–32767 range.
+   - For LoadBalancer, verify cloud provider load balancer status.
+
+3. **DNS Issues**:
+   - Test DNS: `kubectl exec -it <pod-name> -- nslookup image-processing`.
+   - Check CoreDNS: `kubectl get pods -n kube-system -l k8s-app=kube-dns`.
+
+4. **Debugging Tools**:
+   - Use `kubectl port-forward service/frontend 8080:80` for local testing.
+   - Check logs: `kubectl logs <pod-name>` for application errors.
+
+## Key Takeaways
+
+1. **Service Types**:
+   - **ClusterIP**: Internal communication (e.g., `image-processing` service in Service 8).
+   - **NodePort**: External access via node ports (e.g., `frontend` service in Services 1–7).
+   - **LoadBalancer**: Cloud-native external access.
+   - **Headless**: Direct pod access for stateful applications.
+   - **ExternalName**: DNS alias for external services.
+
+2. **Best Practices**:
+   - Use meaningful names (e.g., `frontend`, `image-processing`).
+   - Ensure selectors match pod labels (e.g., `app: myapp`, `tier: backend`).
+   - Omit `nodePort` for automatic assignment to avoid conflicts.
+   - Use readiness probes to ensure healthy pods receive traffic.
+
+3. **Common Patterns**:
+   - **Frontend**: NodePort or LoadBalancer for external access (Service 7).
+   - **Backend**: ClusterIP for internal communication (Service 8).
+   - **Stateful Apps**: Headless Services with StatefulSets.
+   - **External Services**: ExternalName for third-party integrations.
+
+4. **Lab Insights**:
+   - Building a service incrementally (Services 1–7) emphasizes the importance of each property (`apiVersion`, `kind`, `metadata`, `spec`).
+   - The backend service (Service 8) demonstrates real-world port mapping (`port: 80`, `targetPort: 8080`) and selector usage.
+
+5. **Advanced Considerations**:
+   - Use **Ingress** for production-grade external access with path-based routing.
+   - Implement **Service Mesh** (e.g., Istio) for advanced traffic management.
+   - Monitor services with tools like Prometheus and Grafana.
+
+---
