@@ -984,11 +984,8 @@ ansible-playbook playbook-copyfile.yaml -i inventory.txt
 
 ---
 
-Here's a **revamped, more practical explanation** of Ansible modules with clearer organization and actionable examples:
-
----
-
 # Ansible Modules 
+
 *Automate Everything, Repeatably*
 
 Ansible modules are the building blocks of Ansible playbooks, encapsulating idempotent operations—like installing packages, managing users, or configuring cloud resources—so you can declare desired system states without scripting imperative steps  ([Ansible Modules Types Explained - CloudMyLab Blog](https://blog.cloudmylab.com/ansible-modules-types-explained)). They are grouped by functionality into categories such as System, Command, File, Database, Cloud, and Windows, each with dozens or hundreds of specialized modules maintained by the Ansible community and Red Hat  ([Module Index - Ansible Documentation](https://docs.ansible.com/ansible/2.9/modules/modules_by_category.html)).  
