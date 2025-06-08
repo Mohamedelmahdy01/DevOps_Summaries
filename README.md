@@ -46,11 +46,9 @@ This repository is dedicated to summarizing key DevOps tools and related topics 
     - Kubernetes concepts and components
     - Container orchestration and deployment strategies
   - **Resources:**
-    - [Docker Introduction](./DockerandK8s/Docker%20Introduction.md)
     - [Docker Commands](./DockerandK8s/DockerCommands.md)
+    - [Docker Guide](./DockerandK8s/Docker.md)
     - [Kubernetes Guide](./DockerandK8s/k8s.md)
-    - [Complete Docker & Kubernetes Guide](./DockerandK8s/DockerAndK8s.md)
-
 ### Continuous Integration / Continuous Delivery (CI/CD)
 - **Jenkins:**  
   - **Overview:** Comprehensive guide to Jenkins automation, including:
