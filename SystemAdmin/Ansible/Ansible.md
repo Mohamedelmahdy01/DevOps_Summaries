@@ -2307,3 +2307,830 @@ Mastering conditionals and loops in Ansible enables you to create:
 3. Explore Ansible Galaxy for reusable roles: [galaxy.ansible.com](https://galaxy.ansible.com).
 4. Learn about `loop_control` and advanced Jinja2 templating in the [Ansible Documentation](https://docs.ansible.com/ansible/latest/user_guide/playbooks_loops.html).
 5. Test playbooks with `--check` and `--diff` to validate changes before applying them.
+
+---
+
+# Ansible Roles
+
+## Introduction to Roles
+Ansible roles are **modular, reusable units** that encapsulate related automation tasks, variables, templates, and handlers to configure systems for specific purposes. Analogous to real-world roles with defined responsibilities, Ansible roles transform generic servers into specialized systems, such as web servers, database servers, or caching nodes. By organizing automation logic into roles, you can streamline complex playbooks, promote consistency, and enable collaboration across teams.
+
+| **Real-World Role** | **Ansible Server Role** | **Configuration Tasks** |
+|---------------------|-------------------------|-------------------------|
+| 👨‍⚕️ Doctor        | 🗄️ Database Server     | Install MySQL, configure service, set up users, secure database |
+| 👷 Engineer         | 🌐 Web Server          | Install Nginx, configure virtual hosts, deploy web pages, enable SSL |
+| 👨‍🍳 Chef           | 📦 Redis Server        | Install Redis, configure messaging service, set up authentication |
+
+### Key Characteristics
+- **Modularity**: Roles group related tasks, making them self-contained and reusable.
+- **Reusability**: Apply the same role across different environments (e.g., dev, prod) or projects.
+- **Standardization**: Follow a consistent directory structure for predictable organization.
+- **Scalability**: Simplify management of large-scale infrastructure by breaking down complex automation into manageable units.
+- **Community-Driven**: Share and discover roles via Ansible Galaxy, a repository of over 30,000 community roles.
+
+## Why Use Roles?
+Roles address several challenges in automation, making them essential for efficient and maintainable Ansible workflows:
+1. **Reusability**: Package configurations for use across multiple projects or environments, reducing duplication.
+2. **Organization**: Standardize directory structures, making playbooks easier to navigate and maintain.
+3. **Collaboration**: Share roles with teams or the community via Ansible Galaxy, fostering teamwork and knowledge sharing.
+4. **Simplification**: Reduce playbook complexity by abstracting tasks into roles, focusing playbooks on high-level orchestration.
+5. **Consistency**: Enforce best practices and uniform configurations across servers, ensuring predictable outcomes.
+6. **Maintainability**: Update a single role to propagate changes across all projects using it.
+
+**Example Use Case**: Instead of writing a 100-line playbook to configure a web server, create a `webserver_role` with tasks, templates, and variables. Reuse this role across development, staging, and production environments with minimal changes.
+
+## Role Structure
+Ansible roles follow a strict directory structure to organize tasks, variables, templates, and other components. Use the `ansible-galaxy init` command to create a role skeleton:
+
+```bash
+ansible-galaxy init mysql_role
+```
+
+This generates the following structure:
+
+```
+mysql_role/
+├── defaults/        # Default variables with low precedence
+│   └── main.yml
+├── handlers/        # Tasks triggered by events (e.g., service restarts)
+│   └── main.yml
+├── tasks/           # Main task definitions
+│   └── main.yml
+├── templates/       # Jinja2 templates for configuration files
+│   └── my.cnf.j2
+├── vars/            # Role-specific variables with high precedence
+│   └── main.yml
+├── files/           # Static files to copy to managed nodes
+│   └── scripts/
+├── meta/            # Role metadata, including dependencies
+│   └── main.yml
+└── tests/           # Test playbooks and configuration (e.g., Molecule)
+    ├── inventory.yml
+    └── test.yml
+```
+
+### Directory Details
+- **defaults/main.yml**: Defines default variables with low precedence, allowing overrides in playbooks or inventory. Example:
+  ```yaml
+  mysql_port: 3306
+  mysql_user: admin
+  ```
+- **handlers/main.yml**: Contains tasks triggered by `notify` directives, such as restarting services. Example:
+  ```yaml
+  - name: Restart MySQL
+    ansible.builtin.service:
+      name: mysql
+      state: restarted
+  ```
+- **tasks/main.yml**: Core tasks for the role, executed when the role is applied. Example:
+  ```yaml
+  - name: Install MySQL
+    ansible.builtin.package:
+      name: mysql-server
+      state: present
+  ```
+- **templates/**: Stores Jinja2 templates for dynamic configuration files. Example (`my.cnf.j2`):
+  ```jinja2
+  [mysqld]
+  port = {{ mysql_port }}
+  bind-address = {{ mysql_bind_address | default('127.0.0.1') }}
+  ```
+- **vars/main.yml**: Defines role-specific variables with high precedence, typically fixed values. Example:
+  ```yaml
+  mysql_version: "8.0"
+  ```
+- **files/**: Stores static files (e.g., scripts, certificates) copied to managed nodes without modification.
+- **meta/main.yml**: Specifies role dependencies and metadata. Example:
+  ```yaml
+  dependencies:
+    - role: common_role
+  galaxy_info:
+    author: your_name
+    description: MySQL server configuration
+    license: MIT
+  ```
+- **tests/**: Contains test configurations for validating the role using tools like Molecule.
+
+## Creating a Role
+Creating a role involves generating the structure, defining tasks, and organizing variables and templates. Below is a step-by-step example for a `mysql_role`.
+
+1. **Generate the Role Skeleton**:
+   ```bash
+   ansible-galaxy init mysql_role
+   ```
+
+2. **Define Tasks** (`tasks/main.yml`):
+   ```yaml
+   - name: Install MySQL server
+     ansible.builtin.package:
+       name: "{{ mysql_package }}"
+       state: present
+     become: true
+
+   - name: Ensure MySQL service is running
+     ansible.builtin.service:
+       name: "{{ mysql_service }}"
+       state: started
+       enabled: true
+     become: true
+
+   - name: Deploy MySQL configuration
+     ansible.builtin.template:
+       src: my.cnf.j2
+       dest: /etc/mysql/my.cnf
+       owner: root
+       group: root
+       mode: '0644'
+     become: true
+     notify: Restart MySQL
+   ```
+
+3. **Create a Template** (`templates/my.cnf.j2`):
+   ```jinja2
+   [mysqld]
+   port = {{ mysql_port }}
+   datadir = {{ mysql_datadir }}
+   bind-address = {{ mysql_bind_address }}
+   max_connections = {{ mysql_max_connections }}
+   ```
+
+4. **Define Default Variables** (`defaults/main.yml`):
+   ```yaml
+   mysql_package: mysql-server
+   mysql_service: mysql
+   mysql_port: 3306
+   mysql_datadir: /var/lib/mysql
+   mysql_bind_address: 127.0.0.1
+   mysql_max_connections: 100
+   ```
+
+5. **Define Handlers** (`handlers/main.yml`):
+   ```yaml
+   - name: Restart MySQL
+     ansible.builtin.service:
+       name: "{{ mysql_service }}"
+       state: restarted
+     become: true
+   ```
+
+6. **Add Metadata** (`meta/main.yml`):
+   ```yaml
+   galaxy_info:
+     author: your_name
+     description: Configures a MySQL server
+     company: Your Company
+     license: MIT
+     min_ansible_version: 2.9
+   dependencies: []
+   ```
+
+## Using Roles in Playbooks
+Roles are applied in playbooks using the `roles` keyword, allowing you to configure hosts with minimal code.
+
+### Basic Usage
+Apply a role to a group of hosts without customization.
+
+```yaml
+- name: Configure database servers
+  hosts: db_servers
+  become: true
+  roles:
+    - mysql_role
+```
+
+**Explanation**:
+- The `mysql_role` is applied to all hosts in the `db_servers` group.
+- Tasks in `mysql_role/tasks/main.yml` are executed in order.
+
+### Advanced Usage with Parameters
+Customize role behavior by overriding variables or adding conditions.
+
+```yaml
+- name: Configure secured database
+  hosts: db_servers
+  become: true
+  roles:
+    - role: mysql_role
+      vars:
+        mysql_admin_user: secure_admin
+        mysql_admin_password: "{{ vault_db_password }}"
+        mysql_bind_address: 0.0.0.0
+        mysql_max_connections: 200
+      when: ansible_os_family == "Debian"
+```
+
+**Explanation**:
+- Overrides default variables (e.g., `mysql_bind_address`) for this playbook.
+- Uses a vault-encrypted variable (`vault_db_password`) for security.
+- Applies the role only to Debian-based systems using a conditional.
+
+### Role with Dependencies
+If a role depends on another (e.g., `mysql_role` requires `common_role` for basic setup), specify it in `meta/main.yml`:
+
+```yaml
+# mysql_role/meta/main.yml
+dependencies:
+  - role: common_role
+    vars:
+      common_package: util-linux
+```
+
+Playbook:
+```yaml
+- name: Configure database with dependencies
+  hosts: db_servers
+  become: true
+  roles:
+    - mysql_role
+```
+
+**Explanation**:
+- Ansible automatically applies `common_role` before `mysql_role`.
+- Variables for `common_role` can be customized in the dependency declaration.
+
+## Role Search Paths
+Ansible searches for roles in the following locations, in order of precedence:
+1. **Playbook Directory**: `./roles/` relative to the playbook file.
+2. **Configured Paths**: Defined in `ansible.cfg` under `roles_path`:
+   ```ini
+   [defaults]
+   roles_path = ~/ansible_roles:/etc/ansible/roles:/usr/share/ansible/roles
+   ```
+3. **System Default**: `/etc/ansible/roles`.
+4. **Current Directory**: Directory where `ansible-playbook` is executed.
+
+**Check Role Paths**:
+```bash
+ansible-config dump | grep ROLES
+```
+
+**Best Practice**: Store project-specific roles in `./roles/` and shared roles in a custom path (e.g., `~/ansible_roles`).
+
+## Ansible Galaxy Integration
+Ansible Galaxy ([galaxy.ansible.com](https://galaxy.ansible.com)) is a community hub for discovering, sharing, and managing roles.
+
+### Finding Roles
+Search for roles by keyword or author:
+```bash
+ansible-galaxy search "mysql"
+ansible-galaxy search --author geerlingguy
+```
+
+**Example Output**:
+```
+Found 150 roles matching your search:
+ Name                            Description
+ ----                            -----------
+ geerlingguy.mysql               MySQL role for Debian/Ubuntu and RHEL/CentOS
+ ...
+```
+
+### Installing Roles
+Install roles globally or locally:
+```bash
+# System-wide install
+ansible-galaxy install geerlingguy.mysql
+
+# Project-specific install to ./roles/
+ansible-galaxy install -p ./roles geerlingguy.mysql
+
+# Install specific version
+ansible-galaxy install geerlingguy.mysql,3.4.0
+```
+
+**Install Multiple Roles from a File** (`requirements.yml`):
+```yaml
+# requirements.yml
+roles:
+  - name: geerlingguy.mysql
+    version: 3.4.0
+  - name: geerlingguy.nginx
+    version: 2.8.0
+```
+
+```bash
+ansible-galaxy install -r requirements.yml -p ./roles
+```
+
+### Sharing Roles
+To share your role on Ansible Galaxy:
+1. Create a GitHub repository for your role (e.g., `github.com/your_user/mysql_role`).
+2. Ensure `meta/main.yml` includes accurate metadata (author, description, license).
+3. Obtain an API token from [galaxy.ansible.com](https://galaxy.ansible.com).
+4. Import the role:
+   ```bash
+   ansible-galaxy role import --token=API_TOKEN your_user/mysql_role
+   ```
+
+**Best Practice**: Include a `README.md` with usage instructions, variable descriptions, and examples to make your role user-friendly.
+
+## Best Practices
+1. **Modular Design**: Create focused roles for specific services (e.g., `mysql_role`, `nginx_role`) rather than monolithic roles.
+2. **Parameterization**: Use `defaults/main.yml` for customizable variables and `vars/main.yml` for fixed values.
+3. **Dependency Management**: Declare dependencies in `meta/main.yml` to ensure prerequisites are met.
+4. **Idempotency**: Design tasks to be idempotent, avoiding unnecessary changes on repeated runs.
+5. **Testing**: Use Molecule to test roles in isolated environments:
+   ```bash
+   molecule init role -r mysql_role
+   molecule test
+   ```
+6. **Documentation**: Include a `README.md` with:
+   - Role purpose and supported platforms.
+   - Variable descriptions and defaults.
+   - Example playbooks.
+7. **Versioning**: Tag releases in your role’s repository (e.g., `v1.0.0`) and specify versions in `requirements.yml`.
+8. **Security**: Use Ansible Vault for sensitive variables (e.g., database passwords):
+   ```bash
+   ansible-vault create vars/secrets.yml
+   ```
+
+## Real-World Implementation Examples
+
+### Single Server with Multiple Roles
+Configure an all-in-one server with web, database, and caching services.
+
+```yaml
+- name: Configure all-in-one server
+  hosts: app_server
+  become: true
+  roles:
+    - role: nginx_role
+      vars:
+        nginx_port: 80
+        nginx_doc_root: /var/www/html
+    - role: mysql_role
+      vars:
+        mysql_admin_user: app_admin
+        mysql_admin_password: "{{ vault_db_password }}"
+    - role: redis_role
+      vars:
+        redis_port: 6379
+        redis_max_memory: 512mb
+```
+
+**Explanation**:
+- Applies three roles to a single host.
+- Customizes each role with specific variables.
+- Uses a vault-encrypted password for MySQL.
+
+### Separate Servers with Role-Based Tiers
+Configure a multi-tier architecture with dedicated servers.
+
+```yaml
+- name: Configure web tier
+  hosts: web_servers
+  become: true
+  roles:
+    - role: nginx_role
+      vars:
+        nginx_port: 80
+        nginx_ssl_enabled: true
+
+- name: Configure database tier
+  hosts: db_servers
+  become: true
+  roles:
+    - role: mysql_role
+      vars:
+        mysql_bind_address: 0.0.0.0
+        mysql_replication: true
+
+- name: Configure cache tier
+  hosts: cache_servers
+  become: true
+  roles:
+    - role: redis_role
+      vars:
+        redis_port: 6379
+```
+
+**Explanation**:
+- Each host group (`web_servers`, `db_servers`, `cache_servers`) receives a specific role.
+- Variables tailor the configuration (e.g., enabling SSL for Nginx, replication for MySQL).
+
+### Dynamic Role Application with Conditionals
+Apply roles based on host conditions.
+
+```yaml
+- name: Configure servers dynamically
+  hosts: all
+  become: true
+  roles:
+    - role: nginx_role
+      when: "'web_servers' in group_names"
+    - role: mysql_role
+      when: "'db_servers' in group_names"
+    - role: redis_role
+      when: "'cache_servers' in group_names"
+```
+
+**Explanation**:
+- Uses the `group_names` fact to apply roles only to hosts in specific inventory groups.
+- Simplifies playbooks by consolidating logic for multiple server types.
+
+## Managing Installed Roles
+- **List Installed Roles**:
+  ```bash
+  ansible-galaxy list
+  ```
+  Example output:
+  ```
+  # /home/user/ansible_roles
+  - geerlingguy.mysql, 3.4.0
+  - geerlingguy.nginx, 2.8.0
+  ```
+
+- **Check Role Paths**:
+  ```bash
+  ansible-config dump | grep ROLES
+  ```
+
+- **Remove Roles**:
+  ```bash
+  ansible-galaxy remove geerlingguy.mysql
+  ```
+
+- **Update Roles**:
+  ```bash
+  ansible-galaxy install -r requirements.yml --force
+  ```
+
+## Troubleshooting
+1. **Role Not Found**:
+   - Verify the role exists in the search path (`./roles`, `roles_path`).
+   - Check spelling in the playbook or `requirements.yml`.
+2. **Dependency Issues**:
+   - Ensure dependent roles are installed (`ansible-galaxy install -r requirements.yml`).
+   - Check `meta/main.yml` for correct dependency declarations.
+3. **Variable Precedence**:
+   - Understand that `vars/main.yml` has higher precedence than `defaults/main.yml`.
+   - Use `ansible-playbook -e` for overrides if needed.
+4. **Task Failures**:
+   - Run playbooks with `-v` for verbose output:
+     ```bash
+     ansible-playbook playbook.yml -v
+     ```
+   - Use `ansible-lint` to validate roles:
+     ```bash
+     ansible-lint roles/mysql_role
+     ```
+5. **Testing Failures**:
+   - If Molecule tests fail, check Docker or Vagrant setup.
+   - Ensure test playbooks in `tests/` are correct.
+
+## Benefits Summary
+1. **Efficiency**: Reuse roles across projects, reducing development time.
+2. **Consistency**: Standardize deployments for predictable, repeatable results.
+3. **Collaboration**: Leverage Ansible Galaxy’s 30,000+ roles or share your own.
+4. **Maintainability**: Update roles independently without modifying playbooks.
+5. **Scalability**: Manage complex, multi-tier architectures with modular roles.
+6. **Extensibility**: Combine roles with custom modules or plugins for advanced automation.
+
+> "Ansible roles are the building blocks of infrastructure-as-code, enabling modular, scalable, and collaborative automation workflows."
+
+## Next Steps
+1. Explore Ansible Galaxy ([galaxy.ansible.com](https://galaxy.ansible.com)) to discover roles for common services.
+2. Create a custom role for a service (e.g., PostgreSQL) and test it with Molecule.
+3. Practice combining roles in a multi-tier playbook (e.g., web + database + cache).
+4. Learn about Ansible Vault for securing sensitive role variables.
+5. Refer to the [Ansible Roles Documentation](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) for advanced techniques.
+
+
+
+
+# Deploying an E-commerce Application with Ansible 
+
+## Project Overview
+This project automates the deployment of a **fictional e-commerce website** that sells electronic devices, built as a **LAMP stack application**. The application is designed to demonstrate infrastructure automation using Ansible, focusing on configuring servers rather than developing the application code. The LAMP stack consists of:
+- **L**inux: CentOS 7 or 8 as the operating system.
+- **A**pache: HTTPD web server to serve the application.
+- **M**ariaDB: A MySQL-compatible database for storing product inventory.
+- **P**HP: The programming language for the application’s frontend and backend logic.
+
+### Key Characteristics
+- **MariaDB Backend**: Uses MariaDB for its performance and compatibility with MySQL.
+- **Single-Page Application**: A PHP-based `index.php` displays the product catalog, connected to a database.
+- **Flexible Deployment**: Supports both single-node (all components on one server) and multi-node (separate database and web servers) architectures.
+- **Automation Focus**: Emphasizes Ansible-driven infrastructure setup, including package installation, service configuration, and application deployment.
+- **Security**: Incorporates best practices like encrypted credentials and SELinux configuration.
+
+**Repository**: The application code is hosted in a Git repository (e.g., `https://github.com/your_user/ecommerce-app`), with a `README.md` detailing manual setup steps that we’ll automate with Ansible.
+
+## Deployment Architecture
+
+### Single-Node Deployment
+In a single-node setup, all components run on one CentOS server, suitable for small-scale testing or development.
+
+```mermaid
+graph TD
+  A[CentOS Server] --> B[Firewalld: Ports 80, 3306]
+  A --> C[MariaDB: ecomdb]
+  A --> D[Apache HTTPD: Port 80]
+  A --> E[PHP: index.php]
+  A --> F[Application Code: /var/www/html]
+  Client[End Users] -->|HTTP:80| A
+```
+
+### Multi-Node Deployment
+For production-like scenarios, the deployment splits components across two CentOS servers:
+- **Database Node**: `192.168.64.137` (MariaDB).
+- **Web Node**: `192.168.64.136` (Apache, PHP, application code).
+
+```mermaid
+graph TD
+  DB[Database Node: 192.168.64.137] -->|Port 3306| Web[Web Node: 192.168.64.136]
+  Web -->|Port 80| Client[End Users]
+  DB --> C[MariaDB: ecomdb]
+  Web --> D[Apache HTTPD]
+  Web --> E[PHP]
+  Web --> F[Application Code: /var/www/html]
+```
+
+## Step-by-Step Manual Deployment (Reference)
+The manual setup steps provide a foundation for Ansible automation, addressing the **"2002: Permission denied"** error in the multi-node setup caused by database access issues.
+
+### 1. System Preparation (Both Nodes)
+- **OS**: CentOS 7 or 8.
+- **Firewall Setup**:
+  ```bash
+  sudo yum install -y firewalld
+  sudo systemctl start firewalld
+  sudo systemctl enable firewalld
+  ```
+
+### 2. Database Configuration (192.168.64.137)
+1. **Install MariaDB**:
+   ```bash
+   sudo yum install -y mariadb-server
+   ```
+2. **Configure MariaDB**:
+   - Edit `/etc/my.cnf.d/server.cnf` to allow remote connections:
+     ```ini
+     [mysqld]
+     bind-address = 0.0.0.0
+     ```
+3. **Start Service**:
+   ```bash
+   sudo systemctl start mariadb
+   sudo systemctl enable mariadb
+   ```
+4. **Firewall Rules**:
+   ```bash
+   sudo firewall-cmd --permanent --add-port=3306/tcp
+   sudo firewall-cmd --reload
+   ```
+5. **Database Setup**:
+   ```sql
+   CREATE DATABASE ecomdb;
+   CREATE USER 'ecomuser'@'192.168.64.136' IDENTIFIED BY 'ecompassword';
+   GRANT ALL PRIVILEGES ON ecomdb.* TO 'ecomuser'@'192.168.64.136';
+   FLUSH PRIVILEGES;
+   ```
+6. **Load Inventory Data**:
+   - Download `db-load-script.sql` from the repository.
+   ```bash
+   sudo mysql -u root ecomdb < db-load-script.sql
+   ```
+
+### 3. Web Server Configuration (192.168.64.136)
+1. **Install Packages**:
+   ```bash
+   sudo yum install -y httpd php php-mysql
+   ```
+2. **Firewall Rules**:
+   ```bash
+   sudo firewall-cmd --permanent --add-port=80/tcp
+   sudo firewall-cmd --reload
+   ```
+3. **Configure Apache**:
+   - Edit `/etc/httpd/conf/httpd.conf` to set `index.php` as default:
+     ```ini
+     DirectoryIndex index.php index.html
+     ```
+4. **Start Service**:
+   ```bash
+   sudo systemctl start httpd
+   sudo systemctl enable httpd
+   ```
+5. **Fix SELinux for Database Connections**:
+   ```bash
+   sudo setsebool -P httpd_can_network_connect_db 1
+   ```
+
+### 4. Application Deployment (192.168.64.136)
+1. **Install Git**:
+   ```bash
+   sudo yum install -y git
+   ```
+2. **Download Code**:
+   ```bash
+   git clone https://github.com/your_user/ecommerce-app.git
+   sudo cp -r ecommerce-app/* /var/www/html/
+   ```
+3. **Configure Database Connection**:
+   - Edit `/var/www/html/.env`:
+     ```ini
+     DB_HOST=192.168.64.137
+     DB_USER=ecomuser
+     DB_PASSWORD=ecompassword
+     DB_NAME=ecomdb
+     ```
+4. **Set Permissions**:
+   ```bash
+   sudo chown -R apache:apache /var/www/html
+   sudo chmod -R 755 /var/www/html
+   ```
+
+### 5. Validation
+- **Test Web Access**:
+  ```bash
+  curl http://192.168.64.136
+  ```
+- **Test Database Connectivity**:
+  ```bash
+  mysql -u ecomuser -p -h 192.168.64.137 ecomdb
+  ```
+- **Test PHP Connection**:
+  Create `/var/www/html/test_db.php`:
+  ```php
+  <?php
+  $link = mysqli_connect('192.168.64.137', 'ecomuser', 'ecompassword', 'ecomdb');
+  echo $link ? "Connected!" : "Error: " . mysqli_connect_error();
+  ?>
+  ```
+  Access: `http://192.168.64.136/test_db.php`
+
+## Ansible Automation Strategy
+To automate this deployment, we’ll use Ansible roles to modularize tasks for the database node, web node, and firewall configuration. The strategy addresses the **"2002: Permission denied"** error by ensuring proper database user permissions, firewall rules, and SELinux settings.
+
+### Ansible Project Structure
+```
+ecommerce_deployment/
+├── roles/
+│   ├── common/
+│   │   ├── tasks/main.yml
+│   │   ├── defaults/main.yml
+│   ├── database/
+│   │   ├── tasks/main.yml
+│   │   ├── templates/server.cnf.j2
+│   │   ├── files/db-load-script.sql
+│   │   ├── vars/secrets.yml
+│   ├── web/
+│   │   ├── tasks/main.yml
+│   │   ├── templates/httpd.conf.j2
+│   │   ├── templates/.env.j2
+│   ├── firewall/
+│   │   ├── tasks/main.yml
+├── inventory.yml
+├── requirements.yml
+├── site.yml
+```
+
+### Inventory File (`inventory.yml`)
+```yaml
+---
+all:
+  vars:
+    ansible_user: ansibleadmin
+    ansible_ssh_private_key_file: ~/.ssh/ansible_key
+    ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+  children:
+    db_servers:
+      hosts:
+        db_node:
+          ansible_host: 192.168.64.137
+    web_servers:
+      hosts:
+        web_node:
+          ansible_host: 192.168.64.136
+```
+
+### Variables
+- **Common Variables** (`roles/common/defaults/main.yml`):
+  ```yaml
+  firewall_package: firewalld
+  ```
+- **Database Variables** (`roles/database/defaults/main.yml`):
+  ```yaml
+  db_package: mariadb-server
+  db_service: mariadb
+  db_port: 3306
+  db_bind_address: 0.0.0.0
+  db_name: ecomdb
+  db_user: ecomuser
+  db_password: "{{ vault_db_password }}"
+  db_load_script: db-load-script.sql
+  web_server_ip: 192.168.64.136
+  ```
+- **Web Variables** (`roles/web/defaults/main.yml`):
+  ```yaml
+  httpd_package: httpd
+  php_packages:
+    - php
+    - php-mysql
+  httpd_service: httpd
+  httpd_port: 80
+  app_repo: https://github.com/your_user/ecommerce-app.git
+  app_dir: /var/www/html
+  db_host: 192.168.64.137
+  db_user: ecomuser
+  db_password: "{{ vault_db_password }}"
+  db_name: ecomdb
+  ```
+- **Encrypted Secrets** (`roles/database/vars/secrets.yml`):
+  ```yaml
+  vault_db_password: ecompassword
+  ```
+
+**Encrypt Secrets**:
+```bash
+ansible-vault create roles/database/vars/secrets.yml
+```
+
+### Roles
+
+#### Common Role (`roles/common/tasks/main.yml`)
+Installs and configures `firewalld` on all nodes.
+```yaml
+- name: Install firewalld
+  ansible.builtin.yum:
+    name: "{{ firewall_package }}"
+    state: present
+  become: true
+
+- name: Start and enable firewalld
+  ansible.builtin.service:
+    name: "{{ firewall_package }}"
+    state: started
+    enabled: true
+  become: true
+```
+
+#### Database Role (`roles/database/tasks/main.yml`)
+Configures MariaDB on the database node, addressing remote access for the web node.
+```yaml
+- name: Install MariaDB dependencies
+  ansible.builtin.yum:
+    name:
+      - "{{ db_package }}"
+      - python3-PyMySQL
+    state: present
+  become: true
+
+- name: Start and enable MariaDB
+  ansible.builtin.service:
+    name: "{{ db_service }}"
+    state: started
+    enabled: true
+  become: true
+
+- name: Deploy MariaDB configuration
+  ansible.builtin.template:
+    src: server.cnf.j2
+    dest: /etc/my.cnf.d/server.cnf
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart MariaDB
+
+- name: Open firewall port for MariaDB
+  ansible.builtin.firewalld:
+    port: "{{ db_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  become: true
+
+- name: Create e-commerce database
+  ansible.builtin.mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_user: root
+    login_password: ""
+  become: true
+
+- name: Create database user with remote access
+  ansible.builtin.mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    host: "{{ web_server_ip }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_user: root
+    login_password: ""
+  become: true
+
+- name: Copy database load script
+  ansible.builtin.copy:
+    src: "{{ db_load_script }}"
+    dest: /tmp/{{ db_load_script }}
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Load database inventory
+  ansible.builtin.shell: mysql -u root {{ db_name }} < /tmp/{{ db_load_script }}
+  become: true
+  changed_when
