@@ -1862,27 +1862,55 @@ There are two main types of authentication in SSH:
 
 ### **Generating SSH Key Pair**
 
-- To generate a key pair, use the `ssh-keygen` command:
 
-   ```bash
-   ssh-keygen
-   ```
+#### Basic Command
+```bash
+ssh-keygen
+```
+This command generates a pair of cryptographic keys (private and public) and saves them in your `~/.ssh/` directory:
+- **Private key**: `~/.ssh/id_rsa` (keep this secure and never share it)
+- **Public key**: `~/.ssh/id_rsa.pub` (can be shared freely)
 
-   - The keys are saved in your `~/.ssh/` directory:
-     - **Private key**: `~/.ssh/id_rsa`
-     - **Public key**: `~/.ssh/id_rsa.pub`
+#### Recommended Modern Method (Ed25519)
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+- `-t ed25519`: Specifies the Ed25519 algorithm (more secure and faster than RSA)
+- `-C`: Adds a comment (typically your email) to help identify the key
 
-   **File Permissions**:
-   - The private key must have permissions set to `600`:
-     
-     ```bash
-     chmod 600 ~/.ssh/id_rsa
-     ```
-   - The public key should have permissions `644`:
+#### Legacy Systems (RSA Fallback)
+For older systems that don't support Ed25519:
+```bash
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+```
+- `-t rsa`: Uses the RSA algorithm
+- `-b 4096`: Creates a 4096-bit key (more secure than default 2048-bit)
 
-     ```bash
-     chmod 644 ~/.ssh/id_rsa.pub
-     ```
+#### Key Files
+- Default private key: `~/.ssh/id_rsa`
+- Default public key: `~/.ssh/id_rsa.pub`
+- Ed25519 private key: `~/.ssh/id_ed25519`
+- Ed25519 public key: `~/.ssh/id_ed25519.pub`
+
+#### File Permissions
+**Critical Security Note**: Proper file permissions are essential for SSH key security.
+
+- The private key must have strict permissions set to `600` (read/write for owner only):
+  ```bash
+  chmod 600 ~/.ssh/id_rsa
+  chmod 600 ~/.ssh/id_ed25519
+  ```
+
+- The public key should have permissions set to `644` (readable by others):
+  ```bash
+  chmod 644 ~/.ssh/id_rsa.pub
+  chmod 644 ~/.ssh/id_ed25519.pub
+  ```
+
+- The `.ssh` directory itself should have permissions set to `700`:
+  ```bash
+  chmod 700 ~/.ssh
+  ```
 
 ---
 
@@ -1961,7 +1989,7 @@ RHEL’s logging system captures system events, errors, and activities to aid in
 
 - **systemd-journald**:
   - **Role**: Collects logs from the Linux kernel, system services, and applications in a structured, binary format. This format includes metadata like timestamps, process IDs (`_PID`), and systemd unit names (`_SYSTEMD_UNIT`).
-  - **Storage**: By default, logs are stored in `/run/log/journal/`, a volatile location cleared on reboot. Persistent storage in `/var/log/journal/` can be enabled (see Section 2).
+  - **Storage**: By default, logs are stored in `/run/log/journal/`, a volatile location cleared on reboot. Persistent storage in `/var/log/journal/` can be enabled (We will talk about it right).
   - **Interaction**: Forwards logs to `rsyslog` for text-based logging and supports direct querying via `journalctl`.
   - **Example**: A kernel panic message is captured by journald and can be viewed with `journalctl -k`.
 
