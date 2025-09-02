@@ -334,17 +334,6 @@ This section details how to clone your template VM to create dedicated machines 
 
 By following the steps in this guide, you will have a fully functional Ansible lab environment consisting of a controller and one or more target machines. This setup allows you to practice configuration management and automation with Ansible in a flexible, virtualized lab setting. Happy automating!
 
-
-
-
-
----
-
-Below is a simplified explanation of the two primary methods for running Ansible, presented in Markdown:
----
-
-Below is an in‐depth explanation for configuring Ansible inventories and testing connectivity. This version incorporates most of the details from the original translation file without leaving out key concepts. It’s written in Markdown and includes detailed examples in both INI and YAML formats, along with connectivity testing examples.
-
 ---
 
 # Configuring Inventory in Ansible and Testing Connectivity
@@ -380,6 +369,7 @@ The inventory file tells Ansible which hosts to manage and contains additional d
   - `ansible_port`: The SSH port (default is 22).
   - `ansible_connection`: Determines the connection type (e.g., `ssh` for Linux or `winrm` for Windows).
   - `ansible_ssh_pass`: (Not recommended in plain text) Specifies the SSH password if not using key-based authentication.
+  - `ansible_python_interpreter`: 
 
 ---
 
@@ -575,10 +565,9 @@ In a demo scenario, you might manually SSH into one host (target1) and accept it
 
 This detailed explanation covers the essentials of configuring your Ansible inventory—from both INI and YAML perspectives—to testing connectivity with the built-in ping module. By including detailed connection parameters, grouping techniques (including metagroups), and methods for troubleshooting (such as handling host key verification), you now have a robust framework for managing and automating your infrastructure with Ansible.
 
-For more comprehensive information, please refer to the [Ansible Inventory Guide](https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html) citeturn0search10.
+For more comprehensive information, please refer to the [Ansible Inventory Guide](https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html).
 
 
----
 
 ---
 # Running Ansible: Two Approaches
