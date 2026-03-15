@@ -1764,7 +1764,6 @@ Shrinking reduces the size of an LV, but it's riskier than extending and can lea
 
 ---
 
-# CH08: Implementing Advanced Storage Features
 # CH08: Implementing Advanced Storage Features in Linux
 
 ## Goal

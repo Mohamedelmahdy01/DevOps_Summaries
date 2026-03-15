@@ -536,6 +536,60 @@ In a demo scenario, you might manually SSH into one host (target1) and accept it
    host_key_checking = False
    ```
 
+### C. Secure Host Key Management (Recommended)
+
+Disabling host key checking is not secure and should be avoided in real environments.  
+A better and more secure approach is to **preload SSH host keys** into the control node’s `known_hosts` file before running Ansible.
+
+#### Using ssh-keyscan (Best Practice)
+
+From the Ansible control node, run:
+
+```bash
+ssh-keyscan target2 >> ~/.ssh/known_hosts
+````
+
+Or for multiple hosts:
+
+```bash
+ssh-keyscan target1 target2 target3 >> ~/.ssh/known_hosts
+```
+
+This approach:
+
+* Automatically collects SSH fingerprints
+* Keeps host key checking enabled
+* Works seamlessly with Ansible
+* Is safe for production environments
+
+After adding the host keys, rerun the ping test:
+
+```bash
+ansible-playbook -i inventory.ini ping_test.yml
+```
+
+---
+
+### D. Automated Host Key Management (Advanced / Production)
+
+In larger environments, host key management can be automated as part of the infrastructure setup.
+
+In this approach:
+
+* SSH host keys are collected automatically
+* The `known_hosts` file is managed centrally
+* New hosts can be added without manual SSH access
+
+This method is commonly used in:
+
+* Production environments
+* CI/CD pipelines
+* Large-scale infrastructure managed by DevOps teams
+
+> **Best Practice:**
+> Never disable SSH host key checking in production.
+> Always preload or automate host key verification.
+
 ---
 
 ## 5. Best Practices and Additional Tips
