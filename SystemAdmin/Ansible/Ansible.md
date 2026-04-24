@@ -453,8 +453,8 @@ all:
 ```
 
 **Explanation:**
-- Under `all`, two hosts are defined with their connection details.
-- The `children` section groups `server1` as a webserver and `server2` as a database host.
+- Under `all`, three hosts are defined with their connection details.
+- The `children` section groups `slave1` and `slave2` as a webserver and `slave3` as a database host.
 
 You can add variables at the group level too:
 
